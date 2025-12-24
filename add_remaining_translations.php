@@ -1,0 +1,44 @@
+<?php
+require_once 'app/Config/database.php';
+global $pdo;
+
+// Additional Khmer translations for fallback features and other hardcoded text
+$additionalTranslations = [
+    // Features page fallback content
+    ['feature_organic_title', '100% សរីរាង្គ', 'text', 'features', 'ចំណងជើងលក្ខណៈសរីរាង្គ'],
+    ['feature_organic_desc', 'យើងប្រមូលគ្រាប់ពីចំការដែលមានវិញ្ញាបនបត្រសរីរាង្គ។', 'text', 'features', 'ការពិពណ៌នាលក្ខណៈសរីរាង្គ'],
+    ['feature_low_acid_title', 'ជម្រើសទាបកម្ម៉ាស៊ីត', 'text', 'features', 'ចំណងជើងលក្ខណៈទាបកម្ម៉ាស៊ីត'],
+    ['feature_low_acid_desc', 'ដុតសម្រាប់ក្រពះរសើប។', 'text', 'features', 'ការពិពណ៌នាលក្ខណៈទាបកម្ម៉ាស៊ីត'],
+    ['feature_sustainable_title', 'ការវេចខ្ចប់ប្រកបដោយចីរភាព', 'text', 'features', 'ចំណងជើងលក្ខណៈចីរភាព'],
+    ['feature_sustainable_desc', 'សម្ភារៈមិត្តភាពបរិស្ថាន និងកាត់បន្ថយសំរាមអប្បបរមា។', 'text', 'features', 'ការពិពណ៌នាលក្ខណៈចីរភាព'],
+    ['feature_small_batch_title', 'ដុតតូចចំនួន', 'text', 'features', 'ចំណងជើងលក្ខណៈដុតតូច'],
+    ['feature_small_batch_desc', 'ដុតដែលត្រូវគ្រប់គ្រងសម្រាប់ភាពស៊ីសង់នៃរសជាតិ។', 'text', 'features', 'ការពិពណ៌នាលក្ខណៈដុតតូច'],
+    ['feature_direct_trade_title', 'ពាណិជ្ជកម្មដោយផ្ទាល់', 'text', 'features', 'ចំណងជើងលក្ខណៈពាណិជ្ជកម្មផ្ទាល់'],
+    ['feature_direct_trade_desc', 'យើងបង់តម្លៃយុត្តិធម៌ដោយផ្ទាល់ទៅកសិករ។', 'text', 'features', 'ការពិពណ៌នាលក្ខណៈពាណិជ្ជកម្មផ្ទាល់'],
+    ['feature_flavor_title', 'ពូជរសជាតិ', 'text', 'features', 'ចំណងជើងលក្ខណៈរសជាតិ'],
+    ['feature_flavor_desc', 'ពីកំណត់ព្រៃទៅកូឡាតេ រុករកជួររបស់យើង។', 'text', 'features', 'ការពិពណ៌នាលក្ខណៈរីសជាតិ'],
+
+    // About page additional translations
+    ['about_purpose_title', 'គោលបំណងរបស់យើង', 'text', 'about', 'ចំណងជើងគោលបំណង'],
+    ['about_purpose_content', 'នៅ KouPrey យើងធ្វើអ្វីៗខុសពីគេ — ដោយមានគោលបំណង។ គោលដៅរបស់យើងសាមញ្ញ៖ ធ្វើឱ្យកាហ្វេសរីរាង្គ មានសុខភាព និងឆ្ងាញ់អាចរកបានសម្រាប់មនុស្សជាច្រើនតាមដែលអាចធ្វើទៅបាន។ យើងប្តេជ្ញាចិត្តផ្តល់កាហ្វេដែលល្អជាងសម្រាប់អ្នក សហគមន៍ និងភពផែនដីរបស់យើង។', 'textarea', 'about', 'មាតិកាគោលបំណង'],
+    ['about_story_title', 'រឿងរបស់យើង', 'text', 'about', 'ចំណងជើងរឿង'],
+    ['about_story_content', 'យើងចាប់ផ្តើមដោយស្រឡាញ់កាហ្វេស្អាត និងបំណងចង់ចែករំលែកវា។ ក្នុងរយៈពេលជាច្រើនឆ្នាំ យើងបានសហការជាមួយអ្នកផ្តល់ បង្កើតការដុតរបស់យើង និងពង្រីកជួររបស់យើង — ទាំងអស់នេះខណៈពេលដែលរក្សាគុណភាព និងចីរភាពនៅខ្លឹមសារនៃអ្វីៗទាំងអស់ដែលយើងធ្វើ។', 'textarea', 'about', 'មាតិការឿង'],
+
+    // Reviews page additional translations
+    ['reviews_description', 'អានពីរបៀបដែលអតិថិជនចូលចិត្តកាហ្វេរបស់យើង។', 'textarea', 'reviews', 'ការពិពណ៌នាផ្នែកពិនិត្យ'],
+];
+
+try {
+    $stmt = $pdo->prepare('INSERT INTO settings (setting_key, setting_value, setting_type, category, language, description) VALUES (?, ?, ?, ?, "km", ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+
+    foreach ($additionalTranslations as $setting) {
+        $stmt->execute($setting);
+        echo "Inserted/Updated: {$setting[0]} = {$setting[1]}\n";
+    }
+
+    echo "\nAdditional Khmer translations added successfully!\n";
+
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+?>

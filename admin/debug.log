@@ -1,0 +1,3603 @@
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"Daily enjoyment:":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!"}
+    [edit_detailed_description] => 
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] Received custom_fields_data: {"Daily enjoyment:":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!"}
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [Daily enjoyment:] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+)
+
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] Custom fields to save: {"Daily enjoyment:":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!"}
+[22-Dec-2025 16:35:46 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"Daily enjoyment:":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!"}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] Received custom_fields_data: {"Daily enjoyment:":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!"}
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [Daily enjoyment:] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+)
+
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] Custom fields to save: {"Daily enjoyment:":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!"}
+[22-Dec-2025 16:36:06 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 16:42:30 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:42:30 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"ការប្រើប្រាស់ប្រចាំថ្ងៃ":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:42:30 Asia/Phnom_Penh] Received custom_fields_data: {"ការប្រើប្រាស់ប្រចាំថ្ងៃ":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}
+[22-Dec-2025 16:42:30 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [ការប្រើប្រាស់ប្រចាំថ្ងៃ] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+)
+
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766396933153_0":{"name":{"en":"Daily enjoyment","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766396933153_0":{"name":{"en":"Daily enjoyment","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766396933153_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment
+                    [km] => ការប្រើប្រាស់ប្រចាំថ្ងៃ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] Custom fields to save: {"field_1766396933153_0":{"name":{"en":"Daily enjoyment","km":"\u1780\u17b6\u179a\u1794\u17d2\u179a\u17be\u1794\u17d2\u179a\u17b6\u179f\u17cb\u1794\u17d2\u179a\u1785\u17b6\u17c6\u1790\u17d2\u1784\u17c3"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"\u1794\u1793\u17d2\u1790\u17c2\u1798 matcha \u1791\u17c5\u1780\u17b6\u179a\u17c9\u17c1\u1798 \u1791\u17b9\u1780\u1780\u17d2\u179a\u17a1\u17bb\u1780 \u1785\u17b6\u1793\u1791\u17b9\u1780\u178a\u17c4\u17c7\u1782\u17c4\u1787\u17bc\u179a \u1793\u17b7\u1784\u1793\u17c6\u178a\u17bb\u178f\u1793\u17c6\u178f\u17d2\u179a\u1787\u17b6\u1780\u17cb \u178a\u17be\u1798\u17d2\u1794\u17b8\u1791\u1791\u17bd\u179b\u1794\u17b6\u1793\u1793\u17bc\u179c\u1794\u1791\u1796\u17b7\u179f\u17c4\u1792\u1793\u17cd\u178a\u17cf\u179a\u17b8\u1780\u179a\u17b6\u1799\u1793\u17c1\u17c7\u1799\u17c9\u17b6\u1784\u1796\u17c1\u1789\u179b\u17c1\u1789!"}}}
+[22-Dec-2025 16:48:53 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 16:50:00 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:50:00 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [edit_name] => មាឆា
+    [edit_price] => 10.00
+    [edit_description] => ខ្មែរ
+    [edit_category_id] => 6
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[22-Dec-2025 16:50:00 Asia/Phnom_Penh] Received custom_fields_data: {}
+[22-Dec-2025 16:50:00 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[22-Dec-2025 16:50:52 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:50:52 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [edit_name] => MATCHA
+    [edit_price] => 10.00
+    [edit_description] => Description of product 1
+    [edit_image_url] => 
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[22-Dec-2025 16:50:52 Asia/Phnom_Penh] Received custom_fields_data: {}
+[22-Dec-2025 16:50:52 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766397105130_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766397105130_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766397105130_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => ការប្រើប្រាស់ប្រចាំថ្ងៃ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Custom fields to save: {"field_1766397105130_0":{"name":{"en":"Daily enjoyment:","km":"\u1780\u17b6\u179a\u1794\u17d2\u179a\u17be\u1794\u17d2\u179a\u17b6\u179f\u17cb\u1794\u17d2\u179a\u1785\u17b6\u17c6\u1790\u17d2\u1784\u17c3"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"\u1794\u1793\u17d2\u1790\u17c2\u1798 matcha \u1791\u17c5\u1780\u17b6\u179a\u17c9\u17c1\u1798 \u1791\u17b9\u1780\u1780\u17d2\u179a\u17a1\u17bb\u1780 \u1785\u17b6\u1793\u1791\u17b9\u1780\u178a\u17c4\u17c7\u1782\u17c4\u1787\u17bc\u179a \u1793\u17b7\u1784\u1793\u17c6\u178a\u17bb\u178f\u1793\u17c6\u178f\u17d2\u179a\u1787\u17b6\u1780\u17cb \u178a\u17be\u1798\u17d2\u1794\u17b8\u1791\u1791\u17bd\u179b\u1794\u17b6\u1793\u1793\u17bc\u179c\u1794\u1791\u1796\u17b7\u179f\u17c4\u1792\u1793\u17cd\u178a\u17cf\u179a\u17b8\u1780\u179a\u17b6\u1799\u1793\u17c1\u17c7\u1799\u17c9\u17b6\u1784\u1796\u17c1\u1789\u179b\u17c1\u1789!"}}}
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [edit_name] => MATCHA
+    [edit_price] => 10.00
+    [edit_description] => Description of product 1
+    [edit_image_url] => 
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Received custom_fields_data: {}
+[22-Dec-2025 16:51:45 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766397278048_0":{"name":{"en":"Daily enjoyment:","km":""},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":""}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766397278048_0":{"name":{"en":"Daily enjoyment:","km":""},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":""}}}
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766397278048_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => 
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => 
+                )
+
+        )
+
+)
+
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] Custom fields to save: {"field_1766397278048_0":{"name":{"en":"Daily enjoyment:","km":""},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":""}}}
+[22-Dec-2025 16:54:38 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766397306297_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766397306297_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766397306297_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => ការប្រើប្រាស់ប្រចាំថ្ងៃ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] Custom fields to save: {"field_1766397306297_0":{"name":{"en":"Daily enjoyment:","km":"\u1780\u17b6\u179a\u1794\u17d2\u179a\u17be\u1794\u17d2\u179a\u17b6\u179f\u17cb\u1794\u17d2\u179a\u1785\u17b6\u17c6\u1790\u17d2\u1784\u17c3"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"\u1794\u1793\u17d2\u1790\u17c2\u1798 matcha \u1791\u17c5\u1780\u17b6\u179a\u17c9\u17c1\u1798 \u1791\u17b9\u1780\u1780\u17d2\u179a\u17a1\u17bb\u1780 \u1785\u17b6\u1793\u1791\u17b9\u1780\u178a\u17c4\u17c7\u1782\u17c4\u1787\u17bc\u179a \u1793\u17b7\u1784\u1793\u17c6\u178a\u17bb\u178f\u1793\u17c6\u178f\u17d2\u179a\u1787\u17b6\u1780\u17cb \u178a\u17be\u1798\u17d2\u1794\u17b8\u1791\u1791\u17bd\u179b\u1794\u17b6\u1793\u1793\u17bc\u179c\u1794\u1791\u1796\u17b7\u179f\u17c4\u1792\u1793\u17cd\u178a\u17cf\u179a\u17b8\u1780\u179a\u17b6\u1799\u1793\u17c1\u17c7\u1799\u17c9\u17b6\u1784\u1796\u17c1\u1789\u179b\u17c1\u1789!"}}}
+[22-Dec-2025 16:55:06 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766397476361_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => 
+    [edit_weight] => 250g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766397476361_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766397476361_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => ការប្រើប្រាស់ប្រចាំថ្ងៃ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] Custom fields to save: {"field_1766397476361_0":{"name":{"en":"Daily enjoyment:","km":"\u1780\u17b6\u179a\u1794\u17d2\u179a\u17be\u1794\u17d2\u179a\u17b6\u179f\u17cb\u1794\u17d2\u179a\u1785\u17b6\u17c6\u1790\u17d2\u1784\u17c3"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"\u1794\u1793\u17d2\u1790\u17c2\u1798 matcha \u1791\u17c5\u1780\u17b6\u179a\u17c9\u17c1\u1798 \u1791\u17b9\u1780\u1780\u17d2\u179a\u17a1\u17bb\u1780 \u1785\u17b6\u1793\u1791\u17b9\u1780\u178a\u17c4\u17c7\u1782\u17c4\u1787\u17bc\u179a \u1793\u17b7\u1784\u1793\u17c6\u178a\u17bb\u178f\u1793\u17c6\u178f\u17d2\u179a\u1787\u17b6\u1780\u17cb \u178a\u17be\u1798\u17d2\u1794\u17b8\u1791\u1791\u17bd\u179b\u1794\u17b6\u1793\u1793\u17bc\u179c\u1794\u1791\u1796\u17b7\u179f\u17c4\u1792\u1793\u17cd\u178a\u17cf\u179a\u17b8\u1780\u179a\u17b6\u1799\u1793\u17c1\u17c7\u1799\u17c9\u17b6\u1784\u1796\u17c1\u1789\u179b\u17c1\u1789!"}}}
+[22-Dec-2025 16:57:56 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766397617399_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => Cambodia
+    [edit_weight] => 250g
+    [edit_roast_level] => Light
+    [edit_tasting_notes] => Drik
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766397617399_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766397617399_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => ការប្រើប្រាស់ប្រចាំថ្ងៃ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] Custom fields to save: {"field_1766397617399_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 17:00:17 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766397656847_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => Cambodia
+    [edit_weight] => 250g
+    [edit_roast_level] => Light
+    [edit_tasting_notes] => Drik
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [update_product] => 1
+)
+
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766397656847_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766397656847_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => ការប្រើប្រាស់ប្រចាំថ្ងៃ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] Updating detailed fields for product ID: 1
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] Custom fields to save: {"field_1766397656847_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 17:00:56 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {}
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => ខ្មែរ
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 1
+)
+
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] Received custom_fields_data: {}
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] Updating detailed fields for product ID: 20
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] Custom fields to save: []
+[22-Dec-2025 17:07:03 Asia/Phnom_Penh] Database update result: success
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] Update product request received
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data] => {"field_1766398074383_0":{"name":{"en":"Daily enjoyment:","km":"ខ្មែរ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => ខ្មែរ
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 1
+)
+
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] Received custom_fields_data: {"field_1766398074383_0":{"name":{"en":"Daily enjoyment:","km":"ខ្មែរ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+    [field_1766398074383_0] => Array
+        (
+            [name] => Array
+                (
+                    [en] => Daily enjoyment:
+                    [km] => ខ្មែរ
+                )
+
+            [value] => Array
+                (
+                    [en] => Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!
+                    [km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+                )
+
+        )
+
+)
+
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] Updating detailed fields for product ID: 20
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] Custom fields to save: {"field_1766398074383_0":{"name":{"en":"Daily enjoyment:","km":"ខ្មែរ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+[22-Dec-2025 17:07:54 Asia/Phnom_Penh] Database update result: success
+[23-Dec-2025 09:24:01 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:24:01 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [edit_name] => Bos Sauveli Matcha D3 100G*30
+    [edit_price] => 6
+    [edit_description] => Description of product 1
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_detailed_description] => test
+    [edit_ingredients] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin] => Cambodia
+    [edit_weight] => 250g
+    [edit_roast_level] => Light
+    [edit_tasting_notes] => Drik
+    [edit_brewing_instructions] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:24:01 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:24:01 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:25:00 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:25:00 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 3
+    [edit_name] => Bos Sauveli Cream Cheese Powder 1kg*12
+    [edit_price] => 7.5
+    [edit_description] => A regular coffee product
+    [edit_category_id] => 2
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 1kg
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:25:00 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:25:00 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:25:53 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:25:53 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 14
+    [edit_name] => Powder Non Dairy Cream Flavor 1kg*20
+    [edit_price] => 3.80
+    [edit_description] => test
+    [edit_category_id] => 2
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:25:53 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:25:53 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:26:36 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:26:36 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 18
+    [edit_name] => Bos Sauveli Powder Matcha 3in1 500g *16
+    [edit_price] => 4.50
+    [edit_description] => test
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:26:36 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:26:36 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:27:14 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:27:14 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 5
+    [edit_name] => Bos Sauveli Powder Milk Tea 1kg*20
+    [edit_price] => 3.50
+    [edit_description] => tst
+    [edit_category_id] => 3
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:27:14 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:27:14 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:27:46 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:27:46 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 16
+    [edit_name] => Bos Sauveli Fruit Honey Syrup 2.8kg*6
+    [edit_price] => 6.70
+    [edit_description] => test
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:27:46 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:27:46 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:28:24 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:28:24 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 17
+    [edit_name] => Bos sauveli High Fructose Syrup 2.5kg*8
+    [edit_price] => 4.50
+    [edit_description] => test
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:28:24 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:28:24 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:29:19 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:29:19 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 15
+    [edit_name] => Bos sauveli Brown Sugar Syrup 2.35kg*8
+    [edit_price] => 5.50
+    [edit_description] => test
+    [edit_category_id] => 1
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:29:19 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:29:19 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:30:37 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:30:37 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [edit_name] => Powder Matcha 5A 100℅ *30
+    [edit_price] => 6.50
+    [edit_description] => test
+    [edit_category_id] => 1
+    [edit_image_url] => 
+    [edit_detailed_description] => 
+    [edit_ingredients] => 
+    [edit_origin] => 
+    [edit_weight] => 500g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:30:37 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:30:37 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:31:25 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:31:25 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 6
+    [edit_name] => Bos Sauveli Powder Taro 1kg*20
+    [edit_price] => 3.50
+    [edit_description] => test
+    [edit_category_id] => 5
+    [edit_image_url] => 
+    [edit_detailed_description] => testing
+    [edit_ingredients] => 100%
+    [edit_origin] => Cambodia
+    [edit_weight] => 10
+    [edit_roast_level] => Dark
+    [edit_tasting_notes] => Drik
+    [edit_brewing_instructions] => fdsfs
+dfs
+dfs
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:31:25 Asia/Phnom_Penh] Received custom_fields_data: {}
+[23-Dec-2025 09:31:25 Asia/Phnom_Penh] Decoded custom fields: Array
+(
+)
+
+[23-Dec-2025 09:41:34 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:41:34 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => មាឆា
+    [edit_description_km] => ខ្មែរ
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 02:46:17 UTC] PHP Warning:  require_once(../app/Config/database.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\kouprey\admin\products.php on line 4
+[23-Dec-2025 02:46:17 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '../app/Config/database.php' (include_path='.;C:\php\pear') in C:\xampp\htdocs\kouprey\admin\products.php:4
+Stack trace:
+#0 Command line code(1): require_once()
+#1 {main}
+  thrown in C:\xampp\htdocs\kouprey\admin\products.php on line 4
+[23-Dec-2025 09:48:11 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:48:11 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766458091453_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => មាឆា
+    [edit_description_km] => ខ្មែរ
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:53:17 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:53:17 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 16
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Fruit Honey Syrup 2.8kg*6
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ទឹកស្ករក្រូចទឹកឃ្មុំ គោព្រៃ 2.8kg*6
+    [edit_description_km] => ខ្មែរ
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.70
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:54:26 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:54:26 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 17
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos sauveli High Fructose Syrup 2.5kg*8
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ទឹកស្ករ គោព្រៃ 2.5kg*8
+    [edit_description_km] => ទឹកស្ករ គោព្រៃ
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 4.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:54:58 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:54:58 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 15
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos sauveli Brown Sugar Syrup 2.35kg*8
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ស៊ីរ៉ូ ប្រោណស៊ូហ្គ័រ គោព្រៃ 2.35kg*8
+    [edit_description_km] => ស៊ីរ៉ូ ប្រោណស៊ូហ្គ័រ គោព្រៃ 
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 5.50
+    [edit_category_id] => 1
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:55:24 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:55:24 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 5
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Powder Milk Tea 1kg*20
+    [edit_description_en] => tst
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ មៀលធីគោព្រៃ 1000ក្រាម*20
+    [edit_description_km] => ម្សៅ មៀលធីគោព្រៃ 1000ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 3.50
+    [edit_category_id] => 3
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:55:47 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:55:47 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 6
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Powder Taro 1kg*20
+    [edit_description_en] => test
+    [edit_detailed_description_en] => testing
+    [edit_ingredients_en] => 100%
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 10
+    [edit_roast_level_en] => Dark
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => fdsfs
+dfs
+dfs
+    [edit_name_km] => ម្សៅ ត្រាវ គោព្រៃ 1000ក្រាម*20
+    [edit_description_km] => ម្សៅ ត្រាវ គោព្រៃ 1000ក្រាម
+    [edit_detailed_description_km] => testing
+    [edit_ingredients_km] => 100%
+    [edit_origin_km] => Cambodia
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => Dark
+    [edit_tasting_notes_km] => Drik
+    [edit_brewing_instructions_km] => fdsfs
+dfs
+dfs
+    [edit_price] => 3.50
+    [edit_category_id] => 5
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:56:23 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:56:23 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766458583189_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g*16
+    [edit_description_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:56:46 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:56:46 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 14
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Non Dairy Cream Flavor 1kg*20
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ ដាយរីគ្រីម​ គោព្រៃ ១០០០ក្រាម *20
+    [edit_description_km] => ម្សៅ ដាយរីគ្រីម​ គោព្រៃ ១០០០ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 3.80
+    [edit_category_id] => 2
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:57:19 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:57:19 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766458639869_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:57:30 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:57:30 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A 100℅ *30
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g*16
+    [edit_description_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 1
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 09:58:26 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:58:26 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 18
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Powder Matcha 3in1 500g *16
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g*16
+    [edit_description_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 4.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 09:58:50 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 09:58:50 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A 100℅ *30
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 1
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 10:04:32 Asia/Phnom_Penh] PHP Warning:  Trying to access array offset on value of type bool in C:\xampp\htdocs\kouprey\admin\products.php on line 420
+[23-Dec-2025 10:04:32 Asia/Phnom_Penh] PHP Warning:  Trying to access array offset on value of type bool in C:\xampp\htdocs\kouprey\admin\products.php on line 427
+[23-Dec-2025 10:10:10 Asia/Phnom_Penh] Get category data request received: base_category_id=13, language=en
+[23-Dec-2025 10:10:10 Asia/Phnom_Penh] Category data found: {"id":13,"name":"Powder","description":"","image":"","language":"en","base_category_id":13,"created_at":"2025-12-23 10:08:03","updated_at":"2025-12-23 10:08:03"}
+[23-Dec-2025 10:10:10 Asia/Phnom_Penh] Get category data request received: base_category_id=13, language=km
+[23-Dec-2025 10:10:10 Asia/Phnom_Penh] Category data found: {"id":14,"name":"\u1798\u17d2\u179f\u17c5","description":"","image":"","language":"km","base_category_id":13,"created_at":"2025-12-23 10:08:03","updated_at":"2025-12-23 10:08:03"}
+[23-Dec-2025 10:12:01 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:12:01 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 3
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Cream Cheese Powder 1kg*12
+    [edit_description_en] => A regular coffee product
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 1kg
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 1kg*12
+    [edit_description_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 1kg
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 7.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 10:17:08 Asia/Phnom_Penh] Add category request received
+[23-Dec-2025 10:17:08 Asia/Phnom_Penh] All POST data: Array
+(
+    [category_name_en] => Straw
+    [category_description_en] => 
+    [category_name_km] => បំពង់បឺត
+    [category_description_km] => 
+    [category_image_url] => 
+    [add_category] => 
+)
+
+[23-Dec-2025 10:17:46 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:17:46 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 5
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Powder Milk Tea 1kg*20
+    [edit_description_en] => tst
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ មៀលធីគោព្រៃ 1000ក្រាម*20
+    [edit_description_km] => ម្សៅ មៀលធីគោព្រៃ 1000ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 3.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 10:17:58 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:17:58 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 6
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Powder Taro 1kg*20
+    [edit_description_en] => test
+    [edit_detailed_description_en] => testing
+    [edit_ingredients_en] => 100%
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 10
+    [edit_roast_level_en] => Dark
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => fdsfs
+dfs
+dfs
+    [edit_name_km] => ម្សៅ ត្រាវ គោព្រៃ 1000ក្រាម*20
+    [edit_description_km] => ម្សៅ ត្រាវ គោព្រៃ 1000ក្រាម
+    [edit_detailed_description_km] => testing
+    [edit_ingredients_km] => 100%
+    [edit_origin_km] => Cambodia
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => Dark
+    [edit_tasting_notes_km] => Drik
+    [edit_brewing_instructions_km] => fdsfs
+dfs
+dfs
+    [edit_price] => 3.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 10:18:18 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:18:18 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 14
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Non Dairy Cream Flavor 1kg*20
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ ដាយរីគ្រីម​ គោព្រៃ ១០០០ក្រាម *20
+    [edit_description_km] => ម្សៅ ដាយរីគ្រីម​ គោព្រៃ ១០០០ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 3.80
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 10:18:41 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:18:41 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 18
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Powder Matcha 3in1 500g *16
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g*16
+    [edit_description_km] => ម្សៅម៉ាត់ឆា គោព្រៃ 3in1 500g
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 4.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 10:18:57 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:18:57 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766459937860_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 10:19:08 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:19:08 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A 100℅ *30
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 10:20:38 Asia/Phnom_Penh] Add category request received
+[23-Dec-2025 10:20:38 Asia/Phnom_Penh] All POST data: Array
+(
+    [category_name_en] => Sugar juice
+    [category_description_en] => 
+    [category_name_km] => ទឹកស្ករ
+    [category_description_km] => 
+    [category_image_url] => 
+    [add_category] => 
+)
+
+[23-Dec-2025 10:21:10 Asia/Phnom_Penh] Add category request received
+[23-Dec-2025 10:21:10 Asia/Phnom_Penh] All POST data: Array
+(
+    [category_name_en] => Syrup
+    [category_description_en] => 
+    [category_name_km] => សុីរ៉ូ
+    [category_description_km] => 
+    [category_image_url] => 
+    [add_category] => 
+)
+
+[23-Dec-2025 10:21:56 Asia/Phnom_Penh] Add category request received
+[23-Dec-2025 10:21:56 Asia/Phnom_Penh] All POST data: Array
+(
+    [category_name_en] => Jelly
+    [category_description_en] => 
+    [category_name_km] => ចាហួយ
+    [category_description_km] => 
+    [category_image_url] => 
+    [add_category] => 
+)
+
+[23-Dec-2025 10:23:11 Asia/Phnom_Penh] Add category request received
+[23-Dec-2025 10:23:11 Asia/Phnom_Penh] All POST data: Array
+(
+    [category_name_en] => Jam
+    [category_description_en] => 
+    [category_name_km] => ដំណាប់
+    [category_description_km] => 
+    [category_image_url] => 
+    [add_category] => 
+)
+
+[23-Dec-2025 10:23:47 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:23:47 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 15
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos sauveli Brown Sugar Syrup 2.35kg*8
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ស៊ីរ៉ូ ប្រោណស៊ូហ្គ័រ គោព្រៃ 2.35kg*8
+    [edit_description_km] => ស៊ីរ៉ូ ប្រោណស៊ូហ្គ័រ គោព្រៃ 
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 5.50
+    [edit_category_id] => 17
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 10:24:06 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:24:06 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 16
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Fruit Honey Syrup 2.8kg*6
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ទឹកស្ករក្រូចទឹកឃ្មុំ គោព្រៃ 2.8kg*6
+    [edit_description_km] => ខ្មែរ
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.70
+    [edit_category_id] => 17
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 10:24:16 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:24:16 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 17
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos sauveli High Fructose Syrup 2.5kg*8
+    [edit_description_en] => test
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ទឹកស្ករ គោព្រៃ 2.5kg*8
+    [edit_description_km] => ទឹកស្ករ គោព្រៃ
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 4.50
+    [edit_category_id] => 17
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 10:26:16 Asia/Phnom_Penh] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens in C:\xampp\htdocs\kouprey\admin\products.php:249
+Stack trace:
+#0 C:\xampp\htdocs\kouprey\admin\products.php(249): PDOStatement->execute(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\kouprey\admin\products.php on line 249
+[23-Dec-2025 10:36:35 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 10:36:35 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 38
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Black*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Black
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមពណ៍ខ្មៅ8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមពណ៍ខ្មៅ8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 11:23:07 Asia/Phnom_Penh] Add product request received
+[23-Dec-2025 11:23:07 Asia/Phnom_Penh] All POST data: Array
+(
+    [custom_fields_data_add] => {}
+    [name_en] => test
+    [description_en] => test
+    [detailed_description_en] => 
+    [ingredients_en] => 
+    [origin_en] => 
+    [weight_en] => 
+    [roast_level_en] => 
+    [tasting_notes_en] => 
+    [brewing_instructions_en] => 
+    [name_km] => ខ្មែរ
+    [description_km] => ខ្មែរ
+    [detailed_description_km] => 
+    [ingredients_km] => 
+    [origin_km] => 
+    [weight_km] => 
+    [roast_level_km] => 
+    [tasting_notes_km] => 
+    [brewing_instructions_km] => 
+    [price] => 2
+    [category_id] => 
+    [image_url] => 
+    [add_product] => 
+)
+
+[23-Dec-2025 11:23:07 Asia/Phnom_Penh] Product added successfully with base_product_id: 47
+[23-Dec-2025 12:01:27 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 12:01:27 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [update_product] => 
+)
+
+[23-Dec-2025 14:21:52 Asia/Phnom_Penh] Add product request received
+[23-Dec-2025 14:21:52 Asia/Phnom_Penh] All POST data: Array
+(
+    [add_product] => 1
+    [name_en] => Related Product
+    [name_km] => ផលិតផលពាក់ព័ន្ធ
+    [description_en] => Related product
+    [description_km] => ផលិតផលពាក់ព័ន្ធ
+    [price] => 0.00
+)
+
+[23-Dec-2025 14:21:52 Asia/Phnom_Penh] Product added successfully with base_product_id: 49
+[23-Dec-2025 14:30:28 Asia/Phnom_Penh] Add product request received
+[23-Dec-2025 14:30:28 Asia/Phnom_Penh] All POST data: Array
+(
+    [add_product] => 1
+    [name_en] => Related Product
+    [name_km] => ផលិតផលពាក់ព័ន្ធ
+    [description_en] => Related product
+    [description_km] => ផលិតផលពាក់ព័ន្ធ
+    [price] => 0.00
+    [from_related_modal] => 1
+    [current_product_id] => 44
+)
+
+[23-Dec-2025 14:30:28 Asia/Phnom_Penh] Product added successfully with base_product_id: 51
+[23-Dec-2025 14:30:28 Asia/Phnom_Penh] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`kouprey_db`.`related_products`, CONSTRAINT `related_products_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE) in C:\xampp\htdocs\kouprey\admin\products.php:438
+Stack trace:
+#0 C:\xampp\htdocs\kouprey\admin\products.php(438): PDOStatement->execute(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\kouprey\admin\products.php on line 438
+[23-Dec-2025 14:34:59 Asia/Phnom_Penh] Add product request received
+[23-Dec-2025 14:34:59 Asia/Phnom_Penh] All POST data: Array
+(
+    [add_product] => 1
+    [name_en] => Related Product
+    [name_km] => ផលិតផលពាក់ព័ន្ធ
+    [description_en] => Related product
+    [description_km] => ផលិតផលពាក់ព័ន្ធ
+    [price] => 0.00
+    [from_related_modal] => 1
+    [current_product_id] => 44
+)
+
+[23-Dec-2025 14:34:59 Asia/Phnom_Penh] Product added successfully with base_product_id: 53
+[23-Dec-2025 14:34:59 Asia/Phnom_Penh] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`kouprey_db`.`related_products`, CONSTRAINT `related_products_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE) in C:\xampp\htdocs\kouprey\admin\products.php:438
+Stack trace:
+#0 C:\xampp\htdocs\kouprey\admin\products.php(438): PDOStatement->execute(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\kouprey\admin\products.php on line 438
+[23-Dec-2025 14:49:30 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 14:49:30 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766476170584_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products] => Array
+        (
+            [id] => Array
+                (
+                    [0] => 
+                )
+
+            [url] => Array
+                (
+                    [0] => 
+                )
+
+        )
+
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 14:50:28 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 14:50:28 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products] => Array
+        (
+            [id] => Array
+                (
+                    [0] => 
+                )
+
+            [url] => Array
+                (
+                    [0] => 
+                )
+
+        )
+
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products] => Array
+        (
+            [id] => Array
+                (
+                    [0] => 
+                )
+
+            [url] => Array
+                (
+                    [0] => 
+                )
+
+        )
+
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Related products processing started
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Related products POST data: Array
+(
+    [id] => Array
+        (
+            [0] => 
+        )
+
+    [url] => Array
+        (
+            [0] => 
+        )
+
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Related products FILES data: Array
+(
+    [name] => Array
+        (
+            [image] => Array
+                (
+                    [0] => photo_1_2025-08-07_09-19-24.jpg
+                )
+
+        )
+
+    [full_path] => Array
+        (
+            [image] => Array
+                (
+                    [0] => photo_1_2025-08-07_09-19-24.jpg
+                )
+
+        )
+
+    [type] => Array
+        (
+            [image] => Array
+                (
+                    [0] => image/jpeg
+                )
+
+        )
+
+    [tmp_name] => Array
+        (
+            [image] => Array
+                (
+                    [0] => C:\xampp\tmp\php3497.tmp
+                )
+
+        )
+
+    [error] => Array
+        (
+            [image] => Array
+                (
+                    [0] => 0
+                )
+
+        )
+
+    [size] => Array
+        (
+            [image] => Array
+                (
+                    [0] => 190641
+                )
+
+        )
+
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Related product IDs: Array
+(
+    [0] => 
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Related product URLs: Array
+(
+    [0] => 
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Uploaded related image: /kouprey/public/assets/images/products/related_694a4b4f026d1.jpg
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - Final related products data: Array
+(
+)
+
+[23-Dec-2025 14:57:03 Asia/Phnom_Penh] Update - No valid related products data to save
+[23-Dec-2025 16:20:48 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:20:48 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766481648003_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766481635954","name":"Custom Product","image":"","custom_image":"","custom_url":""}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:24:24 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:24:24 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766481864747_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Description of product 1
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:28:43 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:28:43 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482078081","name":"Custom Product","image":"","custom_image":"","custom_url":"https://www.shutterstock.com/image-illustration/white-drinking-straw-isolated-on-260nw-651367963.jpg"},{"base_id":"custom_1766482095025","name":"Custom Product","image":"","custom_image":"","custom_url":"https://www.shutterstock.com/image-photo/black-straw-isolated-on-white-260nw-170803583.jpg"}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:28:43 Asia/Phnom_Penh] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`kouprey_db`.`product_related`, CONSTRAINT `product_related_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE) in C:\xampp\htdocs\kouprey\admin\products.php:364
+Stack trace:
+#0 C:\xampp\htdocs\kouprey\admin\products.php(364): PDOStatement->execute(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\kouprey\admin\products.php on line 364
+[23-Dec-2025 16:30:05 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:30:05 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482196017","name":"Custom Product","image":"","custom_image":"","custom_url":"https://www.shutterstock.com/image-illustration/white-drinking-straw-isolated-on-260nw-651367963.jpg"},{"base_id":"custom_1766482201152","name":"Custom Product","image":"","custom_image":"","custom_url":"https://www.shutterstock.com/image-photo/black-straw-isolated-on-white-260nw-170803583.jpg"}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:30:49 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:30:49 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482237873","name":"Custom Product","image":"","custom_image":"","custom_url":""}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:33:07 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:33:07 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482379352","name":"Custom Product","image":"","custom_image":"","custom_url":"https://www.shutterstock.com/image-illustration/white-drinking-straw-isolated-on-260nw-651367963.jpg"}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:33:07 Asia/Phnom_Penh] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`kouprey_db`.`product_related`, CONSTRAINT `product_related_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE) in C:\xampp\htdocs\kouprey\admin\products.php:364
+Stack trace:
+#0 C:\xampp\htdocs\kouprey\admin\products.php(364): PDOStatement->execute(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\kouprey\admin\products.php on line 364
+[23-Dec-2025 16:36:28 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:36:28 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482575560","name":"Custom Product","image":"","custom_image":"","custom_url":"https://www.shutterstock.com/image-photo/black-straw-isolated-on-white-260nw-170803583.jpg"}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:42:46 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:42:46 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482954312","name":"Custom Product","image":"","custom_image":"","custom_url":"","custom_image_url":"https://www.shutterstock.com/image-illustration/white-drinking-straw-isolated-on-260nw-651367963.jpg"}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[23-Dec-2025 16:43:28 Asia/Phnom_Penh] Update product request received
+[23-Dec-2025 16:43:28 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 44
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Plastic Straw Mixed Colors*40
+    [edit_description_en] => Bos Sauveli Plastic Straw Mixed Colors
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm*40
+    [edit_description_km] => បំពង់បឺត គោព្រៃ អត់ស្រោមចំរុះពណ៍8mm
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 1.35
+    [edit_category_id] => 15
+    [edit_image_url] => 
+    [related_products_data_edit] => [{"base_id":"custom_1766482995125_0.8536208366577082","name":"Custom Product","image":"","custom_image":"","custom_url":"","custom_image_url":"https://www.shutterstock.com/image-illustration/white-drinking-straw-isolated-on-260nw-651367963.jpg"},{"base_id":"custom_1766483000416","name":"Custom Product","image":"","custom_image":"","custom_url":"","custom_image_url":"https://www.shutterstock.com/image-photo/black-straw-isolated-on-white-260nw-170803583.jpg"}]
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 08:23:34 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 08:23:34 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766539414394_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 08:25:20 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 08:25:20 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:29:03 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:29:03 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 3
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Cream Cheese Powder 
+    [edit_description_en] => Bos Sauveli Cream Cheese Powder 1kg*12
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 1kg
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 
+    [edit_description_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 1kg*12
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 7.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:45:02 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:45:02 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766544302826_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 100% Matcha ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:45:44 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:45:44 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766544344138_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:50:50 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:50:50 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766544650738_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:51:13 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:51:13 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:51:59 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:51:59 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766544719266_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:52:08 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:52:08 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 09:52:45 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 09:52:45 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:10:53 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:10:53 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766545853267_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:11:54 Asia/Phnom_Penh] Add product request received
+[24-Dec-2025 10:11:54 Asia/Phnom_Penh] All POST data: Array
+(
+    [custom_fields_data_add] => {}
+    [name_en] => EN
+    [description_en] => EN
+    [detailed_description_en] => EN
+    [ingredients_en] => 
+    [origin_en] => 
+    [weight_en] => 
+    [roast_level_en] => 
+    [tasting_notes_en] => 
+    [brewing_instructions_en] => 
+    [name_km] => ខ្មែរ
+    [description_km] => ខ្មែរ
+    [detailed_description_km] => ខ្មែរ
+    [ingredients_km] => 
+    [origin_km] => 
+    [weight_km] => 
+    [roast_level_km] => 
+    [tasting_notes_km] => 
+    [brewing_instructions_km] => 
+    [price] => 2
+    [category_id] => 
+    [image_url] => 
+    [related_products_data_add] => 
+    [add_product] => 
+)
+
+[24-Dec-2025 10:11:54 Asia/Phnom_Penh] Product added successfully with base_product_id: 57
+[24-Dec-2025 10:15:19 Asia/Phnom_Penh] Add product request received
+[24-Dec-2025 10:15:19 Asia/Phnom_Penh] All POST data: Array
+(
+    [custom_fields_data_add] => {}
+    [name_en] => Bos Sauveli Matcha D3 
+    [description_en] => Bos Sauveli Matcha D3 100G*30
+    [detailed_description_en] => 
+    [ingredients_en] => 
+    [origin_en] => 
+    [weight_en] => 
+    [roast_level_en] => 
+    [tasting_notes_en] => 
+    [brewing_instructions_en] => 
+    [name_km] => ម្សៅម៉ាតឆា D3 
+    [description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [detailed_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [ingredients_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [origin_km] => 
+    [weight_km] => 
+    [roast_level_km] => 
+    [tasting_notes_km] => 
+    [brewing_instructions_km] => 
+    [price] => 6
+    [category_id] => 13
+    [image_url] => 
+    [related_products_data_add] => 
+    [add_product] => 
+)
+
+[24-Dec-2025 10:15:19 Asia/Phnom_Penh] Product added successfully with base_product_id: 59
+[24-Dec-2025 10:16:12 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:16:12 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 59
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Matcha D3 
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_ingredients_km] => ខ្មែរ
+    [edit_origin_km] => ខ្មែរ
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 10:17:13 Asia/Phnom_Penh] Add product request received
+[24-Dec-2025 10:17:13 Asia/Phnom_Penh] All POST data: Array
+(
+    [custom_fields_data_add] => {}
+    [name_en] => Bos Sauveli Jelly Coconut 2.8kg*8
+    [description_en] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [detailed_description_en] => 
+    [ingredients_en] => 
+    [origin_en] => 
+    [weight_en] => 
+    [roast_level_en] => 
+    [tasting_notes_en] => 
+    [brewing_instructions_en] => 
+    [name_km] => ចាហួយ ដូង គោព្រៃ 2.5kg*8
+    [description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [detailed_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [ingredients_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [origin_km] => 
+    [weight_km] => 
+    [roast_level_km] => 
+    [tasting_notes_km] => 
+    [brewing_instructions_km] => 
+    [price] => 6
+    [category_id] => 
+    [image_url] => 
+    [related_products_data_add] => 
+    [add_product] => 
+)
+
+[24-Dec-2025 10:17:13 Asia/Phnom_Penh] Product added successfully with base_product_id: 61
+[24-Dec-2025 10:17:54 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:17:54 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 61
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Jelly Coconut 2.8kg*8
+    [edit_description_en] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ចាហួយ ដូង គោព្រៃ 2.5kg*8
+    [edit_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_detailed_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_ingredients_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 10:18:28 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:18:28 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 61
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Jelly Coconut 2.8kg*8
+    [edit_description_en] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ចាហួយ ដូង គោព្រៃ 2.5kg*8
+    [edit_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_detailed_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_ingredients_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 10:19:13 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:19:13 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 61
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Jelly Coconut 2.8kg*8
+    [edit_description_en] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ចាហួយ ដូង គោព្រៃ 2.5kg*8
+    [edit_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_detailed_description_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_ingredients_km] => 100% Matcha ______________ ការផ្ទុក៖ សម្រាប់លទ្ធផលល្អបំផុត វាត្រូវបានណែនាំអោយរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => Light
+    [edit_tasting_notes_km] => ខ្មៅ
+    [edit_brewing_instructions_km] => ខ្មៅ
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 10:19:39 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:19:39 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 1
+    [custom_fields_data_edit] => {"field_1766546379137_0":{"name":{"en":"Daily enjoyment:","km":"ការប្រើប្រាស់ប្រចាំថ្ងៃ"},"value":{"en":"Add matcha to ice cream, smoothies, yogurt bowls and cold baked goods to fully enjoy this delightful experience!","km":"បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!"}}}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => test
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 250g
+    [edit_roast_level_en] => Light
+    [edit_tasting_notes_en] => Drik
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 10
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => ខ្មៅ
+    [edit_brewing_instructions_km] => ខ្មែរ
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:21:58 Asia/Phnom_Penh] Add product request received
+[24-Dec-2025 10:21:58 Asia/Phnom_Penh] All POST data: Array
+(
+    [custom_fields_data_add] => {}
+    [name_en] => Bos Sauveli Matcha D3
+    [description_en] => Bos Sauveli Matcha D3 100G*30
+    [detailed_description_en] => 
+    [ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [origin_en] => 
+    [weight_en] => 
+    [roast_level_en] => 
+    [tasting_notes_en] => 
+    [brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [name_km] => ម្សៅម៉ាតឆា D3 
+    [description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [detailed_description_km] => 
+    [ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [origin_km] => 
+    [weight_km] => 
+    [roast_level_km] => 
+    [tasting_notes_km] => 
+    [brewing_instructions_km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+    [price] => 6
+    [category_id] => 13
+    [image_url] => 
+    [related_products_data_add] => 
+    [add_product] => 
+)
+
+[24-Dec-2025 10:21:58 Asia/Phnom_Penh] Product added successfully with base_product_id: 63
+[24-Dec-2025 10:23:13 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:23:13 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 63
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 10:32:52 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:32:52 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:33:25 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:33:25 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 63
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Matcha D3
+    [edit_description_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+______________
+Storage: For optimal results, it is recommended to store in a refrigerated environment with low humidity. Please reseal after opening
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => Place 3 grams of matcha powder in a bowl, add a little warm water (70 °C), use a chasen to stir in a W-shape until smooth, then add warm water again and whisk until frothy.
+    [edit_name_km] => ម្សៅម៉ាតឆា D3 
+    [edit_description_km] => ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 100% ម៉ាតឆា ______________ ការរក្សាទុក៖  រក្សាទុកក្នុងបរិយាកាសត្រជាក់ក្នុងទូរទឹកកកដែលមានសំណើមទាប។
+សូមបិទឱ្យជិតបន្ទាប់ពីបានប្រើប្រាស់រួចរាល់។
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => បន្ថែម matcha ទៅការ៉េម ទឹកក្រឡុក ចានទឹកដោះគោជូរ និងនំដុតនំត្រជាក់ ដើម្បីទទួលបាននូវបទពិសោធន៍ដ៏រីករាយនេះយ៉ាងពេញលេញ!
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 10:34:31 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:34:31 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:34:52 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:34:52 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => ខ្មែរ
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:35:26 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:35:26 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:41:47 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:41:47 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:45:06 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:45:06 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 10:48:41 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 10:48:41 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.50
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:12:09 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:12:09 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:13:05 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:13:05 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data] => {}
+    [edit_detailed_description] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients] => ខ្មែរ
+    [edit_origin] => 
+    [edit_weight] => 500g
+    [edit_roast_level] => 
+    [edit_tasting_notes] => 
+    [edit_brewing_instructions] => 
+    [update_product] => 1
+)
+
+[24-Dec-2025 11:13:05 Asia/Phnom_Penh] PHP Warning:  Undefined variable $custom_fields in C:\xampp\htdocs\kouprey\admin\products.php on line 295
+[24-Dec-2025 11:13:05 Asia/Phnom_Penh] PHP Warning:  Undefined variable $custom_fields in C:\xampp\htdocs\kouprey\admin\products.php on line 318
+[24-Dec-2025 11:13:05 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:13:05 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:34:34 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:34:34 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:39:36 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:39:36 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => ខ្មៅ
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:40:43 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:40:43 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 3
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Cream Cheese Powder 
+    [edit_description_en] => Bos Sauveli Cream Cheese Powder 1kg*12
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 1kg
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 
+    [edit_description_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 1kg*12
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 7
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:41:19 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:41:19 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 3
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Bos Sauveli Cream Cheese Powder 
+    [edit_description_en] => Bos Sauveli Cream Cheese Powder 1kg*12
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 1kg
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 
+    [edit_description_km] => ម្សៅ គ្រីមឈីស គោព្រៃ 1kg*12
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => 
+    [edit_origin_km] => 
+    [edit_weight_km] => 1kg
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 7.50
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [edit_best_seller] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:41:30 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:41:30 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:55:21 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:55:21 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => ខ្មៅ
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 11:56:34 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 11:56:34 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => black
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => ខ្មៅ
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 12:02:43 Asia/Phnom_Penh] Add product request received
+[24-Dec-2025 12:02:43 Asia/Phnom_Penh] All POST data: Array
+(
+    [custom_fields_data_add] => {"field_1766552563393_0":{"name":{"en":"Storage:","km":"ការណែនាំ"},"value":{"en":"For optimal results, it is\nrecommended to store in a refrigerated environment with low humidity. Please reseal after opening.","km":"សម្រាប់លទ្ធផលដ៏ល្អប្រសើរគឺ\nផ្តល់អនុសាសន៍ឱ្យរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក។"}}}
+    [name_en] => Bos Sauveli Matcha D3 100G*30
+    [description_en] => Bos Sauveli Matcha D3
+    [detailed_description_en] => 
+    [ingredients_en] => 100% Matcha
+    [origin_en] => Cambodia
+    [weight_en] => 
+    [roast_level_en] => 
+    [tasting_notes_en] => 
+    [brewing_instructions_en] => 
+    [name_km] =>  ម្សៅម៉ាតឆា D3 
+    [description_km] =>  ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [detailed_description_km] => 
+    [ingredients_km] => មាឆា 100% 
+    [origin_km] => កម្ពុជា
+    [weight_km] => 
+    [roast_level_km] => 
+    [tasting_notes_km] => 
+    [brewing_instructions_km] => 
+    [price] => 6
+    [category_id] => 13
+    [image_url] => 
+    [related_products_data_add] => 
+    [add_product] => 
+)
+
+[24-Dec-2025 12:02:43 Asia/Phnom_Penh] Product added successfully with base_product_id: 65
+[24-Dec-2025 12:04:45 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 12:04:45 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 2
+    [custom_fields_data_edit] => {}
+    [edit_name_en] => Powder Matcha 5A
+    [edit_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_detailed_description_en] => Powder Matcha 5A 100℅ *30
+    [edit_ingredients_en] => 
+    [edit_origin_en] => 
+    [edit_weight_en] => 500g
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => black
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] => ម្សៅម៉ាតឆា 5A 
+    [edit_description_km] => ម្សៅម៉ាតឆា 5A 100℅ *30
+    [edit_detailed_description_km] => ខ្មែរ
+    [edit_ingredients_km] => 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 500g
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => ខ្មៅ
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [edit_featured] => 1
+    [update_product] => 
+)
+
+[24-Dec-2025 12:40:08 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 12:40:08 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 65
+    [custom_fields_data_edit] => {"field_1766554808358_0":{"name":{"en":"Storage:","km":"ការណែនាំ"},"value":{"en":"For optimal results, it is\nrecommended to store in a refrigerated environment with low humidity. Please reseal after opening.","km":"សម្រាប់លទ្ធផលដ៏ល្អប្រសើរគឺ\nផ្តល់អនុសាសន៍ឱ្យរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក។"},"position_after":"ingredients"}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Bos Sauveli Matcha D3
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] =>  ម្សៅម៉ាតឆា D3 
+    [edit_description_km] =>  ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => មាឆា 100% 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 12:44:14 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 12:44:14 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 65
+    [custom_fields_data_edit] => {"field_1766555054518_0":{"name":{"en":"Storage:","km":"ការណែនាំ"},"value":{"en":"For optimal results, it is\nrecommended to store in a refrigerated environment with low humidity. Please reseal after opening.","km":"សម្រាប់លទ្ធផលដ៏ល្អប្រសើរគឺ\nផ្តល់អនុសាសន៍ឱ្យរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក។"},"position_after":"origin"}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Bos Sauveli Matcha D3
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] =>  ម្សៅម៉ាតឆា D3 
+    [edit_description_km] =>  ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => មាឆា 100% 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 12:45:15 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 12:45:15 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 65
+    [custom_fields_data_edit] => {"field_1766555115198_0":{"name":{"en":"Storage:","km":"ការណែនាំ"},"value":{"en":"For optimal results, it is\nrecommended to store in a refrigerated environment with low humidity. Please reseal after opening.","km":"សម្រាប់លទ្ធផលដ៏ល្អប្រសើរគឺ\nផ្តល់អនុសាសន៍ឱ្យរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក។"},"position_after":"end"}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Bos Sauveli Matcha D3
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] =>  ម្សៅម៉ាតឆា D3 
+    [edit_description_km] =>  ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => មាឆា 100% 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 12:46:09 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 12:46:09 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 65
+    [custom_fields_data_edit] => {"field_1766555169397_0":{"name":{"en":"Storage:","km":"ការណែនាំ"},"value":{"en":"For optimal results, it is\nrecommended to store in a refrigerated environment with low humidity. Please reseal after opening.","km":"សម្រាប់លទ្ធផលដ៏ល្អប្រសើរគឺ\nផ្តល់អនុសាសន៍ឱ្យរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក។"},"position_after":"ingredients"}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Bos Sauveli Matcha D3
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] =>  ម្សៅម៉ាតឆា D3 
+    [edit_description_km] =>  ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => មាឆា 100% 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
+[24-Dec-2025 13:02:11 Asia/Phnom_Penh] Update product request received
+[24-Dec-2025 13:02:11 Asia/Phnom_Penh] All POST data: Array
+(
+    [base_product_id] => 65
+    [custom_fields_data_edit] => {"field_1766556131934_0":{"name":{"en":"Storage:","km":"ការណែនាំ"},"value":{"en":"For optimal results, it is\nrecommended to store in a refrigerated environment with low humidity. Please reseal after opening.","km":"សម្រាប់លទ្ធផលដ៏ល្អប្រសើរគឺ\nផ្តល់អនុសាសន៍ឱ្យរក្សាទុកក្នុងបរិយាកាសទូរទឹកកកដែលមានសំណើមទាប។ សូមបិទឡើងវិញបន្ទាប់ពីបើក។"},"position_after":"ingredients"}}
+    [edit_name_en] => Bos Sauveli Matcha D3 100G*30
+    [edit_description_en] => Bos Sauveli Matcha D3
+    [edit_detailed_description_en] => 
+    [edit_ingredients_en] => 100% Matcha
+    [edit_origin_en] => Cambodia
+    [edit_weight_en] => 
+    [edit_roast_level_en] => 
+    [edit_tasting_notes_en] => 
+    [edit_brewing_instructions_en] => 
+    [edit_name_km] =>  ម្សៅម៉ាតឆា D3 
+    [edit_description_km] =>  ម្សៅម៉ាតឆា D3 100ក្រាម*30
+    [edit_detailed_description_km] => 
+    [edit_ingredients_km] => មាឆា 100% 
+    [edit_origin_km] => កម្ពុជា
+    [edit_weight_km] => 
+    [edit_roast_level_km] => 
+    [edit_tasting_notes_km] => 
+    [edit_brewing_instructions_km] => 
+    [edit_price] => 6.00
+    [edit_category_id] => 13
+    [edit_image_url] => 
+    [related_products_data_edit] => []
+    [update_product] => 
+)
+
