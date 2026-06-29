@@ -179,6 +179,24 @@ $termsContent = getSetting('terms_of_service', '');
             line-height: 1.4;
         }
 
+        /* Rich Text Editor Content Styles */
+        .content-section h1 { font-size: 1.8rem; color: #064E3B; margin: 1.5rem 0 1rem; font-weight: 700; }
+        .content-section h2 { font-size: 1.5rem; color: #064E3B; margin: 1.5rem 0 0.8rem; font-weight: 700; }
+        .content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
+        .content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
+        .content-section p { color: #4B5563; line-height: 1.9; margin-bottom: 1rem; }
+        .content-section ul, .content-section ol { margin: 0.5rem 0 1rem 1.5rem; }
+        .content-section li { padding: 0.25rem 0; color: #4B5563; line-height: 1.8; }
+        .content-section img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
+        .content-section table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        .content-section table td, .content-section table th { border: 1px solid #D1D5DB; padding: 8px 12px; }
+        .content-section table th { background: #F3F4F6; font-weight: 600; }
+        .content-section blockquote { border-left: 4px solid #10B981; padding-left: 1rem; margin: 1rem 0; color: #6B7280; font-style: italic; }
+        .content-section a { color: #10B981; text-decoration: underline; }
+        .content-section strong { font-weight: 700; }
+        .content-section em { font-style: italic; }
+        .content-section .fa, .content-section .fas, .content-section .far, .content-section .fab { margin-right: 0.3rem; }
+
         .highlight-box {
             background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
             border: 1px solid #A7F3D0;
@@ -280,8 +298,8 @@ $termsContent = getSetting('terms_of_service', '');
 
         <?php if (!empty($termsContent)): ?>
             <!-- Dynamic content from admin settings -->
-            <div class="prose max-w-none terms-section">
-                <?php echo nl2br(htmlspecialchars($termsContent)); ?>
+            <div class="prose max-w-none terms-section content-section">
+                <?php echo $termsContent; ?>
             </div>
         <?php else: ?>
             <!-- Default structured Khmer terms of service -->

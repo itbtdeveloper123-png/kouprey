@@ -416,7 +416,7 @@ ob_start();
             <!-- Tab content -->
             <div class="tab-content" id="settingsTabContent">
                 <?php foreach ($categories as $category => $categoryInfo): ?>
-                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager'])) continue; ?>
+                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies'])) continue; ?>
                     <div class="tab-pane fade <?php echo ($category === $activeTab) ? 'show active' : ''; ?>" id="<?php echo $category; ?>" role="tabpanel">
                         <div class="card border-0 shadow-premium overflow-hidden" style="border-radius: 28px;">
                             <div class="card-header bg-white border-bottom p-4">
@@ -806,6 +806,171 @@ ob_start();
                                             </div>
                                         </div>
                                     </div>
+
+                                <?php elseif ($category === 'policies'): ?>
+                                    <!-- Policies & Legal with Rich Text Editor and Preview -->
+                                    <div class="row">
+                                        <div class="col-lg-7">
+                                            <!-- Contact Us -->
+                                            <div class="card border mb-4">
+                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge bg-primary me-2">Contact Us</span>
+                                                        <small class="text-muted">Contact Us information</small>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="contact_us">
+                                                        <i class="bi bi-eye"></i> Preview
+                                                    </button>
+                                                </div>
+                                                <div class="card-body">
+                                                    <?php 
+                                                    $contactUsContent = '';
+                                                    foreach ($groupedSettings['policies'] as $s) {
+                                                        if ($s['setting_key'] === 'contact_us') $contactUsContent = $s['setting_value'] ?? '';
+                                                    }
+                                                    ?>
+                                                    <textarea id="contact_us_editor" name="contact_us" class="richtext-editor"><?php echo htmlspecialchars($contactUsContent); ?></textarea>
+                                                </div>
+                                            </div>
+
+                                            <!-- Privacy Policy -->
+                                            <div class="card border mb-4">
+                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge bg-info me-2">Privacy Policy</span>
+                                                        <small class="text-muted">Privacy Policy content</small>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="privacy_policy">
+                                                        <i class="bi bi-eye"></i> Preview
+                                                    </button>
+                                                </div>
+                                                <div class="card-body">
+                                                    <?php 
+                                                    $privacyContent = '';
+                                                    foreach ($groupedSettings['policies'] as $s) {
+                                                        if ($s['setting_key'] === 'privacy_policy') $privacyContent = $s['setting_value'] ?? '';
+                                                    }
+                                                    ?>
+                                                    <textarea id="privacy_policy_editor" name="privacy_policy" class="richtext-editor"><?php echo htmlspecialchars($privacyContent); ?></textarea>
+                                                </div>
+                                            </div>
+
+                                            <!-- Terms of Service -->
+                                            <div class="card border mb-4">
+                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge bg-success me-2">Terms of Service</span>
+                                                        <small class="text-muted">Terms of Service content</small>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="terms_of_service">
+                                                        <i class="bi bi-eye"></i> Preview
+                                                    </button>
+                                                </div>
+                                                <div class="card-body">
+                                                    <?php 
+                                                    $termsContent = '';
+                                                    foreach ($groupedSettings['policies'] as $s) {
+                                                        if ($s['setting_key'] === 'terms_of_service') $termsContent = $s['setting_value'] ?? '';
+                                                    }
+                                                    ?>
+                                                    <textarea id="terms_of_service_editor" name="terms_of_service" class="richtext-editor"><?php echo htmlspecialchars($termsContent); ?></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Preview Panel -->
+                                        <div class="col-lg-5">
+                                            <div class="card border shadow-sm sticky-top" style="top: 20px; z-index: 10;">
+                                                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                                    <h5 class="mb-0"><i class="bi bi-eye-fill me-2"></i>Front-End Preview</h5>
+                                                    <span id="previewLabel" class="badge bg-light text-dark">Select a section</span>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <iframe id="previewFrame" style="width: 100%; height: 500px; border: none;" srcdoc="<html><body style='font-family:Hanuman,serif;padding:20px;color:#333;background:#fff;'><p style='color:#999;text-align:center;margin-top:200px;'>Click <strong>Preview</strong> on any section to see how it looks on the front-end</p></body></html>"></iframe>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- TinyMCE Initialization -->
+                                    <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        // Initialize TinyMCE on all richtext editors
+                                        tinymce.init({
+                                            selector: '.richtext-editor',
+                                            height: 350,
+                                            menubar: true,
+                                            plugins: [
+                                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                                                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                                                'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons'
+                                            ],
+                                            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | emoticons charmap | removeformat fullscreen preview | code',
+                                            font_family_formats: 'Hanuman (Khmer)=Hanuman, serif; Inter=sans-serif; Arial=arial,helvetica,sans-serif;',
+                                            content_style: 'body { font-family: Hanuman, serif; font-size: 16px; line-height: 1.8; }',
+                                            setup: function(editor) {
+                                                editor.on('change', function() {
+                                                    var activePreview = document.getElementById('previewFrame').getAttribute('data-active');
+                                                    if (activePreview && editor.id === activePreview + '_editor') {
+                                                        updatePreview(activePreview);
+                                                    }
+                                                });
+                                            }
+                                        });
+
+                                        function updatePreview(target) {
+                                            var editorId = target + '_editor';
+                                            var editor = tinymce.get(editorId);
+                                            var content = editor ? editor.getContent() : document.getElementById(editorId)?.value || '';
+                                            
+                                            var labelMap = {
+                                                'contact_us': 'Contact Us',
+                                                'privacy_policy': 'Privacy Policy',
+                                                'terms_of_service': 'Terms of Service'
+                                            };
+                                            document.getElementById('previewLabel').textContent = labelMap[target] || target;
+
+                                            var previewFrame = document.getElementById('previewFrame');
+                                            previewFrame.setAttribute('data-active', target);
+                                            
+                                            var borderColor = target === 'privacy_policy' ? '#3B82F6' : (target === 'terms_of_service' ? '#10B981' : '#F59E0B');
+                                            var previewHTML = '<!DOCTYPE html><html lang="km"><head><meta charset="UTF-8">' +
+                                                '<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">' +
+                                                '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' +
+                                                '<style>' +
+                                                'body { font-family: Hanuman, serif; font-size: 16px; line-height: 1.9; color: #333; padding: 25px; background: #fff; }' +
+                                                'h1 { font-size: 1.8rem; color: #1E3A5F; margin-bottom: 1rem; }' +
+                                                'h2 { font-size: 1.4rem; color: #1E3A5F; margin: 1.5rem 0 0.8rem; display: flex; align-items: center; gap: 0.5rem; }' +
+                                                'h3 { font-size: 1.2rem; color: #374151; margin: 1.2rem 0 0.6rem; }' +
+                                                'p { margin-bottom: 1rem; color: #4B5563; }' +
+                                                'ul, ol { margin-bottom: 1rem; padding-left: 1.5rem; }' +
+                                                'li { padding: 0.3rem 0; color: #4B5563; }' +
+                                                'strong { font-weight: 700; }' +
+                                                '.content-section { border-left: 4px solid ' + borderColor + '; padding-left: 1.5rem; margin: 1.5rem 0; }' +
+                                                '.icon-circle { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: #EFF6FF; color: ' + borderColor + '; margin-right: 0.5rem; }' +
+                                                'img { max-width: 100%; height: auto; border-radius: 8px; }' +
+                                                'table { border-collapse: collapse; width: 100%; margin: 1rem 0; }' +
+                                                'table td, table th { border: 1px solid #ddd; padding: 8px 12px; }' +
+                                                '</style></head><body><div class="content-section">' + content + '</div></body></html>';
+                                            
+                                            previewFrame.srcdoc = previewHTML;
+                                        }
+
+                                        // Preview button handlers
+                                        document.querySelectorAll('.preview-btn').forEach(function(btn) {
+                                            btn.addEventListener('click', function(e) {
+                                                e.preventDefault();
+                                                var target = this.getAttribute('data-target');
+                                                updatePreview(target);
+                                            });
+                                        });
+
+                                        // Save TinyMCE content back to textarea before form submit
+                                        document.getElementById('settingsForm').addEventListener('submit', function() {
+                                            tinymce.triggerSave();
+                                        });
+                                    });
+                                    </script>
 
                                 <?php else: ?>
                                     <!-- Default handling for other categories -->
