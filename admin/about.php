@@ -27,6 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $file_name = 'about-hero-' . time() . '.' . $file_extension;
         $file_path = $upload_dir . $file_name;
         if (move_uploaded_file($_FILES['hero_image']['tmp_name'], $file_path)) {
+            // Compress the uploaded image
+            require_once '../app/Config/image_utils.php';
+            $settings = getCompressionSettings('hero');
+            compressImage($file_path, $file_path, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+            
             $hero_image = '/kouprey/public/uploads/' . $file_name;
         }
     }
@@ -42,6 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $file_name = 'about-person-' . time() . '.' . $file_extension;
         $file_path = $upload_dir . $file_name;
         if (move_uploaded_file($_FILES['person_image']['tmp_name'], $file_path)) {
+            // Compress the uploaded image
+            require_once '../app/Config/image_utils.php';
+            $settings = getCompressionSettings('hero');
+            compressImage($file_path, $file_path, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+            
             $person_image = '/kouprey/public/uploads/' . $file_name;
         }
     }

@@ -43,21 +43,21 @@ function getSetting($key, $default = '', $language = null) {
  * Get current language from session or cookie
  */
 function getCurrentLanguage() {
-    if (isset($_SESSION['language'])) {
-        return $_SESSION['language'];
+    if (isset($_SESSION['site_lang'])) {
+        return $_SESSION['site_lang'];
     }
-    if (isset($_COOKIE['language'])) {
-        return $_COOKIE['language'];
+    if (isset($_COOKIE['site_lang'])) {
+        return $_COOKIE['site_lang'];
     }
-    return 'en'; // default
+    return 'km'; // default checked
 }
 
 /**
  * Set current language
  */
 function setCurrentLanguage($language) {
-    $_SESSION['language'] = $language;
-    setcookie('language', $language, time() + (30 * 24 * 60 * 60)); // 30 days
+    $_SESSION['site_lang'] = $language;
+    setcookie('site_lang', $language, time() + (30 * 24 * 60 * 60), "/"); // 30 days, root path
 }
 
 /**

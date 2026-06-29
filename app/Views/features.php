@@ -41,10 +41,55 @@ $features = array_map(function($group) {
     return $group[getCurrentLanguage()] ?? ($group['en'] ?? reset($group));
 }, $featuresGrouped);
 
-// Fetch products for search functionality
-$productStmt = $pdo->prepare("SELECT * FROM products WHERE language = ? ORDER BY sort_order ASC, featured DESC, best_seller DESC, id DESC");
-$productStmt->execute([getCurrentLanguage()]);
-$products = $productStmt->fetchAll();
+// Fetch products for search functionality (all languages)
+$currentLanguage = getCurrentLanguage();
+$productStmt = $pdo->prepare("SELECT * FROM products ORDER BY sort_order ASC, featured DESC, best_seller DESC, id DESC");
+$productStmt->execute();
+$allProducts = $productStmt->fetchAll();
+
+// Group products by base_product_id
+$productsByBaseId = [];
+foreach ($allProducts as $product) {
+    $baseId = $product['base_product_id'];
+    if (!isset($productsByBaseId[$baseId])) {
+        $productsByBaseId[$baseId] = [];
+    }
+    $productsByBaseId[$baseId][$product['language']] = $product;
+}
+
+// For display, use current language products
+$products = [];
+foreach ($productsByBaseId as $baseId => $langVersions) {
+    if (isset($langVersions[$currentLanguage])) {
+        $products[] = $langVersions[$currentLanguage];
+    } elseif (isset($langVersions['en'])) {
+        $products[] = $langVersions['en'];
+    } else {
+        $products[] = reset($langVersions);
+    }
+}
+
+// Create search index with all language versions
+$searchProducts = [];
+foreach ($productsByBaseId as $baseId => $langVersions) {
+    $searchProduct = [
+        'base_product_id' => $baseId,
+        'languages' => $langVersions,
+        'all_names' => '',
+        'all_descriptions' => ''
+    ];
+
+    $allNames = [];
+    $allDescriptions = [];
+    foreach ($langVersions as $lang => $product) {
+        $allNames[] = $product['name'];
+        $allDescriptions[] = $product['description'];
+    }
+
+    $searchProduct['all_names'] = implode(' ', $allNames);
+    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
+    $searchProducts[] = $searchProduct;
+}
 
 // Fetch reviews for products (will be used in product detail modal)
 $reviewsStmt = $pdo->query("
@@ -85,20 +130,63 @@ foreach ($rawAssignments as $featureId => $productIds) {
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(getCurrentLanguage()); ?>">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<title>KouPrey Coffee</title>
-	<link rel="icon" type="image/png" href="https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png">
+	<?php 
+	$logoUrl = getSetting('company_logo'); 
+	if (empty($logoUrl)) {
+		$logoUrl = getSetting('company_logo', '', 'en');
+	}
+	?>
+	<link rel="icon" type="image/png" href="<?php echo !empty($logoUrl) ? htmlspecialchars($logoUrl) : 'https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png'; ?>">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Freeman&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 	<script src="https://cdn.tailwindcss.com"></script>
 	<style>
+	/* Global fixes for mobile horizontal overflow */
+	html {
+		overflow-x: hidden;
+		width: 100%;
+		position: relative;
+	}
+	
+	body {
+		width: 100%;
+		position: relative;
+		overflow-x: hidden; /* Modern way to hide horizontal overflow without breaking sticky */
+	}
+
+	@font-face {
+		font-family: 'Superspace Bold';
+		src: url('/kouprey/public/fonts/Superspace Bold ver 1.00.ttf') format('truetype');
+		font-weight: bold;
+		font-style: normal;
+	}
+	
 	.font-freeman {
-		font-family: 'Freeman', serif;
+		font-family: 'Superspace Bold', 'Freeman', serif;
+	}
+
+	/* Khmer font: Hanuman for Khmer language and elements with .kh
+	   Apply only to common text elements to avoid overriding icon fonts (e.g. Font Awesome) */
+	:lang(km) :where(h1,h2,h3,h4,h5,h6,p,span,div,li,button,a,label,input,textarea,strong,b,em),
+	[lang="km"] :where(h1,h2,h3,h4,h5,h6,p,span,div,li,button,a,label,input,textarea,strong,b,em),
+	.kh {
+		font-family: 'Hanuman', serif;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* utility class to force Hanuman bold weight when needed */
+	.kh-700, :lang(km) strong, :lang(km) b {
+		font-weight: 700;
 	}
 
 	/* iOS 18 Style Modal Styles */
@@ -174,6 +262,26 @@ foreach ($rawAssignments as $featureId => $productIds) {
 		background: rgba(142, 142, 147, 0.36);
 	}
 
+	/* Future iOS Style - Background */
+	body {
+		background: #ffffff;
+		background-attachment: fixed;
+	}
+
+	/* Ultra-Glassmorphism Header */
+	header {
+		background: rgba(255, 255, 255, 0.4) !important;
+		backdrop-filter: blur(30px) saturate(180%) !important;
+		-webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+		border-bottom: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+	}
+
+	header.scrolled {
+		background: rgba(255, 255, 255, 0.7) !important;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+		border-bottom-color: rgba(255, 255, 255, 0.5) !important;
+	}
+
 	/* iOS 18 Modal Content */
 	#searchModal .modal-content > div:not(:first-child),
 	#productDetailModal .modal-content > div:not(:first-child),
@@ -241,9 +349,45 @@ foreach ($rawAssignments as $featureId => $productIds) {
 		.bg-white {
 			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		}
+		
+		/* Touch-friendly buttons */
+		button, .product-button {
+			min-height: 44px;
+			touch-action: manipulation;
+		}
+
+		/* App-like spacing */
+		.px-4 {
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+
+		.py-6 {
+			padding-top: 1.5rem;
+			padding-bottom: 1.5rem;
+		}
+
+	/* Mobile navigation safe area */
+	.pb-safe {
+		padding-bottom: 20px;
+		padding-bottom: env(safe-area-inset-bottom, 20px);
+	}
+
+	/* Mobile App-like Styles */
+	@media (max-width: 768px) {
+		/* Full-width sections on mobile */
+		section, main {
+			margin: 0;
+			max-width: none !important;
+		}
+
+		/* App-like card shadows */
+		.bg-white {
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		}
 
 		/* Touch-friendly buttons */
-		button {
+		button, .product-button {
 			min-height: 44px;
 			touch-action: manipulation;
 		}
@@ -274,6 +418,13 @@ foreach ($rawAssignments as $featureId => $productIds) {
 		}
 	}
 
+	/* Scroll effects for Header */
+	header.scrolled {
+		background-color: rgba(255, 255, 255, 0.98);
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+		border-bottom-color: rgba(229, 231, 235, 0.5);
+	}
+
 /* Feature node animation */
 .feature-node {
     transition: left 650ms cubic-bezier(.22,.9,.2,1), top 650ms cubic-bezier(.22,.9,.2,1), transform 420ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
@@ -292,6 +443,12 @@ foreach ($rawAssignments as $featureId => $productIds) {
 				box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
 			}
 			.inf-number { font-size: 16px; }
+			
+			/* Safe area padding for bottom nav */
+			.pb-safe {
+				padding-bottom: 20px;
+				padding-bottom: env(safe-area-inset-bottom, 20px);
+			}
 	</style>
 	<script>
 		function changeLanguage(lang) {
@@ -309,235 +466,153 @@ foreach ($rawAssignments as $featureId => $productIds) {
 		}
 	</script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-freeman min-h-screen pb-20 flex flex-col">
-	<header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 md:px-6 md:py-4 sticky top-0 z-50">
-		<div class="flex items-center justify-between max-w-6xl mx-auto">
+<body class="bg-white text-gray-800 font-freeman min-h-screen pb-20 flex flex-col">
+	<header class="w-full fixed top-0 left-0 z-50 transition-all duration-500 px-4 py-4 md:px-6 md:py-3">
+		<div class="flex items-center justify-between max-w-6xl mx-auto h-full">
 			<!-- Logo -->
 			<div class="flex items-center">
-				<a href="/" class="flex items-center">
-					<img src="https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-8 w-auto md:h-10">
-					<span class="text-lg md:text-xl font-bold ml-2 text-gray-800">KouPrey</span>
+				<a href="product.php" class="flex items-center transform active:scale-95 transition-transform">
+					<?php 
+					$logoUrl = getSetting('company_logo'); 
+					if (empty($logoUrl)) {
+						$logoUrl = getSetting('company_logo', '', 'en');
+					}
+					?>
+					<?php if (!empty($logoUrl)): ?>
+						<img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-14 w-auto object-contain" style="height: 56px;">
+					<?php endif; ?>
 				</a>
 			</div>
 			
 			<!-- Desktop Navigation -->
-			<nav class="hidden md:flex space-x-8">
-				<a href="product.php" class="<?php echo ($current_page == 'product.php') ? 'text-yellow-600 font-semibold' : 'text-gray-600 hover:text-gray-900'; ?> transition-colors"><?php echo htmlspecialchars(getSetting('nav_product', 'Product')); ?></a>
-				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-yellow-600 font-semibold' : 'text-gray-600 hover:text-gray-900'; ?> transition-colors"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></a>
-				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-yellow-600 font-semibold' : 'text-gray-600 hover:text-gray-900'; ?> transition-colors"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></a>
-				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-yellow-600 font-semibold' : 'text-gray-600 hover:text-gray-900'; ?> transition-colors"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></a>
+			<nav class="hidden md:flex items-center space-x-4">
+				<a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', 'Product')); ?></a>
+				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></a>
+				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></a>
+				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></a>
 			</nav>
 			
 			<!-- Mobile Actions -->
-			<div class="flex items-center space-x-3">
+			<div class="flex items-center gap-3">
 				<!-- Language Switcher -->
-				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center space-x-1 text-sm bg-transparent border-none outline-none cursor-pointer hover:bg-gray-100 rounded px-2 py-1 transition-colors" title="Switch Language">
-					<img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Flag_of_Cambodia.svg/2560px-Flag_of_Cambodia.svg.png'; ?>" 
+				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-4 py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="Switch Language">
+					<img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://cdn-icons-png.flaticon.com/512/16022/16022033.png'; ?>" 
 						 alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
-						 class="w-6 h-4 object-cover rounded">
-					<span class="font-medium"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
+						 class="w-6 h-6 object-cover rounded-full shadow-sm">
+					<span class="font-bold text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
 				</button>
-				<button id="searchButton" class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors" title="Search">
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+				<button id="searchButton" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="Search">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
 					</svg>
 				</button>
 			</div>
 		</div>
 	</header>
-		
-		<!-- Mobile navigation -->
-		<nav class="mt-4 space-x-4 md:hidden flex justify-center">
-			<a href="product.php" class="<?php echo ($current_page == 'product.php') ? 'text-yellow-600 font-bold' : 'text-gray-700'; ?>">Product</a>
-			<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-yellow-600 font-bold' : 'text-gray-600'; ?>">Features</a>
-			<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-yellow-600 font-bold' : 'text-gray-600'; ?>">Reviews</a>
-			<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-yellow-600 font-bold' : 'text-gray-600'; ?>">About us</a>
-		</nav>
-	</header>
 
-	<main class="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
-		<section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-			<div>
-				<h1 class="text-3xl md:text-4xl font-extrabold"><?php echo htmlspecialchars(getSetting('features_title', 'Features')); ?></h1>
-				<p class="mt-4 text-gray-600"><?php echo nl2br(htmlspecialchars(getSetting('features_description', 'Discover what makes our coffee exceptional — from sourcing to roasting and packaging.'))); ?></p>
-			</div>
-			<div class="flex justify-center">
-				<img src="/kouprey/public/assets/images/feature-hero.png" alt="Features" class="w-full max-w-md rounded-lg shadow">
-			</div>
-		</section>
+	<main class="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-20 mt-20 md:mt-24">
+		<div class="text-center mb-20" data-aos="fade-up">
+			<span class="text-yellow-600 font-bold tracking-wider uppercase text-sm mb-2 block"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?> Process</span>
+			<h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 font-freeman leading-tight">Our Quality Guarantee</h1>
+			<p class="max-w-2xl mx-auto text-lg text-gray-600 leading-relaxed"><?php echo nl2br(htmlspecialchars(getSetting('features_description', 'Discover the step-by-step journey that makes our coffee exceptional — from sustainable sourcing to expert roasting.'))); ?></p>
+		</div>
 
-		<section class="mt-10">
-			<!-- New infographic layout (desktop) -->
-			<div class="relative mx-auto w-full max-w-4xl flex items-center justify-center hidden md:flex">
-				<div class="w-full grid grid-cols-12 gap-6 items-center">
-					<!-- Left: circular icon/illustration -->
-					<div class="col-span-5 flex justify-center">
-						<div class="rounded-full bg-white shadow-lg p-8 flex items-center justify-center" style="width:220px; height:220px;">
-							<svg width="110" height="110" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-								<rect x="2" y="3" width="20" height="14" rx="1.5" stroke="#374151" stroke-width="1.2" fill="#F8FAFC" />
-								<rect x="8" y="18" width="8" height="1.6" rx="0.8" fill="#374151" />
-								<g transform="translate(2,2)">
-									<path d="M7 3l5 5" stroke="#111827" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-								</g>
-							</svg>
+		<!-- Process Timeline Container -->
+		<div class="relative max-w-5xl mx-auto">
+			<!-- Vertical Line (Desktop: Center, Mobile: Left) -->
+			<div class="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-yellow-200 via-orange-200 to-transparent transform md:-translate-x-1/2 rounded-full z-0"></div>
+
+			<?php 
+			$__icons = ['fa-leaf', 'fa-fire', 'fa-award', 'fa-coffee', 'fa-mug-hot', 'fa-seedling', 'fa-check-circle', 'fa-globe-americas', 'fa-heart'];
+			$__gradients = [
+				'from-green-400 to-green-600', 
+				'from-orange-400 to-red-500', 
+				'from-blue-400 to-blue-600', 
+				'from-yellow-400 to-yellow-600', 
+				'from-purple-400 to-purple-600',
+				'from-teal-400 to-teal-600'
+			];
+			$__shadows = [
+				'shadow-green-200',
+				'shadow-orange-200',
+				'shadow-blue-200',
+				'shadow-yellow-200',
+				'shadow-purple-200',
+				'shadow-teal-200'
+			];
+			$__i = 0; 
+			?>
+
+			<!-- Steps Loop -->
+			<div class="relative z-10 space-y-16 md:space-y-0">
+				<?php foreach ($features as $baseId => $feature): ?>
+					<?php 
+						$iconClass = $__icons[$__i % count($__icons)];
+						$gradientClass = $__gradients[$__i % count($__gradients)];
+						$shadowClass = $__shadows[$__i % count($__shadows)];
+						$isEven = ($__i % 2 === 0);
+						$stepNum = str_pad($__i + 1, 2, '0', STR_PAD_LEFT);
+					?>
+					
+					<!-- Step Item -->
+					<div class="relative flex flex-col md:flex-row items-center <?php echo $isEven ? 'md:flex-row-reverse' : ''; ?> group w-full md:mb-24 last:mb-0" data-aos="fade-up">
+						
+						<!-- Desktop Spacer (for alternating layout) -->
+						<div class="hidden md:block w-1/2"></div>
+						
+						<!-- Center Node/Icon -->
+						<div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+							<div class="w-16 h-16 rounded-full bg-white border-4 border-gray-50 shadow-xl z-20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
+								<div class="absolute inset-0 rounded-full bg-gradient-to-br <?php echo $gradientClass; ?> opacity-20 animate-pulse"></div>
+								<span class="font-freeman text-xl font-bold text-gray-800 relative z-10"><?php echo $stepNum; ?></span>
+							</div>
 						</div>
-					</div>
 
-					<!-- Right: numbered list -->
-					<div class="col-span-7">
-						<div class="space-y-6">
-							<?php $__inf_colors = ['#ef4444','#8b5cf6','#06b6d4','#f59e0b','#10b981']; $__i=0; foreach ($features as $baseId => $feature): ?>
-								<div class="flex items-start">
-									<div class="shrink-0">
-										<div class="inf-number flex items-center justify-center text-white font-bold" style="width:56px;height:56px;border-radius:9999px;background:<?php echo $__inf_colors[$__i % count($__inf_colors)]; ?>;">0<?php echo $__i+1; ?></div>
+						<!-- Content Card -->
+						<div class="ml-24 md:ml-0 md:w-1/2 <?php echo $isEven ? 'md:pr-16 md:text-right' : 'md:pl-16 md:text-left'; ?> md:pl-0">
+							<div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 relative overflow-hidden group-hover:-translate-y-1 cursor-pointer" onclick="showFeatureModal({id: '<?php echo $baseId; ?>', title: '<?php echo addslashes($feature['title']); ?>', description: '<?php echo addslashes($feature['description']); ?>'})">
+								<!-- Decorative Gradient Blob -->
+								<div class="absolute top-0 <?php echo $isEven ? 'right-0' : 'right-0 md:left-0'; ?> w-32 h-32 bg-gradient-to-br <?php echo $gradientClass; ?> opacity-5 rounded-full blur-2xl -mt-10 -mr-10"></div>
+								
+								<div class="relative z-10">
+									<div class="flex items-center gap-3 mb-4 <?php echo $isEven ? 'md:justify-end' : 'md:justify-start'; ?>">
+										<div class="w-10 h-10 rounded-xl bg-gradient-to-br <?php echo $gradientClass; ?> flex items-center justify-center text-white shadow-md">
+											<i class="fas <?php echo $iconClass; ?> text-sm"></i>
+										</div>
+										<h3 class="text-xl font-bold text-gray-800 group-hover:text-yellow-600 transition-colors"><?php echo htmlspecialchars($feature['title']); ?></h3>
 									</div>
-									<div class="ml-4 bg-white rounded-full shadow p-4 flex-1" style="border-left:4px solid <?php echo $__inf_colors[$__i % count($__inf_colors)]; ?>; padding-left:1rem;">
-										<div class="font-semibold text-gray-800"><?php echo htmlspecialchars($feature['title']); ?></div>
-										<div class="text-sm text-gray-500 mt-1"><?php $d = $feature['description'] ?? ''; if (strlen($d) > 90) $d = substr($d,0,87) . '...'; echo htmlspecialchars($d); ?></div>
-									</div>
+									
+									<p class="text-gray-600 leading-relaxed text-base mb-6">
+										<?php 
+										$d = $feature['description'] ?? ''; 
+										if (strlen($d) > 150) $d = substr($d, 0, 147) . '...'; 
+										echo htmlspecialchars($d); 
+										?>
+									</p>
+
+
 								</div>
-							<?php $__i++; endforeach; ?>
+							</div>
 						</div>
 					</div>
-				</div>
+					<?php $__i++; ?>
+				<?php endforeach; ?>
 			</div>
+		</div>
 
-			<style>
-				.monitor-box { width: 140px; height: 120px; }
-				.feature-node { width: 56px; height: 56px; border-radius: 9999px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 6px 18px rgba(15,23,42,0.06); }
-				.node-icon { width:36px; height:36px; border-radius:9999px; display:flex; align-items:center; justify-content:center; }
-				.node-icon.teal { background:#0ea5a0; color:white; }
-				.node-icon.brown { background:#8b5e34; color:white; }
-				.feature-label { position:absolute; width:140px; pointer-events:auto; transform:translate(-50%,0); background:rgba(255,255,255,0.98); padding:6px 8px; border-radius:8px; box-shadow:0 6px 18px rgba(15,23,42,0.06); }
-				.feature-label .title { font-weight:600; color:#111827; text-align:center; }
-				.feature-label .desc { font-size:12px; color:#6b7280; margin-top:6px; text-align:center; }
-			</style>
 
-			<script>
-				const featuresData = <?php echo json_encode($features); ?>;
-				function renderFeatureNodes() {
-					const center = document.getElementById('featureCircle');
-					if (!center) return; // skip if not present (mobile)
-					const container = document.getElementById('featureNodes');
-					const labels = document.getElementById('featureLabels');
-					container.innerHTML = '';
-					labels.innerHTML = '';
-					const rect = center.getBoundingClientRect();
-					const cx = rect.width / 2;
-					const cy = rect.height / 2;
-					const radius = Math.min(rect.width, rect.height) / 2 - 80;
-					const svg = document.getElementById('featureLines');
-					const svgNS = 'http://www.w3.org/2000/svg';
-					svg.innerHTML = '';
-					const keys = Object.keys(featuresData);
-					keys.forEach((baseId, i) => {
-						const feature = featuresData[baseId];
-						const angle = (i / keys.length) * Math.PI * 2 - Math.PI / 2;
-						const x = cx + radius * Math.cos(angle);
-						const y = cy + radius * Math.sin(angle);
-
-						// node (small colored icon circle)
-						const node = document.createElement('button');
-						node.className = 'feature-node absolute transform -translate-x-1/2 -translate-y-1/2 bg-white';
-						node.style.left = cx + 'px';
-						node.style.top = cy + 'px';
-						node.style.opacity = '0';
-						node.style.transform = 'translate(-50%,-50%) scale(0.7)';
-						node.dataset.featureId = baseId;
-						node.dataset.featureTitle = feature.title;
-						node.dataset.featureDescription = feature.description;
-
-						const iconWrap = document.createElement('div');
-						iconWrap.className = 'node-icon ' + (i % 2 === 0 ? 'teal' : 'brown');
-						iconWrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:inherit"><circle cx="10" cy="13" r="3"></circle><path d="M21 21l-4.35-4.35"></path></svg>';
-						node.appendChild(iconWrap);
-						node.onclick = () => showFeatureModal({id: baseId, title: feature.title, description: feature.description});
-
-						// label outside the circle
-						const label = document.createElement('div');
-						label.className = 'feature-label';
-						label.style.pointerEvents = 'auto';
-						let desc = feature.description || '';
-						if (desc.length > 70) desc = desc.substring(0, 67) + '...';
-						label.innerHTML = `<div class="title">${feature.title}</div><div class="desc">${desc}</div>`;
-						label.onclick = node.onclick;
-
-						// svg line
-						const line = document.createElementNS(svgNS, 'line');
-						line.setAttribute('x1', cx);
-						line.setAttribute('y1', cy);
-						line.setAttribute('x2', x);
-						line.setAttribute('y2', y);
-						line.setAttribute('stroke', '#E5E7EB');
-						line.setAttribute('stroke-width', '1.5');
-						line.setAttribute('stroke-linecap', 'round');
-						line.setAttribute('opacity', '0.95');
-						svg.appendChild(line);
-
-						const len = line.getTotalLength();
-						line.style.strokeDasharray = len;
-						line.style.strokeDashoffset = len;
-
-						container.appendChild(node);
-						labels.appendChild(label);
-
-						// position label centered below the node and clamp it inside the circle
-						const tempTop = y + 36;
-						let topPx = tempTop;
-						const labelRect = label.getBoundingClientRect();
-						const labelH = labelRect.height || 44;
-						const maxTop = rect.height - labelH - 8;
-						if (topPx > maxTop) topPx = Math.max(8, maxTop);
-						if (topPx < 8) topPx = 8;
-						label.style.left = x + 'px';
-						label.style.top = topPx + 'px';
-						label.style.transform = 'translate(-50%,0)';
-						label.style.textAlign = 'center';
-
-						// hover effects
-						node.addEventListener('mouseover', () => {
-							line.setAttribute('stroke', '#F59E0B');
-							line.setAttribute('stroke-width', '3');
-						});
-						node.addEventListener('mouseout', () => {
-							line.setAttribute('stroke', '#E5E7EB');
-							line.setAttribute('stroke-width', '1.5');
-						});
-						label.addEventListener('mouseover', () => node.dispatchEvent(new Event('mouseover')));
-						label.addEventListener('mouseout', () => node.dispatchEvent(new Event('mouseout')));
-
-						// stagger animation
-						setTimeout(() => {
-							node.style.left = x + 'px';
-							node.style.top = y + 'px';
-							node.style.opacity = '1';
-							node.style.transform = 'translate(-50%,-50%) scale(1)';
-							line.style.strokeDashoffset = '0';
-						}, 120 + i * 110);
+		<script>
+			// Initialize AOS if available, otherwise simple fallback
+			document.addEventListener('DOMContentLoaded', function() {
+				if (typeof AOS !== 'undefined') {
+					AOS.init({
+						duration: 800,
+						once: true,
+						offset: 100
 					});
 				}
-				window.addEventListener('load', renderFeatureNodes);
-				window.addEventListener('resize', renderFeatureNodes);
-			</script>
-
-			<!-- Mobile App-style Feature List -->
-			<div class="md:hidden">
-				<?php $__inf_colors = ['#ef4444','#8b5cf6','#06b6d4','#f59e0b','#10b981']; $__mi = 0; ?>
-				<div class="space-y-3 px-2">
-					<?php foreach ($features as $baseId => $feature): ?>
-						<button type="button" class="w-full flex items-start bg-white rounded-lg shadow p-3 hover:shadow-lg transition-shadow feature-mobile-card" onclick="showFeatureModal({id: '<?php echo $baseId; ?>', title: '<?php echo addslashes($feature['title']); ?>', description: '<?php echo addslashes($feature['description']); ?>'})">
-							<div class="flex-shrink-0">
-								<div class="inf-number flex items-center justify-center text-white font-bold" style="width:48px;height:48px;border-radius:9999px;background:<?php echo $__inf_colors[$__mi % count($__inf_colors)]; ?>;">0<?php echo $__mi+1; ?></div>
-							</div>
-							<div class="ml-4 flex-1" style="border-left:4px solid <?php echo $__inf_colors[$__mi % count($__inf_colors)]; ?>; padding-left:1rem;">
-								<div class="font-semibold text-gray-800 text-left"><?php echo htmlspecialchars($feature['title']); ?></div>
-								<div class="text-sm text-gray-500 mt-1 text-left"><?php $d = $feature['description'] ?? ''; if (strlen($d) > 80) $d = substr($d,0,77) . '...'; echo htmlspecialchars($d); ?></div>
-							</div>
-						</button>
-						<?php $__mi++; endforeach; ?>
-				</div>
-			</div>
-		</section>
+			});
+		</script>
 	</main>
 
 	<footer class="mt-auto bg-gray-900 text-white py-12">
@@ -546,7 +621,7 @@ foreach ($rawAssignments as $featureId => $productIds) {
 				<!-- Company Info -->
 				<div class="col-span-1 md:col-span-2">
 					<div class="flex items-center mb-4">
-						<img src="https://i.ibb.co/gLZY6fQr/Untitled-1-Recovered.png" alt="KouPrey Logo" class="h-8 w-auto mr-3">
+						<img src="https://i.ibb.co/zT8QwG1h/Untitled-1-Recovered-3-Recovered-Recovered.png" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-8 w-auto mr-3 object-contain">
 						<span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey Coffee')); ?></span>
 					</div>
 					<p class="text-gray-300 mb-4 leading-relaxed">
@@ -573,7 +648,7 @@ foreach ($rawAssignments as $featureId => $productIds) {
 					<h3 class="text-lg font-semibold mb-4 text-white"><?php echo htmlspecialchars(getSetting('footer_quick_links', 'Quick Links')); ?></h3>
 					<ul class="space-y-2">
 						<li><a href="/kouprey/public/" class="text-gray-300 hover:text-yellow-400 transition-colors"><?php echo htmlspecialchars(getSetting('footer_home', 'Home')); ?></a></li>
-						<li><a href="/kouprey/public/features.php" class="text-gray-300 hover:text-yellow-400 transition-colors"><?php echo htmlspecialchars(getSetting('footer_products', 'Products')); ?></a></li>
+						<li><a href="/kouprey/public/product.php" class="text-gray-300 hover:text-yellow-400 transition-colors"><?php echo htmlspecialchars(getSetting('footer_products', 'Products')); ?></a></li>
 						<li><a href="/kouprey/public/about.php" class="text-gray-300 hover:text-yellow-400 transition-colors"><?php echo htmlspecialchars(getSetting('footer_about_us', 'About Us')); ?></a></li>
 						<li><a href="/kouprey/public/reviews.php" class="text-gray-300 hover:text-yellow-400 transition-colors"><?php echo htmlspecialchars(getSetting('footer_reviews', 'Reviews')); ?></a></li>
 						<li><a href="/kouprey/admin/login.php" class="text-gray-300 hover:text-yellow-400 transition-colors"><?php echo htmlspecialchars(getSetting('footer_admin', 'Admin')); ?></a></li>
@@ -593,11 +668,6 @@ foreach ($rawAssignments as $featureId => $productIds) {
 							<?php if (getSetting('social_instagram')): ?>
 								<a href="<?php echo htmlspecialchars(getSetting('social_instagram')); ?>" target="_blank" class="text-gray-300 hover:text-pink-400 transition-colors">
 									<i class="fab fa-instagram text-xl"></i>
-								</a>
-							<?php endif; ?>
-							<?php if (getSetting('social_twitter')): ?>
-								<a href="<?php echo htmlspecialchars(getSetting('social_twitter')); ?>" target="_blank" class="text-gray-300 hover:text-blue-400 transition-colors">
-									<i class="fab fa-twitter text-xl"></i>
 								</a>
 							<?php endif; ?>
 							<a href="#" class="text-gray-300 hover:text-pink-400 transition-colors">
@@ -627,9 +697,9 @@ foreach ($rawAssignments as $featureId => $productIds) {
 			<div class="border-t border-gray-800 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
 				<p class="text-gray-400 text-sm"><?php echo htmlspecialchars(getSetting('footer_text', '© ' . date('Y') . ' KouPrey. All rights reserved.')); ?></p>
 				<div class="flex space-x-6 mt-4 md:mt-0">
-					<a href="#" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'Privacy Policy')); ?></a>
-					<a href="#" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'Terms of Service')); ?></a>
-					<a href="#" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_contact_us', 'Contact Us')); ?></a>
+					<a href="privacy_policy.php" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'Privacy Policy')); ?></a>
+					<a href="terms_of_service.php" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'Terms of Service')); ?></a>
+					<a href="#" onclick="openContactModal()" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_contact_us', 'Contact Us')); ?></a>
 				</div>
 			</div>
 		</div>
@@ -756,13 +826,6 @@ foreach ($rawAssignments as $featureId => $productIds) {
 									<p class="text-gray-600 leading-relaxed" id="productDetailIngredientsText"></p>
 								</div>
 
-								<!-- Origin -->
-								<div id="productDetailOrigin" class="bg-gray-50 rounded-xl p-4" style="display: none;">
-									<h5 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
-										<i class="fas fa-globe-americas text-blue-500"></i> Origin
-									</h5>
-									<p class="text-gray-600 leading-relaxed" id="productDetailOriginText"></p>
-								</div>
 
 								<!-- Brewing Instructions -->
 								<div id="productDetailBrewing" class="bg-gray-50 rounded-xl p-4" style="display: none;">
@@ -868,6 +931,7 @@ foreach ($rawAssignments as $featureId => $productIds) {
 	<!-- Embed product data for JavaScript -->
 	<script>
 		const productsData = <?php echo json_encode($products); ?>;
+		const searchProductsData = <?php echo json_encode($searchProducts); ?>;
 		const featureAssignments = <?php echo json_encode($assignments); ?>;
 		let currentFeatureId = null;
 	</script>
@@ -897,15 +961,47 @@ foreach ($rawAssignments as $featureId => $productIds) {
 			noResults.classList.add('hidden');
 		}
 
+		// Function to detect if text contains Khmer characters
+		function containsKhmer(text) {
+			const khmerRegex = /[\u1780-\u17FF\u19E0-\u19FF\u1A00-\u1A1F]/;
+			return khmerRegex.test(text);
+		}
+
+		// Function to get appropriate language version for display
+		function getDisplayProduct(searchProduct, query) {
+			const isKhmerQuery = containsKhmer(query);
+			const preferredLang = isKhmerQuery ? 'km' : 'en';
+
+			if (searchProduct.languages && searchProduct.languages[preferredLang]) {
+				return searchProduct.languages[preferredLang];
+			}
+
+			const currentLang = '<?php echo $currentLanguage; ?>';
+			if (searchProduct.languages && searchProduct.languages[currentLang]) {
+				return searchProduct.languages[currentLang];
+			}
+
+			if (searchProduct.languages && searchProduct.languages['en']) {
+				return searchProduct.languages['en'];
+			}
+
+			if (searchProduct.languages) {
+				return Object.values(searchProduct.languages)[0];
+			}
+
+			return searchProduct;
+		}
+
 		// Function to perform search
 		function performSearch(query) {
-			const filteredProducts = productsData.filter(product => {
-				const nameMatch = product.name.toLowerCase().includes(query.toLowerCase());
-				const descMatch = product.description.toLowerCase().includes(query.toLowerCase());
+			const filteredProducts = searchProductsData.filter(product => {
+				const nameMatch = product.all_names.toLowerCase().includes(query.toLowerCase());
+				const descMatch = product.all_descriptions.toLowerCase().includes(query.toLowerCase());
 				return nameMatch || descMatch;
 			});
 
-			displaySearchResults(filteredProducts);
+			const displayProducts = filteredProducts.map(product => getDisplayProduct(product, query));
+			displaySearchResults(displayProducts);
 		}
 
 		// Function to display search results
@@ -1347,53 +1443,52 @@ foreach ($rawAssignments as $featureId => $productIds) {
 		}
 
 		// Header scroll effect
-		let lastScrollTop = 0;
 		const header = document.querySelector('header');
-
 		window.addEventListener('scroll', function() {
-			const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-			if (scrollTop > 50) {
-				// Scrolled down more than 50px - make background transparent
-				header.classList.add('bg-transparent', 'backdrop-blur-md');
-				header.classList.remove('bg-white');
+			if (window.scrollY > 10) {
+				header.classList.add('shadow-md');
+				header.classList.remove('shadow-sm');
 			} else {
-				// At top - restore solid background
-				header.classList.remove('bg-transparent', 'backdrop-blur-md');
-				header.classList.add('bg-white');
+				header.classList.remove('shadow-md');
+				header.classList.add('shadow-sm');
 			}
-
-			lastScrollTop = scrollTop;
 		});
 
 	</script>
 
-	<!-- Mobile Bottom Navigation -->
-	<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-		<div class="flex items-center justify-around py-2">
-			<a href="product.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 <?php echo ($current_page == 'product.php') ? 'text-yellow-600' : 'text-gray-600'; ?>">
-				<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-				</svg>
-				<span class="text-xs font-medium"><?php echo htmlspecialchars(getSetting('nav_product', 'Products')); ?></span>
+	<!-- Mobile Bottom Navigation (iOS 26 Floating Island) -->
+	<nav class="md:hidden fixed bottom-6 left-6 right-6 bg-white/15 backdrop-blur-[30px] backdrop-saturate-[180%] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] z-40 pb-safe px-2 overflow-hidden">
+		<div class="flex items-center justify-around py-1">
+			<a href="product.php#products" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'product.php' || $current_page == 'product_detail.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-mug-hot text-xl mb-1 <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_product', 'Products')); ?></span>
 			</a>
-			<a href="features.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 <?php echo ($current_page == 'features.php') ? 'text-yellow-600' : 'text-gray-600'; ?>">
-				<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-				</svg>
-				<span class="text-xs font-medium"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></span>
+			
+			<a href="features.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'features.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-bolt text-xl mb-1 <?php echo ($current_page == 'features.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'features.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></span>
 			</a>
-			<a href="reviews.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 <?php echo ($current_page == 'reviews.php') ? 'text-yellow-600' : 'text-gray-600'; ?>">
-				<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-				</svg>
-				<span class="text-xs font-medium"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></span>
+
+			<a href="reviews.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'reviews.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-star text-xl mb-1 <?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></span>
 			</a>
-			<a href="about.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 <?php echo ($current_page == 'about.php') ? 'text-yellow-600' : 'text-gray-600'; ?>">
-				<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-				</svg>
-				<span class="text-xs font-medium"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></span>
+
+			<a href="about.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'about.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-user text-xl mb-1 <?php echo ($current_page == 'about.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'about.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></span>
 			</a>
 		</div>
 	</nav>
@@ -1406,5 +1501,156 @@ foreach ($rawAssignments as $featureId => $productIds) {
 			}
 		}
 	</style>
+
+	<script>
+		// Header scroll effect to match product.php
+		window.addEventListener('scroll', function() {
+			const header = document.querySelector('header');
+			if (window.scrollY > 10) {
+				header.classList.add('scrolled');
+			} else {
+				header.classList.remove('scrolled');
+			}
+		});
+
+		// Ensure active tab logic matches exactly
+		document.addEventListener('DOMContentLoaded', function() {
+			const currentPage = "<?php echo $current_page; ?>";
+			console.log("Current Page:", currentPage);
+		});
+	</script>
+
+	<!-- Contact Us Modal -->
+	<div id="contactModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+		<div class="absolute inset-0 bg-black bg-opacity-60 backdrop-blur-sm" onclick="closeContactModal()"></div>
+		<div class="relative w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl rounded-lg overflow-hidden modal-content transform scale-95 transition-transform duration-300 ease-out">
+			<div class="bg-gradient-to-r from-orange-500 to-red-600 p-6 text-white">
+				<div class="flex justify-between items-center">
+					<h3 class="text-2xl font-bold">Contact Us</h3>
+					<button onclick="closeContactModal()" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all duration-300">
+						<i class="fas fa-times text-white text-xl"></i>
+					</button>
+				</div>
+			</div>
+			<div class="p-6">
+				<div class="space-y-6">
+					<?php $contactContent = getSetting('contact_us', ''); ?>
+					<?php if (!empty($contactContent)): ?>
+						<div class="prose max-w-none">
+							<?php echo nl2br(htmlspecialchars($contactContent)); ?>
+						</div>
+					<?php else: ?>
+						<div class="flex items-center">
+							<div class="bg-blue-100 p-3 rounded-full mr-4">
+								<i class="fas fa-map-marker-alt text-blue-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Address</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_address', '123 Coffee Street, City, Country')); ?></p>
+							</div>
+						</div>
+						
+						<div class="flex items-center">
+							<div class="bg-green-100 p-3 rounded-full mr-4">
+								<i class="fas fa-phone text-green-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Phone</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_phone', '+1 (555) 123-4567')); ?></p>
+							</div>
+						</div>
+						
+						<div class="flex items-center">
+							<div class="bg-purple-100 p-3 rounded-full mr-4">
+								<i class="fas fa-envelope text-purple-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Email</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_email', 'info@kouprey.com')); ?></p>
+							</div>
+						</div>
+						
+						<div class="flex items-center">
+							<div class="bg-yellow-100 p-3 rounded-full mr-4">
+								<i class="fas fa-clock text-yellow-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Business Hours</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_hours', 'Mon-Fri: 9AM-6PM, Sat-Sun: 10AM-4PM')); ?></p>
+							</div>
+						</div>
+					<?php endif; ?>
+				</div>
+				
+				<div class="mt-8 pt-6 border-t border-gray-200">
+					<h4 class="font-semibold text-gray-800 mb-4">Send us a message</h4>
+					<form class="space-y-4">
+						<div>
+							<input type="text" placeholder="Your Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+						</div>
+						<div>
+							<input type="email" placeholder="Your Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+						</div>
+						<div>
+							<textarea rows="4" placeholder="Your Message" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"></textarea>
+						</div>
+						<button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+							Send Message
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Contact Us Modal Functions
+		function openContactModal() {
+			const modal = document.getElementById('contactModal');
+			if (modal) {
+				modal.classList.remove('hidden');
+				modal.classList.add('flex');
+				// Trigger animation after a small delay
+				setTimeout(() => {
+					const modalContent = modal.querySelector('.modal-content');
+					if (modalContent) {
+						modalContent.classList.remove('scale-95');
+						modalContent.classList.add('scale-100');
+					}
+				}, 10);
+				document.body.style.overflow = 'hidden';
+			}
+		}
+
+		function closeContactModal() {
+			const modal = document.getElementById('contactModal');
+			if (modal) {
+				const modalContent = modal.querySelector('.modal-content');
+				if (modalContent) {
+					modalContent.classList.remove('scale-100');
+					modalContent.classList.add('scale-95');
+				}
+				// Hide after animation
+				setTimeout(() => {
+					modal.classList.add('hidden');
+					modal.classList.remove('flex');
+				}, 300);
+				document.body.style.overflow = 'auto';
+			}
+		}
+
+		// Sticky Header Effect
+		window.addEventListener('scroll', function() {
+			const header = document.querySelector('header');
+			if (header) {
+				if (window.scrollY > 10) {
+					header.classList.add('scrolled');
+				} else {
+					header.classList.remove('scrolled');
+				}
+			}
+		});
+	</script>
+	<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 </body>
 </html>

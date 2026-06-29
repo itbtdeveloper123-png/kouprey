@@ -51,4 +51,15 @@ INSERT INTO settings (setting_key, setting_value, setting_type, category, descri
 ('enable_newsletter', '1', 'boolean', 'features', 'Enable newsletter subscription'),
 ('enable_social_links', '1', 'boolean', 'features', 'Show social media links'),
 ('products_per_page', '12', 'number', 'pagination', 'Number of products per page'),
-('reviews_per_page', '10', 'number', 'pagination', 'Number of reviews per page');
+('reviews_per_page', '10', 'number', 'pagination', 'Number of reviews per page'),
+('privacy_policy', '', 'textarea', 'policies', 'Privacy Policy content'),
+('terms_of_service', '', 'textarea', 'policies', 'Terms of Service content'),
+('contact_us', '', 'textarea', 'policies', 'Contact Us information'),
+('showcase_title', 'Premium Coffee Collection', 'text', 'showcase', 'Showcase section title'),
+('showcase_description', 'Discover our carefully curated selection of premium coffee products, each crafted with passion and expertise', 'textarea', 'showcase', 'Showcase section description'),
+('showcase_product_1', '', 'text', 'showcase', 'Showcase product slot 1'),
+('showcase_product_2', '', 'text', 'showcase', 'Showcase product slot 2'),
+('showcase_product_3', '', 'text', 'showcase', 'Showcase product slot 3'),
+('showcase_product_4', '', 'text', 'showcase', 'Showcase product slot 4'),
+('showcase_product_5', '', 'text', 'showcase', 'Showcase product slot 5'),
+('showcase_product_6', '', 'text', 'showcase', 'Showcase product slot 6');

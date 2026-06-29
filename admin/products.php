@@ -183,6 +183,66 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax_toggle_best_selle
     exit;
 }
 
+// Handle Ajax toggle enabled
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax_toggle_enabled'])) {
+    $product_id = $_POST['product_id'];
+
+    // Get current enabled status
+    $stmt = $pdo->prepare("SELECT enabled FROM products WHERE id = ?");
+    $stmt->execute([$product_id]);
+    $product = $stmt->fetch();
+
+    if ($product) {
+        $new_enabled = $product['enabled'] ? 0 : 1;
+
+        // Update enabled status for the current language version
+        $stmt = $pdo->prepare("UPDATE products SET enabled = ? WHERE id = ?");
+        $result = $stmt->execute([$new_enabled, $product_id]);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'enabled' => $new_enabled]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update enabled status']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Product not found']);
+    }
+    exit;
+}
+
+// Handle Ajax toggle collection visibility
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax_toggle_collection_visibility'])) {
+    $product_id = $_POST['product_id'];
+
+    $stmt = $pdo->prepare("SELECT custom_fields FROM products WHERE id = ?");
+    $stmt->execute([$product_id]);
+    $product = $stmt->fetch();
+
+    if ($product) {
+        $custom_fields = json_decode($product['custom_fields'] ?? '{}', true);
+        if (!is_array($custom_fields)) $custom_fields = [];
+        
+        // Toggle the value (default is true if not set)
+        $current_status = $custom_fields['show_in_collection'] ?? true;
+        $custom_fields['show_in_collection'] = !$current_status;
+        
+        $new_custom_fields_json = json_encode($custom_fields, JSON_UNESCAPED_UNICODE);
+
+        // Update for this specific record
+        $stmt = $pdo->prepare("UPDATE products SET custom_fields = ? WHERE id = ?");
+        $result = $stmt->execute([$new_custom_fields_json, $product_id]);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'show_in_collection' => $custom_fields['show_in_collection']]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Product not found']);
+    }
+    exit;
+}
+
 // Handle get all products for related products selection
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['action'] == 'get_all_products') {
     $stmt = $pdo->prepare("
@@ -251,10 +311,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
             }
 
             $file_extension = pathinfo($_FILES['edit_image']['name'], PATHINFO_EXTENSION);
-            $file_name = uniqid() . '.' . $file_extension;
+            // Add timestamp to filename for cache busting
+            $file_name = uniqid() . '_' . time() . '.' . $file_extension;
             $target_file = $upload_dir . $file_name;
 
             if (move_uploaded_file($_FILES['edit_image']['tmp_name'], $target_file)) {
+                // Compress the uploaded image
+                require_once '../app/Config/image_utils.php';
+                $settings = getCompressionSettings('product');
+                compressImage($target_file, $target_file, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                
                 $uploaded_image = '/kouprey/public/assets/images/products/' . $file_name;
             }
         }
@@ -386,9 +452,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
                     if (!is_dir($upload_dir)) {
                         mkdir($upload_dir, 0755, true);
                     }
-                    $file_name = uniqid() . '_' . basename($_FILES[$file_key]['name']);
+                    // Add timestamp to filename for cache busting
+                    $file_extension = pathinfo($_FILES[$file_key]['name'], PATHINFO_EXTENSION);
+                    $file_name = uniqid() . '_' . time() . '.' . $file_extension;
                     $file_path = $upload_dir . $file_name;
                     if (move_uploaded_file($_FILES[$file_key]['tmp_name'], $file_path)) {
+                        // Compress the uploaded image
+                        require_once '../app/Config/image_utils.php';
+                        $settings = getCompressionSettings('thumbnail');
+                        compressImage($file_path, $file_path, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                        
                         $custom_image = '/kouprey/public/uploads/related/' . $file_name;
                     }
                 }
@@ -412,7 +485,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
         }
     }
 
-    $message = $is_detailed_only ? "Product details updated successfully!" : "Product updated successfully!";
+    $message = $is_detailed_only ? "Product details updated successfully! Please refresh the frontend pages to see the image changes." : "Product updated successfully! Please refresh the frontend pages to see the image changes.";
 }
 
 // Handle add product
@@ -434,10 +507,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
         }
 
         $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-        $file_name = uniqid() . '.' . $file_extension;
+        // Add timestamp to filename for cache busting
+        $file_name = uniqid() . '_' . time() . '.' . $file_extension;
         $target_file = $upload_dir . $file_name;
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+            // Compress the uploaded image
+            require_once '../app/Config/image_utils.php';
+            $settings = getCompressionSettings('product');
+            compressImage($target_file, $target_file, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+            
             $uploaded_image = '/kouprey/public/assets/images/products/' . $file_name;
         }
     }
@@ -545,9 +624,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
                     if (!is_dir($upload_dir)) {
                         mkdir($upload_dir, 0755, true);
                     }
-                    $file_name = uniqid() . '_' . basename($_FILES[$file_key]['name']);
+                    // Add timestamp to filename for cache busting
+                    $file_extension = pathinfo($_FILES[$file_key]['name'], PATHINFO_EXTENSION);
+                    $file_name = uniqid() . '_' . time() . '.' . $file_extension;
                     $file_path = $upload_dir . $file_name;
                     if (move_uploaded_file($_FILES[$file_key]['tmp_name'], $file_path)) {
+                        // Compress the uploaded image
+                        require_once '../app/Config/image_utils.php';
+                        $settings = getCompressionSettings('thumbnail');
+                        compressImage($file_path, $file_path, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                        
                         $custom_image = '/kouprey/public/uploads/related/' . $file_name;
                     }
                 }
@@ -572,7 +658,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
     }
 
     error_log('Product added successfully with base_product_id: ' . $base_product_id);
-    $message = "Product added successfully!";
+    $message = "Product added successfully! Please refresh the frontend pages to see the new product.";
 }
 
 // Handle toggle featured status
@@ -589,6 +675,14 @@ if (isset($_GET['toggle_best_seller'])) {
     $stmt = $pdo->prepare("UPDATE products SET best_seller = CASE WHEN best_seller = 1 THEN 0 ELSE 1 END WHERE id = ? AND language = ?");
     $stmt->execute([$id, $currentLanguage]);
     $message = "Best seller status updated!";
+}
+
+// Handle toggle enabled status
+if (isset($_GET['toggle_enabled'])) {
+    $id = $_GET['toggle_enabled'];
+    $stmt = $pdo->prepare("UPDATE products SET enabled = CASE WHEN enabled = 1 THEN 0 ELSE 1 END WHERE id = ? AND language = ?");
+    $stmt->execute([$id, $currentLanguage]);
+    $message = "Enabled status updated!";
 }
 
 // Handle delete product
@@ -652,10 +746,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
         }
 
         $file_extension = pathinfo($_FILES['category_image']['name'], PATHINFO_EXTENSION);
-        $file_name = uniqid() . '.' . $file_extension;
+        // Add timestamp to filename for cache busting
+        $file_name = uniqid() . '_' . time() . '.' . $file_extension;
         $target_file = $upload_dir . $file_name;
 
         if (move_uploaded_file($_FILES['category_image']['tmp_name'], $target_file)) {
+            // Compress the uploaded image
+            require_once '../app/Config/image_utils.php';
+            $settings = getCompressionSettings('product');
+            compressImage($target_file, $target_file, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+            
             $uploaded_image = '/kouprey/public/assets/images/categories/' . $file_name;
         }
     }
@@ -675,7 +775,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
     $stmt = $pdo->prepare("INSERT INTO categories (name, description, image, language, base_category_id) VALUES (?, ?, ?, 'km', ?)");
     $stmt->execute([$name_km, $description_km, $final_image, $new_base_id]);
 
-    $message = "Category added successfully!";
+    $message = "Category added successfully! Please refresh the frontend pages to see the category image changes.";
 }
 
 // Handle update category
@@ -698,10 +798,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_category'])) {
         }
 
         $file_extension = pathinfo($_FILES['edit_category_image']['name'], PATHINFO_EXTENSION);
-        $file_name = uniqid() . '.' . $file_extension;
+        // Add timestamp to filename for cache busting
+        $file_name = uniqid() . '_' . time() . '.' . $file_extension;
         $target_file = $upload_dir . $file_name;
 
         if (move_uploaded_file($_FILES['edit_category_image']['tmp_name'], $target_file)) {
+            // Compress the uploaded image
+            require_once '../app/Config/image_utils.php';
+            $settings = getCompressionSettings('product');
+            compressImage($target_file, $target_file, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+            
             $uploaded_image = '/kouprey/public/assets/images/categories/' . $file_name;
         }
     }
@@ -755,7 +861,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_category'])) {
         $stmt->execute([$name_km, $description_km, $final_image, $base_category_id]);
     }
 
-    $message = "Category updated successfully!";
+    $message = "Category updated successfully! Please refresh the frontend pages to see the image changes.";
 }
 
 // Handle delete category
@@ -782,13 +888,23 @@ if (isset($_GET['delete_category'])) {
 }
 
 // Pagination settings
-$productsPerPage = 20;
+$productsPerPageOptions = [10, 20, 50, 100];
+$productsPerPage = isset($_GET['per_page']) && in_array((int)$_GET['per_page'], $productsPerPageOptions) ? (int)$_GET['per_page'] : 20;
 $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($currentPage - 1) * $productsPerPage;
 
 // Get total count for pagination
-$stmt = $pdo->prepare("SELECT COUNT(DISTINCT base_product_id) as total FROM products");
-$stmt->execute();
+// Category filter
+$categoryFilter = isset($_GET['category_id']) && $_GET['category_id'] !== '' ? $_GET['category_id'] : null;
+
+// Get total count for pagination
+if ($categoryFilter) {
+    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT base_product_id) as total FROM products WHERE category_id = ?");
+    $stmt->execute([$categoryFilter]);
+} else {
+    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT base_product_id) as total FROM products");
+    $stmt->execute();
+}
 $result = $stmt->fetch();
 $totalProducts = $result ? $result['total'] : 0;
 $totalPages = ceil($totalProducts / $productsPerPage);
@@ -807,6 +923,7 @@ $query = "
             COALESCE(p_en.best_seller, p_km.best_seller, 0) as best_seller,
             COALESCE(p_en.image, p_km.image) as image,
             COALESCE(p_en.category_id, p_km.category_id) as category_id,
+            COALESCE(p_en.custom_fields, p_km.custom_fields, '{}') as custom_fields,
             COALESCE(p_en.sort_order, p_km.sort_order, 0) as sort_order,
             c.name as category_name,
             CASE
@@ -817,6 +934,7 @@ $query = "
         FROM (
             SELECT DISTINCT base_product_id
             FROM products
+            " . ($categoryFilter ? "WHERE category_id = ?" : "") . "
         ) bp
         LEFT JOIN products p_en ON bp.base_product_id = p_en.base_product_id AND p_en.language = 'en'
         LEFT JOIN products p_km ON bp.base_product_id = p_km.base_product_id AND p_km.language = 'km'
@@ -826,7 +944,11 @@ $query = "
     LIMIT " . (int)$productsPerPage . " OFFSET " . (int)$offset;
 
 $stmt = $pdo->prepare($query);
-$stmt->execute([$currentLanguage]);
+$params = [$currentLanguage];
+if ($categoryFilter) {
+    array_unshift($params, $categoryFilter);
+}
+$stmt->execute($params);
 $products = $stmt->fetchAll();
 
 // Fetch all categories for current language with product counts
@@ -895,6 +1017,22 @@ $categories = $stmt->fetchAll();
                                 </button>
                             </div>
 
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="bi bi-filter"></i> Filter by Category</span>
+                                        <select class="form-select" id="categoryFilterSelect" onchange="filterByCategory(this.value)">
+                                            <option value="">All Categories</option>
+                                            <?php foreach ($categories as $cat): ?>
+                                                <option value="<?php echo $cat['id']; ?>" <?php echo (isset($categoryFilter) && $categoryFilter == $cat['id']) ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($cat['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="card shadow-sm">
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
@@ -910,7 +1048,7 @@ $categories = $stmt->fetchAll();
                                                     <th class="border-0 fw-semibold"><i class="bi bi-cash me-1"></i>Price</th>
                                                     <th class="border-0 fw-semibold"><i class="bi bi-star me-1"></i>Featured</th>
                                                     <th class="border-0 fw-semibold"><i class="bi bi-trophy me-1"></i>Best Seller</th>
-                                                    
+                                                    <th class="border-0 fw-semibold"><i class="bi bi-eye me-1"></i>Enabled</th>
                                                     <th class="border-0 fw-semibold"><i class="bi bi-gear me-1"></i>Actions</th>
                                                 </tr>
                                             </thead>
@@ -923,7 +1061,7 @@ $categories = $stmt->fetchAll();
                                                         <td class="fw-medium"><?php echo $product['id']; ?></td>
                                                         <td>
                                                             <?php if ($product['image']): ?>
-                                                                <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product" class="rounded lazy" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #e5e7eb;" loading="lazy">
+                                                                <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product" class="rounded lazy" style="width: 50px; height: 50px; object-fit: contain; border: 1px solid #e5e7eb; background-color: #f8f9fa;" loading="lazy">
                                                             <?php else: ?>
                                                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                                                     <i class="bi bi-image text-muted"></i>
@@ -954,6 +1092,12 @@ $categories = $stmt->fetchAll();
                                                                 <?php echo $product['best_seller'] ? 'Yes' : 'No'; ?>
                                                             </span>
                                                         </td>
+                                                        <td>
+                                                            <span class="badge <?php echo isset($product['enabled']) && $product['enabled'] ? 'bg-primary text-white' : 'bg-light text-muted'; ?>">
+                                                                <i class="bi <?php echo isset($product['enabled']) && $product['enabled'] ? 'bi-eye-fill' : 'bi-eye'; ?> me-1"></i>
+                                                                <?php echo isset($product['enabled']) && $product['enabled'] ? 'Yes' : 'No'; ?>
+                                                            </span>
+                                                        </td>
                                                         
                                                         <td>
                                                             <div class="btn-group" role="group">
@@ -963,11 +1107,21 @@ $categories = $stmt->fetchAll();
                                                                 <button class="btn btn-outline-success btn-sm toggle-best-seller-btn" data-product-id="<?php echo $product['id']; ?>" title="<?php echo $product['best_seller'] ? 'Remove from best sellers' : 'Make best seller'; ?>">
                                                                     <i class="bi <?php echo $product['best_seller'] ? 'bi-trophy-fill' : 'bi-trophy'; ?>"></i>
                                                                 </button>
+                                                                <?php 
+                                                                    $custom_fields = json_decode($product['custom_fields'] ?? '{}', true);
+                                                                    $show_in_collection = $custom_fields['show_in_collection'] ?? true;
+                                                                ?>
+                                                                <button class="btn btn-outline-dark btn-sm toggle-collection-btn" data-product-id="<?php echo $product['id']; ?>" title="<?php echo $show_in_collection ? 'Remove from collection list (Syrup/Powder)' : 'Show in collection list'; ?>">
+                                                                    <i class="bi <?php echo $show_in_collection ? 'bi-collection-fill' : 'bi-collection'; ?>"></i>
+                                                                </button>
                                                                 <button class="btn btn-outline-info btn-sm settings-product-btn" data-base-product-id="<?php echo $product['base_product_id']; ?>" title="Edit detailed information">
                                                                     <i class="bi bi-gear"></i>
                                                                 </button>
                                                                 <button class="btn btn-outline-primary btn-sm edit-product-btn" data-base-product-id="<?php echo $product['base_product_id']; ?>" title="Edit product">
                                                                     <i class="bi bi-pencil"></i>
+                                                                </button>
+                                                                <button class="btn btn-outline-secondary btn-sm toggle-enabled-btn" data-product-id="<?php echo $product['id']; ?>" title="Toggle enabled">
+                                                                    <i class="bi <?php echo isset($product['enabled']) && $product['enabled'] ? 'bi-eye-fill' : 'bi-eye'; ?>"></i>
                                                                 </button>
                                                                 <button class="btn btn-outline-danger btn-sm delete-product-btn" data-product-id="<?php echo $product['id']; ?>" title="Delete product">
                                                                     <i class="bi bi-trash"></i>
@@ -978,7 +1132,7 @@ $categories = $stmt->fetchAll();
                                                 <?php endforeach; ?>
                                                 <?php if (empty($products)): ?>
                                                     <tr>
-                                                        <td colspan="10" class="text-center py-5">
+                                                        <td colspan="11" class="text-center py-5">
                                                             <div class="text-muted">
                                                                 <i class="bi bi-box display-4 mb-3 d-block"></i>
                                                                 <h5>No products found</h5>
@@ -992,16 +1146,29 @@ $categories = $stmt->fetchAll();
                                     </div>
 
                                     <!-- Pagination -->
-                                    <?php if ($totalPages > 1): ?>
+                                    <?php if ($totalPages > 1 || $totalProducts > $productsPerPageOptions[0]): 
+                                        $pageUrl = "?lang=$currentLanguage&per_page=$productsPerPage" . ($categoryFilter ? "&category_id=$categoryFilter" : "");
+                                    ?>
                                     <div class="d-flex justify-content-between align-items-center mt-3 px-3">
-                                        <div class="text-muted">
-                                            Showing <?php echo ($offset + 1) . ' to ' . min($offset + $productsPerPage, $totalProducts) . ' of ' . $totalProducts; ?> products
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="text-muted">
+                                                Showing <?php echo ($offset + 1) . ' to ' . min($offset + $productsPerPage, $totalProducts) . ' of ' . $totalProducts; ?> products
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label for="perPageSelect" class="text-muted mb-0 small">Show:</label>
+                                                <select id="perPageSelect" class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+                                                    <?php foreach ($productsPerPageOptions as $option): ?>
+                                                    <option value="<?php echo $option; ?>" <?php echo $productsPerPage == $option ? 'selected' : ''; ?>><?php echo $option; ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <span class="text-muted small">per page</span>
+                                            </div>
                                         </div>
                                         <nav aria-label="Products pagination">
                                             <ul class="pagination pagination-sm mb-0">
                                                 <?php if ($currentPage > 1): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?lang=<?php echo $currentLanguage; ?>&page=<?php echo $currentPage - 1; ?>">
+                                                    <a class="page-link" href="<?php echo $pageUrl; ?>&page=<?php echo $currentPage - 1; ?>">
                                                         <i class="bi bi-chevron-left"></i>
                                                     </a>
                                                 </li>
@@ -1013,7 +1180,7 @@ $categories = $stmt->fetchAll();
 
                                                 if ($startPage > 1): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?lang=<?php echo $currentLanguage; ?>&page=1">1</a>
+                                                    <a class="page-link" href="<?php echo $pageUrl; ?>&page=1">1</a>
                                                 </li>
                                                 <?php if ($startPage > 2): ?>
                                                 <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -1022,7 +1189,7 @@ $categories = $stmt->fetchAll();
 
                                                 <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
                                                 <li class="page-item <?php echo $i === $currentPage ? 'active' : ''; ?>">
-                                                    <a class="page-link" href="?lang=<?php echo $currentLanguage; ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                                    <a class="page-link" href="<?php echo $pageUrl; ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
                                                 </li>
                                                 <?php endfor; ?>
 
@@ -1031,13 +1198,13 @@ $categories = $stmt->fetchAll();
                                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                                                 <?php endif; ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?lang=<?php echo $currentLanguage; ?>&page=<?php echo $totalPages; ?>"><?php echo $totalPages; ?></a>
+                                                    <a class="page-link" href="<?php echo $pageUrl; ?>&page=<?php echo $totalPages; ?>"><?php echo $totalPages; ?></a>
                                                 </li>
                                                 <?php endif; ?>
 
                                                 <?php if ($currentPage < $totalPages): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?lang=<?php echo $currentLanguage; ?>&page=<?php echo $currentPage + 1; ?>">
+                                                    <a class="page-link" href="<?php echo $pageUrl; ?>&page=<?php echo $currentPage + 1; ?>">
                                                         <i class="bi bi-chevron-right"></i>
                                                     </a>
                                                 </li>
@@ -1087,7 +1254,7 @@ $categories = $stmt->fetchAll();
                                                         </td>
                                                         <td>
                                                             <?php if ($category['image']): ?>
-                                                                <img src="<?php echo htmlspecialchars($category['image']); ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" class="rounded" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #e5e7eb;">
+                                                                <img src="<?php echo htmlspecialchars($category['image']); ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" class="rounded" style="width: 50px; height: 50px; object-fit: contain; border: 1px solid #e5e7eb; background-color: #f8f9fa;">
                                                             <?php else: ?>
                                                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                                                     <i class="bi bi-image text-muted"></i>
@@ -1144,15 +1311,34 @@ $categories = $stmt->fetchAll();
             $categoriesJson = '[]';
         }
         ?>
-        const allProductsData = <?php echo $productsJson; ?>;
-        const allCategoriesData = <?php echo $categoriesJson; ?>;
+        var allProductsData = <?php echo $productsJson; ?>;
+        var allCategoriesData = <?php echo $categoriesJson; ?>;
+
+        function filterByCategory(categoryId) {
+            const url = new URL(window.location);
+            if (categoryId) {
+                url.searchParams.set('category_id', categoryId);
+            } else {
+                url.searchParams.delete('category_id');
+            }
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        }
+
+        // Function to handle per page change
+        function changePerPage(perPage) {
+            const url = new URL(window.location);
+            url.searchParams.set('per_page', perPage);
+            url.searchParams.set('page', '1'); // Reset to first page when changing per page
+            window.location.href = url.toString();
+        }
     </script>
 
     <!-- Edit Product Sidebar -->
     <div class="product-sidebar" id="editProductSidebar">
         <div class="sidebar-header">
             <h5 class="sidebar-title">
-                <i class="bi bi-pencil-square"></i> Edit Product
+                <i class="bi bi-pencil-square me-2 text-warning"></i>Edit Product
             </h5>
             <button type="button" class="btn-close-sidebar" id="closeEditProductSidebar">
                 <i class="bi bi-x-lg"></i>
@@ -1162,246 +1348,185 @@ $categories = $stmt->fetchAll();
             <form method="POST" enctype="multipart/form-data" id="editProductForm">
                 <input type="hidden" id="base_product_id" name="base_product_id" value="">
                 <input type="hidden" id="custom_fields_data_edit" name="custom_fields_data_edit" value="">
-                <!-- Language Tabs -->
-                <ul class="nav nav-tabs mb-3" id="editProductLanguageTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="edit-en-tab" data-bs-toggle="tab" data-bs-target="#edit-en-fields" type="button" role="tab" aria-controls="edit-en-fields" aria-selected="true">English</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="edit-km-tab" data-bs-toggle="tab" data-bs-target="#edit-km-fields" type="button" role="tab" aria-controls="edit-km-fields" aria-selected="false">Khmer</button>
-                    </li>
-                </ul>
+                
+                <!-- Language Navigation -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small text-uppercase mb-2">Content Language</label>
+                    <ul class="nav nav-tabs-premium" id="editProductLanguageTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="edit-en-tab" data-bs-toggle="tab" data-bs-target="#edit-en-fields" type="button" role="tab">
+                                <img src="https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?w=32" class="rounded-circle me-1" width="16" height="16"> English
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="edit-km-tab" data-bs-toggle="tab" data-bs-target="#edit-km-fields" type="button" role="tab">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Flag_of_Cambodia.svg/32px-Flag_of_Cambodia.svg.png" class="rounded-circle me-1" width="16" height="16"> Khmer
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="tab-content" id="editProductLanguageTabsContent">
                     <!-- English Fields -->
-                    <div class="tab-pane fade show active" id="edit-en-fields" role="tabpanel" aria-labelledby="edit-en-tab">
-                        <div class="mb-3">
-                            <label for="edit_name_en" class="form-label fw-bold">Product Name (EN) *</label>
-                            <input type="text" class="form-control" id="edit_name_en" name="edit_name_en" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description_en" class="form-label fw-bold">Description (EN) *</label>
-                            <textarea class="form-control" id="edit_description_en" name="edit_description_en" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_detailed_description_en" class="form-label">Detailed Description (EN)</label>
-                            <textarea class="form-control" id="edit_detailed_description_en" name="edit_detailed_description_en" rows="4" placeholder="Provide a detailed description of the product..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_ingredients_en" class="form-label">Ingredients (EN)</label>
-                            <textarea class="form-control" id="edit_ingredients_en" name="edit_ingredients_en" rows="3" placeholder="List the main ingredients..."></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_origin_en" class="form-label">Origin (EN)</label>
-                                <input type="text" class="form-control" id="edit_origin_en" name="edit_origin_en" placeholder="e.g., Ethiopia, Colombia">
+                    <div class="tab-pane fade show active" id="edit-en-fields" role="tabpanel">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Basic Info (EN)</div>
+                            <div class="card-body">
+                                <div class="form-floating-custom">
+                                    <label for="edit_name_en">Product Name *</label>
+                                    <input type="text" class="form-control form-control-premium" id="edit_name_en" name="edit_name_en" required placeholder="Enter product name">
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="edit_description_en">Short Description *</label>
+                                    <textarea class="form-control form-control-premium" id="edit_description_en" name="edit_description_en" rows="3" required placeholder="Brief summary..."></textarea>
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="edit_weight_en">Weight (EN)</label>
+                                    <input type="text" class="form-control form-control-premium" id="edit_weight_en" name="edit_weight_en" placeholder="e.g. 250g">
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_weight_en" class="form-label">Package Weight (EN)</label>
-                                <input type="text" class="form-control" id="edit_weight_en" name="edit_weight_en" placeholder="e.g., 250g, 1kg">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_roast_level_en" class="form-label">Roast Level (EN)</label>
-                                <select class="form-control" id="edit_roast_level_en" name="edit_roast_level_en">
-                                    <option value="">Select roast level</option>
-                                    <option value="Light">Light</option>
-                                    <option value="Medium-Light">Medium-Light</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="Medium-Dark">Medium-Dark</option>
-                                    <option value="Dark">Dark</option>
-                                    <option value="French">French (Very Dark)</option>
-                                    <option value="Unroasted">Unroasted/Green</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_tasting_notes_en" class="form-label">Tasting Notes (EN)</label>
-                                <input type="text" class="form-control" id="edit_tasting_notes_en" name="edit_tasting_notes_en" placeholder="e.g., Chocolate, Caramel, Citrus">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_brewing_instructions_en" class="form-label">Brewing Instructions (EN)</label>
-                            <textarea class="form-control" id="edit_brewing_instructions_en" name="edit_brewing_instructions_en" rows="3" placeholder="How to brew or prepare this product..."></textarea>
                         </div>
                     </div>
                     <!-- Khmer Fields -->
-                    <div class="tab-pane fade" id="edit-km-fields" role="tabpanel" aria-labelledby="edit-km-tab">
-                        <div class="mb-3">
-                            <label for="edit_name_km" class="form-label fw-bold">Product Name (KM) *</label>
-                            <input type="text" class="form-control" id="edit_name_km" name="edit_name_km" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description_km" class="form-label fw-bold">Description (KM) *</label>
-                            <textarea class="form-control" id="edit_description_km" name="edit_description_km" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_detailed_description_km" class="form-label">Detailed Description (KM)</label>
-                            <textarea class="form-control" id="edit_detailed_description_km" name="edit_detailed_description_km" rows="4" placeholder="Provide a detailed description of the product..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_ingredients_km" class="form-label">Ingredients (KM)</label>
-                            <textarea class="form-control" id="edit_ingredients_km" name="edit_ingredients_km" rows="3" placeholder="List the main ingredients..."></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_origin_km" class="form-label">Origin (KM)</label>
-                                <input type="text" class="form-control" id="edit_origin_km" name="edit_origin_km" placeholder="e.g., Ethiopia, Colombia">
+                    <div class="tab-pane fade" id="edit-km-fields" role="tabpanel">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Basic Info (KM)</div>
+                            <div class="card-body">
+                                <div class="form-floating-custom">
+                                    <label for="edit_name_km">ឈ្មោះផលិតផល (KM) *</label>
+                                    <input type="text" class="form-control form-control-premium" id="edit_name_km" name="edit_name_km" placeholder="បញ្ចូលឈ្មោះផលិតផល">
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="edit_description_km">ការពិពណ៌នាសង្ខេប (KM) *</label>
+                                    <textarea class="form-control form-control-premium" id="edit_description_km" name="edit_description_km" rows="3" placeholder="សេចក្តីសង្ខេប..."></textarea>
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="edit_weight_km">ទម្ងន់ (KM)</label>
+                                    <input type="text" class="form-control form-control-premium" id="edit_weight_km" name="edit_weight_km" placeholder="ឧದಾហរណ៍ៈ ២៥០ក្រាម">
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_weight_km" class="form-label">Package Weight (KM)</label>
-                                <input type="text" class="form-control" id="edit_weight_km" name="edit_weight_km" placeholder="e.g., 250g, 1kg">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_roast_level_km" class="form-label">Roast Level (KM)</label>
-                                <select class="form-control" id="edit_roast_level_km" name="edit_roast_level_km">
-                                    <option value="">Select roast level</option>
-                                    <option value="Light">Light</option>
-                                    <option value="Medium-Light">Medium-Light</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="Medium-Dark">Medium-Dark</option>
-                                    <option value="Dark">Dark</option>
-                                    <option value="French">French (Very Dark)</option>
-                                    <option value="Unroasted">Unroasted/Green</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="edit_tasting_notes_km" class="form-label">Tasting Notes (KM)</label>
-                                <input type="text" class="form-control" id="edit_tasting_notes_km" name="edit_tasting_notes_km" placeholder="e.g., Chocolate, Caramel, Citrus">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_brewing_instructions_km" class="form-label">Brewing Instructions (KM)</label>
-                            <textarea class="form-control" id="edit_brewing_instructions_km" name="edit_brewing_instructions_km" rows="3" placeholder="How to brew or prepare this product..."></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- Shared Information -->
-                <div class="row">
-                    <div class="col-md-8">
-                        <!-- Price is shared -->
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="edit_price" class="form-label fw-bold">Price ($) *</label>
-                            <input type="number" step="0.01" class="form-control" id="edit_price" name="edit_price" required>
+                <!-- Shared Settings -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white"><i class="bi bi-gear me-2"></i>Product Settings</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating-custom">
+                                    <label for="edit_price">Price ($) *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0 rounded-start-pill px-3">$</span>
+                                        <input type="number" step="0.01" class="form-control form-control-premium rounded-end-pill" id="edit_price" name="edit_price" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating-custom">
+                                    <label for="edit_category_id">Category</label>
+                                    <select class="form-select form-control-premium rounded-pill" id="edit_category_id" name="edit_category_id">
+                                        <option value="">No Category</option>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Category Selection -->
-                <div class="mb-3">
-                    <label for="edit_category_id" class="form-label fw-bold">Category</label>
-                    <select class="form-control" id="edit_category_id" name="edit_category_id">
-                        <option value="">Select a category (optional)</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <div class="form-text">Choose a category for this product to help with organization and filtering</div>
-                </div>
-
-                <!-- Current Image Display -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-image"></i> Current Image</h6>
-                    </div>
-                    <div class="card-body text-center">
-                        <img id="current_image_preview" src="" alt="Current product image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                <!-- Current Image Preview -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white"><i class="bi bi-image me-2 text-primary"></i>Current Product Image</div>
+                    <div class="card-body text-center p-4">
+                        <div class="image-preview-wrapper bg-light rounded-4 p-3 d-inline-block shadow-sm">
+                            <img id="current_image_preview" src="" alt="Current product" class="img-fluid rounded-3" style="max-height: 200px; object-fit: contain;">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Image Upload -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-upload"></i> Update Image (Optional)</h6>
-                    </div>
+                <!-- Image Selection -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white"><i class="bi bi-upload me-2 text-primary"></i>Update Image (Optional)</div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="edit_image" class="form-label">Upload New Image File</label>
-                            <input type="file" class="form-control" id="edit_image" name="edit_image" accept="image/*">
-                            <div class="form-text">Upload a new JPG, PNG, or GIF file to replace the current image</div>
+                            <label class="form-label small text-muted text-uppercase fw-bold">Upload New Image</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control form-control-premium" id="edit_image" name="edit_image" accept="image/*">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_image_url" class="form-label">Or New Image URL</label>
-                            <input type="url" class="form-control" id="edit_image_url" name="edit_image_url" placeholder="https://example.com/image.jpg">
-                            <div class="form-text">Alternatively, provide a direct URL to replace the current image</div>
+                        <div class="text-center my-2">
+                            <span class="badge bg-light text-muted">OR</span>
+                        </div>
+                        <div class="form-floating-custom">
+                            <label for="edit_image_url">Image URL</label>
+                            <input type="url" class="form-control form-control-premium" id="edit_image_url" name="edit_image_url" placeholder="https://...">
                         </div>
                     </div>
                 </div>
 
-                <!-- Custom Fields Section -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-plus-circle"></i> Custom Fields</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="form-text">Add custom fields to provide additional product information. These fields will be displayed in the product details.</div>
-                            <button type="button" class="btn btn-success btn-sm" id="addCustomFieldEdit">
-                                <i class="bi bi-plus"></i> Add Field
-                            </button>
+                <!-- Custom Fields -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                        <span><i class="bi bi-list-stars me-2 text-success"></i>Custom Fields</span>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addCustomFieldEdit"><i class="bi bi-plus"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="copyCustomFieldsEdit"><i class="bi bi-files"></i></button>
                         </div>
-                        <div id="customFieldsContainerEdit">
-                            <!-- Custom fields will be added here dynamically -->
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="customFieldsContainerEdit" class="p-3">
+                            <!-- Dynamically added -->
                         </div>
                     </div>
                 </div>
 
                 <!-- Related Products Section -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-link"></i> Related Products</h6>
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-link-45deg me-2 text-info"></i>Related Products</h6>
                     </div>
                     <div class="card-body">
-                        <div class="form-text mb-3">Select products that are related to this one. These will be displayed as small product cards in the product detail view.</div>
-                        <div class="mb-3">
-                            <label for="related_products_search_edit" class="form-label">Search Products</label>
-                            <input type="text" class="form-control" id="related_products_search_edit" placeholder="Type to search for products...">
+                        <div class="form-text mb-3">Select products that are related to this one.</div>
+                        <div class="form-floating-custom mb-3">
+                            <label for="related_products_search_edit">Search Products</label>
+                            <input type="text" class="form-control form-control-premium" id="related_products_search_edit" placeholder="Type to search...">
                         </div>
                         <div class="mb-3">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="add_custom_related_edit">
-                                <i class="bi bi-plus"></i> Add Custom Related Product
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" id="add_custom_related_edit">
+                                <i class="bi bi-plus"></i> Add Custom Related
                             </button>
                         </div>
-                        <div id="related_products_list_edit" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
-                            <!-- Available products will be loaded here -->
+                        <div id="related_products_list_edit" class="border rounded-4 p-3 mb-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                            <!-- Available products loaded here -->
                         </div>
-                        <div class="mt-3">
-                            <h6 class="mb-2">Selected Related Products:</h6>
+                        <div>
+                            <label class="small text-muted fw-bold mb-2">SELECTED PRODUCTS</label>
                             <div id="selected_related_products_edit" class="d-flex flex-wrap gap-2">
-                                <!-- Selected products will appear here -->
+                                <!-- Selected products appear here -->
                             </div>
                         </div>
                         <input type="hidden" id="related_products_data_edit" name="related_products_data_edit" value="">
                     </div>
                 </div>
 
-                <!-- Product Status -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-star"></i> Product Status</h6>
-                    </div>
+                <!-- Status Checkboxes -->
+                <div class="card mb-4 bg-light border-0">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check">
+                            <div class="col-6">
+                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="edit_featured" name="edit_featured" value="1">
-                                    <label class="form-check-label" for="edit_featured">
-                                        <i class="bi bi-star-fill text-warning"></i> Mark as Featured Product
-                                    </label>
-                                    <div class="form-text">Will appear in the featured products carousel</div>
+                                    <label class="form-check-label fw-bold" for="edit_featured">Featured</label>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
+                            <div class="col-6">
+                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="edit_best_seller" name="edit_best_seller" value="1">
-                                    <label class="form-check-label" for="edit_best_seller">
-                                        <i class="bi bi-trophy-fill text-success"></i> Mark as Best Seller
-                                    </label>
-                                    <div class="form-text">Will appear in the best sellers section</div>
+                                    <label class="form-check-label fw-bold" for="edit_best_seller">Best Seller</label>
                                 </div>
                             </div>
                         </div>
@@ -1410,11 +1535,9 @@ $categories = $stmt->fetchAll();
             </form>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn btn-secondary" id="cancelEditProduct">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="submit" form="editProductForm" name="update_product" class="btn btn-warning">
-                <i class="bi bi-check-circle"></i> Update Product
+            <button type="button" class="btn btn-light rounded-pill px-4" id="cancelEditProduct">Cancel</button>
+            <button type="submit" form="editProductForm" name="update_product" class="btn btn-warning rounded-pill px-4 shadow">
+                <i class="bi bi-check2-circle me-1"></i>Update Product
             </button>
         </div>
     </div>
@@ -1423,7 +1546,7 @@ $categories = $stmt->fetchAll();
     <div class="product-sidebar" id="addProductSidebar">
         <div class="sidebar-header">
             <h5 class="sidebar-title">
-                <i class="bi bi-plus-circle"></i> Add New Product
+                <i class="bi bi-plus-circle me-2 text-primary"></i>Add New Product
             </h5>
             <button type="button" class="btn-close-sidebar" id="closeAddProductSidebar">
                 <i class="bi bi-x-lg"></i>
@@ -1432,236 +1555,176 @@ $categories = $stmt->fetchAll();
         <div class="sidebar-content">
             <form method="POST" enctype="multipart/form-data" id="addProductForm">
                 <input type="hidden" id="custom_fields_data_add" name="custom_fields_data_add" value="">
-                <!-- Language Tabs -->
-                <ul class="nav nav-tabs mb-3" id="addProductLanguageTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="en-tab" data-bs-toggle="tab" data-bs-target="#en-fields" type="button" role="tab" aria-controls="en-fields" aria-selected="true">English</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="km-tab" data-bs-toggle="tab" data-bs-target="#km-fields" type="button" role="tab" aria-controls="km-fields" aria-selected="false">Khmer</button>
-                    </li>
-                </ul>
+                
+                <!-- Language Navigation -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small text-uppercase mb-2">Content Language</label>
+                    <ul class="nav nav-tabs-premium" id="addProductLanguageTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="add-en-tab" data-bs-toggle="tab" data-bs-target="#add-en-fields" type="button" role="tab">
+                                <img src="https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?w=32" class="rounded-circle me-1" width="16" height="16"> English
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="add-km-tab" data-bs-toggle="tab" data-bs-target="#add-km-fields" type="button" role="tab">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Flag_of_Cambodia.svg/32px-Flag_of_Cambodia.svg.png" class="rounded-circle me-1" width="16" height="16"> Khmer
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="tab-content" id="addProductLanguageTabsContent">
                     <!-- English Fields -->
-                    <div class="tab-pane fade show active" id="en-fields" role="tabpanel" aria-labelledby="en-tab">
-                        <div class="mb-3">
-                            <label for="sidebar_name_en" class="form-label fw-bold">Product Name (EN) *</label>
-                            <input type="text" class="form-control" id="sidebar_name_en" name="name_en" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_description_en" class="form-label fw-bold">Description (EN) *</label>
-                            <textarea class="form-control" id="sidebar_description_en" name="description_en" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_detailed_description_en" class="form-label">Detailed Description (EN)</label>
-                            <textarea class="form-control" id="sidebar_detailed_description_en" name="detailed_description_en" rows="4" placeholder="Provide a detailed description of the product..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_ingredients_en" class="form-label">Ingredients (EN)</label>
-                            <textarea class="form-control" id="sidebar_ingredients_en" name="ingredients_en" rows="3" placeholder="List the main ingredients..."></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_origin_en" class="form-label">Origin (EN)</label>
-                                <input type="text" class="form-control" id="sidebar_origin_en" name="origin_en" placeholder="e.g., Ethiopia, Colombia">
+                    <div class="tab-pane fade show active" id="add-en-fields" role="tabpanel">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Basic Info (EN)</div>
+                            <div class="card-body">
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_name_en">Product Name *</label>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_name_en" name="name_en" required placeholder="Enter product name">
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_description_en">Short Description *</label>
+                                    <textarea class="form-control form-control-premium" id="sidebar_description_en" name="description_en" rows="3" required placeholder="Brief summary..."></textarea>
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_weight_en">Weight (EN)</label>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_weight_en" name="weight_en" placeholder="e.g. 250g">
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_weight_en" class="form-label">Package Weight (EN)</label>
-                                <input type="text" class="form-control" id="sidebar_weight_en" name="weight_en" placeholder="e.g., 250g, 1kg">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_roast_level_en" class="form-label">Roast Level (EN)</label>
-                                <select class="form-control" id="sidebar_roast_level_en" name="roast_level_en">
-                                    <option value="">Select roast level</option>
-                                    <option value="Light">Light</option>
-                                    <option value="Medium-Light">Medium-Light</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="Medium-Dark">Medium-Dark</option>
-                                    <option value="Dark">Dark</option>
-                                    <option value="French">French (Very Dark)</option>
-                                    <option value="Unroasted">Unroasted/Green</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_tasting_notes_en" class="form-label">Tasting Notes (EN)</label>
-                                <input type="text" class="form-control" id="sidebar_tasting_notes_en" name="tasting_notes_en" placeholder="e.g., Chocolate, Caramel, Citrus">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_brewing_instructions_en" class="form-label">Brewing Instructions (EN)</label>
-                            <textarea class="form-control" id="sidebar_brewing_instructions_en" name="brewing_instructions_en" rows="3" placeholder="How to brew or prepare this product..."></textarea>
                         </div>
                     </div>
                     <!-- Khmer Fields -->
-                    <div class="tab-pane fade" id="km-fields" role="tabpanel" aria-labelledby="km-tab">
-                        <div class="mb-3">
-                            <label for="sidebar_name_km" class="form-label fw-bold">Product Name (KM) *</label>
-                            <input type="text" class="form-control" id="sidebar_name_km" name="name_km" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_description_km" class="form-label fw-bold">Description (KM) *</label>
-                            <textarea class="form-control" id="sidebar_description_km" name="description_km" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_detailed_description_km" class="form-label">Detailed Description (KM)</label>
-                            <textarea class="form-control" id="sidebar_detailed_description_km" name="detailed_description_km" rows="4" placeholder="Provide a detailed description of the product..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_ingredients_km" class="form-label">Ingredients (KM)</label>
-                            <textarea class="form-control" id="sidebar_ingredients_km" name="ingredients_km" rows="3" placeholder="List the main ingredients..."></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_origin_km" class="form-label">Origin (KM)</label>
-                                <input type="text" class="form-control" id="sidebar_origin_km" name="origin_km" placeholder="e.g., Ethiopia, Colombia">
+                    <div class="tab-pane fade" id="add-km-fields" role="tabpanel">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white"><i class="bi bi-info-circle me-2"></i>Basic Info (KM)</div>
+                            <div class="card-body">
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_name_km">ឈ្មោះផលិតផល (KM) *</label>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_name_km" name="name_km" required placeholder="បញ្ចូលឈ្មោះផលិតផល">
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_description_km">ការពិពណ៌នាសង្ខេប (KM) *</label>
+                                    <textarea class="form-control form-control-premium" id="sidebar_description_km" name="description_km" rows="3" required placeholder="សេចក្តីសង្ខេប..."></textarea>
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_weight_km">ទម្ងន់ (KM)</label>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_weight_km" name="weight_km" placeholder="ឧದಾហរណ៍ៈ ២៥០ក្រាម">
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_weight_km" class="form-label">Package Weight (KM)</label>
-                                <input type="text" class="form-control" id="sidebar_weight_km" name="weight_km" placeholder="e.g., 250g, 1kg">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_roast_level_km" class="form-label">Roast Level (KM)</label>
-                                <select class="form-control" id="sidebar_roast_level_km" name="roast_level_km">
-                                    <option value="">Select roast level</option>
-                                    <option value="Light">Light</option>
-                                    <option value="Medium-Light">Medium-Light</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="Medium-Dark">Medium-Dark</option>
-                                    <option value="Dark">Dark</option>
-                                    <option value="French">French (Very Dark)</option>
-                                    <option value="Unroasted">Unroasted/Green</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="sidebar_tasting_notes_km" class="form-label">Tasting Notes (KM)</label>
-                                <input type="text" class="form-control" id="sidebar_tasting_notes_km" name="tasting_notes_km" placeholder="e.g., Chocolate, Caramel, Citrus">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sidebar_brewing_instructions_km" class="form-label">Brewing Instructions (KM)</label>
-                            <textarea class="form-control" id="sidebar_brewing_instructions_km" name="brewing_instructions_km" rows="3" placeholder="How to brew or prepare this product..."></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- Shared Information -->
-                <div class="row">
-                    <div class="col-md-8">
-                        <!-- Price is shared -->
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="sidebar_price" class="form-label fw-bold">Price ($) *</label>
-                            <input type="number" step="0.01" class="form-control" id="sidebar_price" name="price" required>
+                <!-- Shared Settings -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white"><i class="bi bi-gear me-2"></i>Product Settings</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_price">Price ($) *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0 rounded-start-pill px-3">$</span>
+                                        <input type="number" step="0.01" class="form-control form-control-premium rounded-end-pill" id="sidebar_price" name="price" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_category">Category</label>
+                                    <select class="form-select form-control-premium rounded-pill" id="sidebar_category" name="category_id">
+                                        <option value="">No Category</option>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Category Selection -->
-                <div class="mb-3">
-                    <label for="sidebar_category" class="form-label fw-bold">Category</label>
-                    <select class="form-control" id="sidebar_category" name="category_id">
-                        <option value="">Select a category (optional)</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <div class="form-text">Choose a category for this product to help with organization and filtering</div>
                 </div>
 
                 <!-- Image Upload -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-image"></i> Product Image</h6>
-                    </div>
+                <div class="card mb-4">
+                    <div class="card-header bg-white"><i class="bi bi-image me-2"></i>Product Image</div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="sidebar_image" class="form-label">Upload Image File</label>
-                            <input type="file" class="form-control" id="sidebar_image" name="image" accept="image/*">
-                            <div class="form-text">Upload a JPG, PNG, or GIF file</div>
+                            <label class="form-label small text-muted text-uppercase fw-bold">Upload Image</label>
+                            <input type="file" class="form-control form-control-premium" id="sidebar_image" name="image" accept="image/*">
+                            <div class="mt-3 text-center">
+                                <img id="sidebar_image_preview" src="" alt="Preview" class="img-thumbnail rounded-3 shadow-sm mx-auto" style="display: none; max-width: 120px; max-height: 120px; object-fit: contain;">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="sidebar_image_url" class="form-label">Or Image URL</label>
-                            <input type="url" class="form-control" id="sidebar_image_url" name="image_url" placeholder="https://example.com/image.jpg">
-                            <div class="form-text">Alternatively, provide a direct URL to an image</div>
+                        <div class="text-center my-2">
+                            <span class="badge bg-light text-muted">OR</span>
+                        </div>
+                        <div class="form-floating-custom">
+                            <label for="sidebar_image_url">Image URL</label>
+                            <input type="url" class="form-control form-control-premium" id="sidebar_image_url" name="image_url" placeholder="https://...">
                         </div>
                     </div>
                 </div>
 
-                <!-- Custom Fields Section -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-plus-circle"></i> Custom Fields</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="form-text">Add custom fields to provide additional product information. These fields will be displayed in the product details.</div>
-                            <button type="button" class="btn btn-success btn-sm" id="addCustomFieldAdd">
-                                <i class="bi bi-plus"></i> Add Field
-                            </button>
+                <!-- Custom Fields -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                        <span><i class="bi bi-list-stars me-2 text-success"></i>Custom Fields</span>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-success" id="addCustomFieldAdd"><i class="bi bi-plus"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="copyCustomFieldsAdd"><i class="bi bi-files"></i></button>
                         </div>
-                        <div id="customFieldsContainerAdd">
-                            <!-- Custom fields will be added here dynamically -->
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="customFieldsContainerAdd" class="p-3">
+                            <!-- Dynamically added -->
                         </div>
                     </div>
                 </div>
 
                 <!-- Related Products Section -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-link"></i> Related Products</h6>
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-link-45deg me-2 text-info"></i>Related Products</h6>
                     </div>
                     <div class="card-body">
-                        <div class="form-text mb-3">Select products that are related to this one. These will be displayed as small product cards in the product detail view.</div>
-                        <div class="mb-3">
-                            <label for="related_products_search_add" class="form-label">Search Products</label>
-                            <input type="text" class="form-control" id="related_products_search_add" placeholder="Type to search for products...">
+                        <div class="form-text mb-3">Select products that are related to this one.</div>
+                        <div class="form-floating-custom mb-3">
+                            <label for="related_products_search_add">Search Products</label>
+                            <input type="text" class="form-control form-control-premium" id="related_products_search_add" placeholder="Type to search...">
                         </div>
                         <div class="mb-3">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="add_custom_related_add">
-                                <i class="bi bi-plus"></i> Add Custom Related Product
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" id="add_custom_related_add">
+                                <i class="bi bi-plus"></i> Add Custom Related
                             </button>
                         </div>
-                        <div id="related_products_list_add" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
-                            <!-- Available products will be loaded here -->
+                        <div id="related_products_list_add" class="border rounded-4 p-3 mb-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                            <!-- Available products loaded here -->
                         </div>
-                        <div class="mt-3">
-                            <h6 class="mb-2">Selected Related Products:</h6>
+                        <div>
+                            <label class="small text-muted fw-bold mb-2">SELECTED PRODUCTS</label>
                             <div id="selected_related_products_add" class="d-flex flex-wrap gap-2">
-                                <!-- Selected products will appear here -->
+                                <!-- Selected products appear here -->
                             </div>
                         </div>
                         <input type="hidden" id="related_products_data_add" name="related_products_data_add" value="">
                     </div>
                 </div>
 
-                <!-- Product Status -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-star"></i> Product Status</h6>
-                    </div>
+                <!-- Status Checkboxes -->
+                <div class="card mb-4 bg-light border-0">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check">
+                            <div class="col-6">
+                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="sidebar_featured" name="featured" value="1">
-                                    <label class="form-check-label" for="sidebar_featured">
-                                        <i class="bi bi-star-fill text-warning"></i> Mark as Featured Product
-                                    </label>
-                                    <div class="form-text">Will appear in the featured products carousel</div>
+                                    <label class="form-check-label fw-bold" for="sidebar_featured">Featured</label>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
+                            <div class="col-6">
+                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="sidebar_best_seller" name="best_seller" value="1">
-                                    <label class="form-check-label" for="sidebar_best_seller">
-                                        <i class="bi bi-trophy-fill text-success"></i> Mark as Best Seller
-                                    </label>
-                                    <div class="form-text">Will appear in the best sellers section</div>
+                                    <label class="form-check-label fw-bold" for="sidebar_best_seller">Best Seller</label>
                                 </div>
                             </div>
                         </div>
@@ -1670,20 +1733,19 @@ $categories = $stmt->fetchAll();
             </form>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn btn-secondary" id="cancelAddProduct">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="submit" form="addProductForm" name="add_product" class="btn btn-primary">
-                <i class="bi bi-check-circle"></i> Add Product
+            <button type="button" class="btn btn-light rounded-pill px-4" id="cancelAddProduct">Cancel</button>
+            <button type="submit" form="addProductForm" name="add_product" class="btn btn-primary rounded-pill px-4 shadow">
+                <i class="bi bi-plus-circle me-1"></i>Add Product
             </button>
         </div>
     </div>
 
     <!-- Add Category Sidebar -->
+    <!-- Add Category Sidebar -->
     <div class="category-sidebar" id="addCategorySidebar">
         <div class="sidebar-header">
             <h5 class="sidebar-title">
-                <i class="bi bi-plus-circle"></i> Add New Category
+                <i class="bi bi-tag-fill me-2 text-success"></i>Add New Category
             </h5>
             <button type="button" class="btn-close-sidebar" id="closeAddCategorySidebar">
                 <i class="bi bi-x-lg"></i>
@@ -1691,166 +1753,166 @@ $categories = $stmt->fetchAll();
         </div>
         <div class="sidebar-content">
             <form method="POST" enctype="multipart/form-data" id="addCategoryForm">
-                <!-- Language Tabs -->
-                <ul class="nav nav-tabs mb-3" id="addCategoryLanguageTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="category-en-tab" data-bs-toggle="tab" data-bs-target="#category-en-fields" type="button" role="tab" aria-controls="category-en-fields" aria-selected="true">English</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="category-km-tab" data-bs-toggle="tab" data-bs-target="#category-km-fields" type="button" role="tab" aria-controls="category-km-fields" aria-selected="false">Khmer</button>
-                    </li>
-                </ul>
+                <!-- Language Navigation -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small text-uppercase mb-2">Category Language</label>
+                    <ul class="nav nav-tabs-premium" id="addCategoryLanguageTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="category-en-tab" data-bs-toggle="tab" data-bs-target="#category-en-fields" type="button" role="tab">
+                                EN
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="category-km-tab" data-bs-toggle="tab" data-bs-target="#category-km-fields" type="button" role="tab">
+                                KM
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="tab-content" id="addCategoryLanguageTabsContent">
                     <!-- English Fields -->
-                    <div class="tab-pane fade show active" id="category-en-fields" role="tabpanel" aria-labelledby="category-en-tab">
-                        <div class="mb-3">
-                            <label for="sidebar_category_name_en" class="form-label fw-bold">Category Name (EN) *</label>
-                            <input type="text" class="form-control" id="sidebar_category_name_en" name="category_name_en" required>
-                            <div class="form-text">Enter a unique name for the category in English</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="sidebar_category_description_en" class="form-label fw-bold">Description (EN)</label>
-                            <textarea class="form-control" id="sidebar_category_description_en" name="category_description_en" rows="3" placeholder="Describe this category in English..."></textarea>
-                            <div class="form-text">Optional description for the category</div>
+                    <div class="tab-pane fade show active" id="category-en-fields" role="tabpanel">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_category_name_en">Category Name (EN) *</label>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_category_name_en" name="category_name_en" required placeholder="e.g. Coffee Beans">
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_category_description_en">Description (EN)</label>
+                                    <textarea class="form-control form-control-premium" id="sidebar_category_description_en" name="category_description_en" rows="3"></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Khmer Fields -->
-                    <div class="tab-pane fade" id="category-km-fields" role="tabpanel" aria-labelledby="category-km-tab">
-                        <div class="mb-3">
-                            <label for="sidebar_category_name_km" class="form-label fw-bold">Category Name (KM) *</label>
-                            <input type="text" class="form-control" id="sidebar_category_name_km" name="category_name_km" required>
-                            <div class="form-text">បញ្ចូលឈ្មោះប្រភេទតែមួយគត់ជាភាសាខ្មែរ</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="sidebar_category_description_km" class="form-label fw-bold">Description (KM)</label>
-                            <textarea class="form-control" id="sidebar_category_description_km" name="category_description_km" rows="3" placeholder="ពិពណ៌នាប្រភេទនេះជាភាសាខ្មែរ..."></textarea>
-                            <div class="form-text">ការពិពណ៌នាជាជម្រើសសម្រាប់ប្រភេទ</div>
+                    <div class="tab-pane fade" id="category-km-fields" role="tabpanel">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_category_name_km">Category Name (KM) *</label>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_category_name_km" name="category_name_km" required>
+                                </div>
+                                <div class="form-floating-custom">
+                                    <label for="sidebar_category_description_km">Description (KM)</label>
+                                    <textarea class="form-control form-control-premium" id="sidebar_category_description_km" name="category_description_km" rows="3"></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Shared Image Upload Section -->
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-image"></i> Category Image (Optional)</h6>
+                <!-- Image Upload Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-3 fw-bold">
+                        <i class="bi bi-image me-2 text-primary"></i>Category Image
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <div class="mb-3">
-                            <label for="sidebar_category_image" class="form-label">Upload Image File</label>
-                            <input type="file" class="form-control" id="sidebar_category_image" name="category_image" accept="image/*">
-                            <div class="form-text">Upload a JPG, PNG, or GIF file for the category</div>
+                            <label class="small text-muted fw-bold mb-2">Upload File</label>
+                            <input type="file" class="form-control form-control-premium" id="sidebar_category_image" name="category_image" accept="image/*">
+                            <div class="mt-2 text-center">
+                                <img id="sidebar_category_image_preview" src="" alt="Preview" class="img-thumbnail rounded-3 shadow-sm mx-auto" style="display: none; max-width: 120px; max-height: 120px; object-fit: contain;">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="sidebar_category_image_url" class="form-label">Or Image URL</label>
-                            <input type="url" class="form-control" id="sidebar_category_image_url" name="category_image_url" placeholder="https://example.com/image.jpg">
-                            <div class="form-text">Alternatively, provide a direct URL to an image</div>
+                        <div class="text-center my-2">
+                            <span class="badge bg-light text-muted">OR</span>
+                        </div>
+                        <div class="form-floating-custom">
+                            <label class="small text-muted fw-bold mb-2">Image URL</label>
+                            <input type="url" class="form-control form-control-premium" id="sidebar_category_image_url" name="category_image_url" placeholder="https://...">
                         </div>
                     </div>
                 </div>
             </form>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn btn-secondary" id="cancelAddCategory">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="submit" form="addCategoryForm" name="add_category" class="btn btn-success">
-                <i class="bi bi-check-circle"></i> Add Category
+            <button type="button" class="btn btn-light rounded-pill px-4" id="cancelAddCategory">Cancel</button>
+            <button type="submit" form="addCategoryForm" name="add_category" class="btn btn-success rounded-pill px-4 shadow">
+                <i class="bi bi-plus-circle me-1"></i>Add Category
             </button>
         </div>
     </div>
 
     <!-- Edit Category Modal -->
     <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="editCategoryModalLabel">
-                        <i class="bi bi-pencil-square"></i> Edit Category
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg overflow-hidden">
+                <div class="modal-header bg-dark text-white p-4">
+                    <h5 class="modal-title d-flex align-items-center" id="editCategoryModalLabel">
+                        <i class="bi bi-pencil-square me-2 text-warning"></i> 
+                        <span class="fw-bold">Edit Category</span>
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" id="edit_category_id" name="edit_category_id" value="">
-                    <div class="modal-body">
-                        <!-- Language Tabs -->
-                        <ul class="nav nav-tabs mb-3" id="editCategoryLanguageTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="edit-category-en-tab" data-bs-toggle="tab" data-bs-target="#edit-category-en-fields" type="button" role="tab" aria-controls="edit-category-en-fields" aria-selected="true">English</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="edit-category-km-tab" data-bs-toggle="tab" data-bs-target="#edit-category-km-fields" type="button" role="tab" aria-controls="edit-category-km-fields" aria-selected="false">Khmer</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="editCategoryLanguageTabsContent">
-                            <!-- English Fields -->
-                            <div class="tab-pane fade show active" id="edit-category-en-fields" role="tabpanel" aria-labelledby="edit-category-en-tab">
-                                <div class="mb-3">
-                                    <label for="edit_category_name_en" class="form-label fw-bold">Category Name (EN) *</label>
-                                    <input type="text" class="form-control" id="edit_category_name_en" name="edit_category_name_en" required>
-                                    <div class="form-text">Enter a unique name for the category in English</div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="edit_category_description_en" class="form-label fw-bold">Description (EN)</label>
-                                    <textarea class="form-control" id="edit_category_description_en" name="edit_category_description_en" rows="3" placeholder="Describe this category in English..."></textarea>
-                                    <div class="form-text">Optional description for the category</div>
-                                </div>
+                    <div class="modal-body p-4 bg-light">
+                        <!-- Language Navigation -->
+                        <div class="mb-4 text-center">
+                            <div class="btn-group p-1 bg-white rounded-pill shadow-sm" role="group">
+                                <button type="button" class="btn btn-outline-warning rounded-pill px-4 active" id="edit-cat-en-btn">EN</button>
+                                <button type="button" class="btn btn-outline-warning rounded-pill px-4" id="edit-cat-km-btn">KM</button>
                             </div>
+                        </div>
 
-                            <!-- Khmer Fields -->
-                            <div class="tab-pane fade" id="edit-category-km-fields" role="tabpanel" aria-labelledby="edit-category-km-tab">
-                                <div class="mb-3">
-                                    <label for="edit_category_name_km" class="form-label fw-bold">Category Name (KM) *</label>
-                                    <input type="text" class="form-control" id="edit_category_name_km" name="edit_category_name_km" required>
-                                    <div class="form-text">បញ្ចូលឈ្មោះប្រភេទតែមួយគត់ជាភាសាខ្មែរ</div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="edit_category_description_km" class="form-label fw-bold">Description (KM)</label>
-                                    <textarea class="form-control" id="edit_category_description_km" name="edit_category_description_km" rows="3" placeholder="ពិពណ៌នាប្រភេទនេះជាភាសាខ្មែរ..."></textarea>
-                                    <div class="form-text">ការពិពណ៌នាជាជម្រើសសម្រាប់ប្រភេទ</div>
+                        <div id="edit-cat-lang-en">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-body p-4">
+                                    <div class="form-floating-custom">
+                                        <label class="small text-muted fw-bold">CATEGORY NAME (EN) *</label>
+                                        <input type="text" class="form-control form-control-premium" id="edit_category_name_en" name="edit_category_name_en" required>
+                                    </div>
+                                    <div class="form-floating-custom">
+                                        <label class="small text-muted fw-bold">DESCRIPTION (EN)</label>
+                                        <textarea class="form-control form-control-premium" id="edit_category_description_en" name="edit_category_description_en" rows="3"></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Current Image Display -->
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="bi bi-image"></i> Current Image</h6>
-                            </div>
-                            <div class="card-body text-center">
-                                <img id="current_category_image_preview" src="" alt="Current category image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                        <div id="edit-cat-lang-km" style="display:none;">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-body p-4">
+                                    <div class="form-floating-custom">
+                                        <label class="small text-muted fw-bold">CATEGORY NAME (KM) *</label>
+                                        <input type="text" class="form-control form-control-premium" id="edit_category_name_km" name="edit_category_name_km" required>
+                                    </div>
+                                    <div class="form-floating-custom">
+                                        <label class="small text-muted fw-bold">DESCRIPTION (KM)</label>
+                                        <textarea class="form-control form-control-premium" id="edit_category_description_km" name="edit_category_description_km" rows="3"></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Image Upload -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="bi bi-upload"></i> Update Image (Optional)</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="edit_category_image" class="form-label">Upload New Image File</label>
-                                    <input type="file" class="form-control" id="edit_category_image" name="edit_category_image" accept="image/*">
-                                    <div class="form-text">Upload a new JPG, PNG, or GIF file to replace the current image</div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_category_image_url" class="form-label">Or New Image URL</label>
-                                    <input type="url" class="form-control" id="edit_category_image_url" name="edit_category_image_url" placeholder="https://example.com/image.jpg">
-                                    <div class="form-text">Alternatively, provide a direct URL to replace the current image</div>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                                        <label class="small text-muted fw-bold d-block mb-2">CURRENT IMAGE</label>
+                                        <img id="current_category_image_preview" src="" alt="Category image" class="img-thumbnail rounded-3 shadow-sm mx-auto" style="max-width: 120px; max-height: 120px; object-fit: contain;">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label class="small text-muted fw-bold mb-2">UPLOAD NEW</label>
+                                            <input type="file" class="form-control form-control-premium" id="edit_category_image" name="edit_category_image" accept="image/*">
+                                        </div>
+                                        <div class="form-floating-custom">
+                                            <label class="small text-muted fw-bold mb-2">OR IMAGE URL</label>
+                                            <input type="url" class="form-control form-control-premium" id="edit_category_image_url" name="edit_category_image_url">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        <button type="submit" name="update_category" class="btn btn-warning">
-                            <i class="bi bi-check-circle"></i> Update Category
+                    <div class="modal-footer bg-white border-0 p-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="update_category" class="btn btn-warning rounded-pill px-4 shadow fw-bold">
+                            <i class="bi bi-save me-1"></i>Update Category
                         </button>
                     </div>
                 </form>
@@ -1859,51 +1921,131 @@ $categories = $stmt->fetchAll();
     </div>
 
     <!-- Detailed Product Information Modal -->
+    <!-- Detailed Product Information Modal -->
     <div class="modal fade" id="detailedProductModal" tabindex="-1" aria-labelledby="detailedProductModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="detailedProductModalLabel">
-                        <i class="bi bi-gear"></i> <?php echo getSetting('admin_detailed_product_modal_title', 'Detailed Product Information', $currentLanguage); ?>
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg overflow-hidden">
+                <div class="modal-header bg-dark text-white p-4">
+                    <h5 class="modal-title d-flex align-items-center" id="detailedProductModalLabel">
+                        <i class="bi bi-gear-fill me-2 text-info"></i> 
+                        <span class="fw-bold"><?php echo getSetting('admin_detailed_product_modal_title', 'Detailed Product Information', $currentLanguage); ?></span>
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="POST" id="detailedProductForm" accept-charset="UTF-8">
                     <input type="hidden" id="detailed_base_product_id" name="base_product_id" value="">
                     <input type="hidden" id="custom_fields_data" name="custom_fields_data" value="">
-                    <div class="modal-body">
-                        <!-- Standard Fields -->
-                        <div class="mb-4">
-                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-info-circle"></i> Standard Information</h6>
-
-                            <div class="mb-3">
-                                <label for="detailed_detailed_description" class="form-label fw-bold">Detailed Description</label>
-                                <textarea class="form-control" id="detailed_detailed_description" name="edit_detailed_description" rows="4" placeholder="Provide a detailed description of the product..."></textarea>
-                                <div class="form-text">This will be shown in the product details modal on the frontend</div>
+                    <div class="modal-body p-4 bg-light">
+                        <!-- Language Navigation for Modal -->
+                        <div class="mb-4 text-center">
+                            <div class="btn-group p-1 bg-white rounded-pill shadow-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary rounded-pill px-4 active" id="modal-en-btn">EN</button>
+                                <button type="button" class="btn btn-outline-primary rounded-pill px-4" id="modal-km-btn">KM</button>
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="detailed_ingredients" class="form-label fw-bold">Ingredients</label>
-                                <textarea class="form-control" id="detailed_ingredients" name="edit_ingredients" rows="3" placeholder="List the main ingredients..."></textarea>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="detailed_origin" class="form-label fw-bold">Origin</label>
-                                    <input type="text" class="form-control" id="detailed_origin" name="edit_origin" placeholder="e.g., Ethiopia, Colombia">
-                                    <div class="form-text">Country or region of origin</div>
+                        <div id="modal-lang-en">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-bottom fw-bold py-3">
+                                    <i class="bi bi-info-circle me-2 text-primary"></i>ENGLISH CONTENT
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="detailed_weight" class="form-label fw-bold">Package Weight</label>
-                                    <input type="text" class="form-control" id="detailed_weight" name="edit_weight" placeholder="e.g., 250g, 1kg">
-                                    <div class="form-text">Weight or size of the package</div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">DETAILED DESCRIPTION (EN)</label>
+                                                <textarea class="form-control form-control-premium" id="detailed_detailed_description_en" name="edit_detailed_description_en" rows="4" placeholder="Rich description..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">INGREDIENTS (EN)</label>
+                                                <textarea class="form-control form-control-premium" id="detailed_ingredients_en" name="edit_ingredients_en" rows="2" placeholder="List components..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">BREWING (EN)</label>
+                                                <textarea class="form-control form-control-premium" id="detailed_brewing_instructions_en" name="edit_brewing_instructions_en" rows="2" placeholder="Instructions..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">ORIGIN (EN)</label>
+                                                <input type="text" class="form-control form-control-premium" id="detailed_origin_en" name="edit_origin_en">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">WEIGHT (EN)</label>
+                                                <input type="text" class="form-control form-control-premium" id="detailed_weight_en" name="edit_weight_en">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">TASTING NOTES (EN)</label>
+                                                <input type="text" class="form-control form-control-premium" id="detailed_tasting_notes_en" name="edit_tasting_notes_en">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="detailed_roast_level" class="form-label fw-bold">Roast Level</label>
-                                    <select class="form-control" id="detailed_roast_level" name="edit_roast_level">
+                        <div id="modal-lang-km" style="display:none;">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-header bg-white border-bottom fw-bold py-3">
+                                    <i class="bi bi-info-circle me-2 text-primary"></i>KHMER CONTENT
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">ការពិពណ៌នាលម្អិត (KM)</label>
+                                                <textarea class="form-control form-control-premium" id="detailed_detailed_description_km" name="edit_detailed_description_km" rows="4"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">គ្រឿងផ្សំ (KM)</label>
+                                                <textarea class="form-control form-control-premium" id="detailed_ingredients_km" name="edit_ingredients_km" rows="2"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">ការណែនាំអំពីការឆុង (KM)</label>
+                                                <textarea class="form-control form-control-premium" id="detailed_brewing_instructions_km" name="edit_brewing_instructions_km" rows="2"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">ប្រភព (KM)</label>
+                                                <input type="text" class="form-control form-control-premium" id="detailed_origin_km" name="edit_origin_km">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">ទម្ងន់ (KM)</label>
+                                                <input type="text" class="form-control form-control-premium" id="detailed_weight_km" name="edit_weight_km">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label class="small text-muted fw-bold">កំណត់ចំណាំរសជាតិ (KM)</label>
+                                                <input type="text" class="form-control form-control-premium" id="detailed_tasting_notes_km" name="edit_tasting_notes_km">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Roast Level Shared -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="form-floating-custom">
+                                    <label class="small text-muted fw-bold">ROAST LEVEL</label>
+                                    <select class="form-select form-control-premium" id="detailed_roast_level" name="edit_roast_level">
                                         <option value="">Select roast level</option>
                                         <option value="Light">Light</option>
                                         <option value="Medium-Light">Medium-Light</option>
@@ -1913,43 +2055,35 @@ $categories = $stmt->fetchAll();
                                         <option value="French">French (Very Dark)</option>
                                         <option value="Unroasted">Unroasted/Green</option>
                                     </select>
-                                    <div class="form-text">Coffee roast level</div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="detailed_tasting_notes" class="form-label fw-bold">Tasting Notes</label>
-                                    <input type="text" class="form-control" id="detailed_tasting_notes" name="edit_tasting_notes" placeholder="e.g., Chocolate, Caramel, Citrus">
-                                    <div class="form-text">Flavor profile notes</div>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="detailed_brewing_instructions" class="form-label fw-bold">Brewing Instructions</label>
-                                <textarea class="form-control" id="detailed_brewing_instructions" name="edit_brewing_instructions" rows="3" placeholder="How to brew or prepare this product..."></textarea>
                             </div>
                         </div>
 
                         <!-- Custom Fields Section -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="fw-bold text-success mb-0"><i class="bi bi-plus-circle"></i> Custom Fields</h6>
-                                <button type="button" class="btn btn-success btn-sm" id="addCustomField">
-                                    <i class="bi bi-plus"></i> Add Field
-                                </button>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom py-3">
+                                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-list-stars me-2 text-success"></i>Custom Fields</h6>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3" id="addCustomField">
+                                        <i class="bi bi-plus"></i> Add
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="copyCustomFields">
+                                        <i class="bi bi-files"></i> Copy
+                                    </button>
+                                </div>
                             </div>
-
-                            <div id="customFieldsContainer">
-                                <!-- Custom fields will be added here dynamically -->
+                            <div class="card-body p-3">
+                                <div id="customFieldsContainer">
+                                    <!-- Custom fields dynamically added -->
+                                </div>
+                                <div class="form-text text-center mt-2">Additional technical specifications or information</div>
                             </div>
-
-                            <div class="form-text">Add custom fields to provide additional product information. These fields will be displayed in the product details.</div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        <button type="submit" name="update_product" class="btn btn-info">
-                            <i class="bi bi-check-circle"></i> Update Details
+                    <div class="modal-footer bg-white border-0 p-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="update_product" class="btn btn-info rounded-pill px-4 shadow text-white fw-bold">
+                            <i class="bi bi-save me-1"></i>Save All Changes
                         </button>
                     </div>
                 </form>
@@ -1957,13 +2091,42 @@ $categories = $stmt->fetchAll();
         </div>
     </div>
 
+    <!-- Modal for copying custom fields -->
+    <div class="modal fade" id="copyFieldsModal" tabindex="-1" aria-hidden="true" style="z-index: 2050;">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-files"></i> Copy Custom Fields</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Product to copy fields from:</label>
+                        <select id="copyFieldsProductSelect" class="form-select">
+                            <option value="">-- Select a product --</option>
+                        </select>
+                        <div class="form-text mt-2 text-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Warning: This will append the copied custom fields to your current list.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmCopyFields">
+                        <i class="bi bi-check-circle"></i> Copy Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Product Sidebar Functionality
-        const addProductBtn = document.getElementById('addProductBtn');
-        const addProductSidebar = document.getElementById('addProductSidebar');
-        const closeAddProductSidebar = document.getElementById('closeAddProductSidebar');
-        const cancelAddProduct = document.getElementById('cancelAddProduct');
-        const sidebarOverlay = document.createElement('div');
+        var addProductBtn = document.getElementById('addProductBtn');
+        var addProductSidebar = document.getElementById('addProductSidebar');
+        var closeAddProductSidebar = document.getElementById('closeAddProductSidebar');
+        var cancelAddProduct = document.getElementById('cancelAddProduct');
+        var sidebarOverlay = document.createElement('div');
         sidebarOverlay.className = 'sidebar-overlay';
 
         // Add overlay to body
@@ -2006,22 +2169,22 @@ $categories = $stmt->fetchAll();
 
         // Auto-dismiss alerts after 5 seconds
         setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
+            var alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
-                try { const bsAlert = new bootstrap.Alert(alert); bsAlert.close(); } catch(e) {}
+                try { var bsAlert = new bootstrap.Alert(alert); bsAlert.close(); } catch(e) {}
             });
         }, 5000);
 
         // Form validation for the sidebar
         (function(){
-            const sidebarForm = document.getElementById('addProductForm');
+var sidebarForm = document.getElementById('addProductForm');
             if (sidebarForm) {
                 sidebarForm.addEventListener('submit', function(e) {
-                    const nameEn = document.getElementById('sidebar_name_en').value.trim();
-                    const nameKm = document.getElementById('sidebar_name_km').value.trim();
-                    const descriptionEn = document.getElementById('sidebar_description_en').value.trim();
-                    const descriptionKm = document.getElementById('sidebar_description_km').value.trim();
-                    const price = document.getElementById('sidebar_price').value;
+                    var nameEn = document.getElementById('sidebar_name_en').value.trim();
+                    var nameKm = document.getElementById('sidebar_name_km').value.trim();
+                    var descriptionEn = document.getElementById('sidebar_description_en').value.trim();
+                    var descriptionKm = document.getElementById('sidebar_description_km').value.trim();
+                    var price = document.getElementById('sidebar_price').value;
 
                     if (!nameEn || !nameKm || !descriptionEn || !descriptionKm || !price) {
                         e.preventDefault();
@@ -2036,16 +2199,16 @@ $categories = $stmt->fetchAll();
                     }
 
                     // Collect custom fields
-                    const customFields = collectCustomFields('customFieldsContainerAdd');
+                    var customFields = collectCustomFields('customFieldsContainerAdd');
                     document.getElementById('custom_fields_data_add').value = JSON.stringify(customFields);
                 });
             }
         })();
 
         // Edit Product Sidebar Functionality
-        const editProductSidebar = document.getElementById('editProductSidebar');
-        const closeEditProductSidebar = document.getElementById('closeEditProductSidebar');
-        const cancelEditProduct = document.getElementById('cancelEditProduct');
+        var editProductSidebar = document.getElementById('editProductSidebar');
+        var closeEditProductSidebar = document.getElementById('closeEditProductSidebar');
+        var cancelEditProduct = document.getElementById('cancelEditProduct');
 
         // Close edit sidebar functions
         function closeEditSidebar() {
@@ -2070,14 +2233,14 @@ $categories = $stmt->fetchAll();
 
         // Form validation for the edit sidebar
         (function(){
-            const editSidebarForm = document.getElementById('editProductForm');
+var editSidebarForm = document.getElementById('editProductForm');
             if (editSidebarForm) {
                 editSidebarForm.addEventListener('submit', function(e) {
-                    const nameEn = document.getElementById('edit_name_en').value.trim();
-                    const nameKm = document.getElementById('edit_name_km').value.trim();
-                    const descriptionEn = document.getElementById('edit_description_en').value.trim();
-                    const descriptionKm = document.getElementById('edit_description_km').value.trim();
-                    const price = document.getElementById('edit_price').value;
+                    var nameEn = document.getElementById('edit_name_en').value.trim();
+                    var nameKm = document.getElementById('edit_name_km').value.trim();
+                    var descriptionEn = document.getElementById('edit_description_en').value.trim();
+                    var descriptionKm = document.getElementById('edit_description_km').value.trim();
+                    var price = document.getElementById('edit_price').value;
 
                     if (!nameEn || !nameKm || !descriptionEn || !descriptionKm || !price) {
                         e.preventDefault();
@@ -2092,17 +2255,17 @@ $categories = $stmt->fetchAll();
                     }
 
                     // Collect custom fields
-                    const customFields = collectCustomFields('customFieldsContainerEdit');
+                    var customFields = collectCustomFields('customFieldsContainerEdit');
                     document.getElementById('custom_fields_data_edit').value = JSON.stringify(customFields);
                 });
             }
         })();
 
         // Category Sidebar Functionality
-        const addCategoryBtn = document.getElementById('addCategoryBtn');
-        const addCategorySidebar = document.getElementById('addCategorySidebar');
-        const closeAddCategorySidebar = document.getElementById('closeAddCategorySidebar');
-        const cancelAddCategory = document.getElementById('cancelAddCategory');
+        var addCategoryBtn = document.getElementById('addCategoryBtn');
+        var addCategorySidebar = document.getElementById('addCategorySidebar');
+        var closeAddCategorySidebar = document.getElementById('closeAddCategorySidebar');
+        var cancelAddCategory = document.getElementById('cancelAddCategory');
 
         // Open category sidebar
         addCategoryBtn.addEventListener('click', function() {
@@ -2132,11 +2295,11 @@ $categories = $stmt->fetchAll();
 
         // Form validation for category sidebar
         (function(){
-            const categorySidebarForm = document.getElementById('addCategoryForm');
+            var categorySidebarForm = document.getElementById('addCategoryForm');
             if (categorySidebarForm) {
                 categorySidebarForm.addEventListener('submit', function(e) {
-                    const nameEn = document.getElementById('sidebar_category_name_en').value.trim();
-                    const nameKm = document.getElementById('sidebar_category_name_km').value.trim();
+                    var nameEn = document.getElementById('sidebar_category_name_en').value.trim();
+                    var nameKm = document.getElementById('sidebar_category_name_km').value.trim();
 
                     if (!nameEn) {
                         e.preventDefault();
@@ -2155,7 +2318,7 @@ $categories = $stmt->fetchAll();
 
         function showNotification(message, type) {
             // Create notification element
-            const notification = document.createElement('div');
+            var notification = document.createElement('div');
             notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
             notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
             notification.innerHTML = `
@@ -2179,12 +2342,12 @@ $categories = $stmt->fetchAll();
             // Handle edit product button clicks
             if (e.target.closest('.edit-product-btn')) {
                 e.preventDefault();
-                const button = e.target.closest('.edit-product-btn');
-                const baseProductId = button.getAttribute('data-base-product-id');
+                var button = e.target.closest('.edit-product-btn');
+                var baseProductId = button.getAttribute('data-base-product-id');
 
                 // Find the product data from the table
-                const row = button.closest('tr');
-                const productData = {
+                var row = button.closest('tr');
+                var productData = {
                     base_product_id: baseProductId,
                     name: row.cells[3] ? row.cells[3].textContent.trim() : '',
                     price: row.cells[6] ? row.cells[6].textContent.replace('$', '').trim() : '',
@@ -2199,49 +2362,64 @@ $categories = $stmt->fetchAll();
             // Handle settings product button clicks
             if (e.target.closest('.settings-product-btn')) {
                 e.preventDefault();
-                const button = e.target.closest('.settings-product-btn');
-                const baseProductId = button.getAttribute('data-base-product-id');
+                var button = e.target.closest('.settings-product-btn');
+                var baseProductId = button.getAttribute('data-base-product-id');
 
-                // Fetch the current language version of this product
-                fetch(window.location.href, {
+                // Clear previous data
+                document.getElementById('detailed_base_product_id').value = baseProductId;
+                
+                // Fetch English version
+                var fetchEn = fetch(window.location.href, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'get_product_data=1&base_product_id=' + baseProductId + '&language=' + encodeURIComponent('<?php echo addslashes($currentLanguage); ?>')
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const product = data.product;
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'get_product_data=1&base_product_id=' + baseProductId + '&language=en'
+                }).then(r => r.json());
 
-                        document.getElementById('detailed_base_product_id').value = baseProductId;
-                        document.getElementById('detailed_detailed_description').value = product.detailed_description || '';
-                        document.getElementById('detailed_ingredients').value = product.ingredients || '';
-                        document.getElementById('detailed_origin').value = product.origin || '';
-                        document.getElementById('detailed_brewing_instructions').value = product.brewing_instructions || '';
-                        document.getElementById('detailed_tasting_notes').value = product.tasting_notes || '';
-                        document.getElementById('detailed_weight').value = product.weight || '';
-                        document.getElementById('detailed_roast_level').value = product.roast_level || '';
+                // Fetch Khmer version
+                var fetchKm = fetch(window.location.href, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'get_product_data=1&base_product_id=' + baseProductId + '&language=km'
+                }).then(r => r.json());
 
-                        // Load custom fields
-                        loadCustomFields(product.custom_fields || '{}');
-
-                        const detailedModal = new bootstrap.Modal(document.getElementById('detailedProductModal'));
-                        detailedModal.show();
+                Promise.all([fetchEn, fetchKm]).then(([enData, kmData]) => {
+                    if (enData.success) {
+                        var p = enData.product;
+                        document.getElementById('detailed_detailed_description_en').value = p.detailed_description || '';
+                        document.getElementById('detailed_ingredients_en').value = p.ingredients || '';
+                        document.getElementById('detailed_origin_en').value = p.origin || '';
+                        document.getElementById('detailed_brewing_instructions_en').value = p.brewing_instructions || '';
+                        document.getElementById('detailed_tasting_notes_en').value = p.tasting_notes || '';
+                        document.getElementById('detailed_weight_en').value = p.weight || '';
+                        document.getElementById('detailed_roast_level').value = p.roast_level || '';
+                        // Load custom fields from English version
+                        loadCustomFields(p.custom_fields || '{}');
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching product data:', error);
+                    if (kmData.success) {
+                        var p = kmData.product;
+                        document.getElementById('detailed_detailed_description_km').value = p.detailed_description || '';
+                        document.getElementById('detailed_ingredients_km').value = p.ingredients || '';
+                        document.getElementById('detailed_origin_km').value = p.origin || '';
+                        document.getElementById('detailed_brewing_instructions_km').value = p.brewing_instructions || '';
+                        document.getElementById('detailed_tasting_notes_km').value = p.tasting_notes || '';
+                        document.getElementById('detailed_weight_km').value = p.weight || '';
+                        // Roast level is shared
+                    }
+
+                    var detailedModal = new bootstrap.Modal(document.getElementById('detailedProductModal'));
+                    detailedModal.show();
+                }).catch(err => {
+                    console.error('Error fetching dual-lang product data:', err);
+                    showNotification('Error loading product details.', 'error');
                 });
             }
 
             // Handle edit category button clicks
             if (e.target.closest('.edit-category-btn')) {
                 e.preventDefault();
-                const button = e.target.closest('.edit-category-btn');
-                const categoryId = button.getAttribute('data-category-id');
-                const categoryData = allCategoriesData.find(category => category.id == categoryId);
+                var button = e.target.closest('.edit-category-btn');
+                var categoryId = button.getAttribute('data-category-id');
+                var categoryData = allCategoriesData.find(function(category) { return category.id == categoryId; });
                 console.log('Edit category clicked, categoryId:', categoryId, 'categoryData:', categoryData);
                 if (categoryData) populateEditCategoryModal(categoryData);
                 else console.error('Category data not found for ID:', categoryId);
@@ -2257,20 +2435,21 @@ $categories = $stmt->fetchAll();
                 },
                 body: 'get_product_data=1&base_product_id=' + productData.base_product_id + '&language=en'
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.success) {
-                    const product = data.product;
+                    var product = data.product;
 
                     document.getElementById('base_product_id').value = productData.base_product_id;
                     document.getElementById('edit_name_en').value = product.name || '';
                     document.getElementById('edit_description_en').value = product.description || '';
                     document.getElementById('edit_price').value = product.price || productData.price || '';
+                    document.getElementById('edit_weight_en').value = product.weight || '';
                     document.getElementById('edit_featured').checked = (product.featured == 1) || (productData.featured == 1);
                     document.getElementById('edit_best_seller').checked = (product.best_seller == 1) || (productData.best_seller == 1);
 
-                    const imagePreview = document.getElementById('current_image_preview');
-                    const imageSrc = product.image || productData.image;
+                    var imagePreview = document.getElementById('current_image_preview');
+                    var imageSrc = product.image || productData.image;
                     if (imageSrc) {
                         imagePreview.src = imageSrc;
                         imagePreview.style.display = 'block';
@@ -2281,21 +2460,13 @@ $categories = $stmt->fetchAll();
                     document.getElementById('edit_image').value = '';
                     document.getElementById('edit_image_url').value = '';
 
-                    document.getElementById('edit_detailed_description_en').value = product.detailed_description || '';
-                    document.getElementById('edit_ingredients_en').value = product.ingredients || '';
-                    document.getElementById('edit_origin_en').value = product.origin || '';
-                    document.getElementById('edit_brewing_instructions_en').value = product.brewing_instructions || '';
-                    document.getElementById('edit_tasting_notes_en').value = product.tasting_notes || '';
-                    document.getElementById('edit_weight_en').value = product.weight || '';
-                    document.getElementById('edit_roast_level_en').value = product.roast_level || '';
-
                     document.getElementById('edit_category_id').value = product.category_id || productData.category_id || '';
 
                     // Load custom fields from English version
                     loadCustomFields(product.custom_fields || '{}', 'customFieldsContainerEdit');
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error fetching English product data:', error);
             });
 
@@ -2307,29 +2478,23 @@ $categories = $stmt->fetchAll();
                 },
                 body: 'get_product_data=1&base_product_id=' + productData.base_product_id + '&language=km'
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.success) {
-                    const product = data.product;
+                    var product = data.product;
 
                     document.getElementById('edit_name_km').value = product.name || '';
                     document.getElementById('edit_description_km').value = product.description || '';
-                    document.getElementById('edit_detailed_description_km').value = product.detailed_description || '';
-                    document.getElementById('edit_ingredients_km').value = product.ingredients || '';
-                    document.getElementById('edit_origin_km').value = product.origin || '';
-                    document.getElementById('edit_brewing_instructions_km').value = product.brewing_instructions || '';
-                    document.getElementById('edit_tasting_notes_km').value = product.tasting_notes || '';
                     document.getElementById('edit_weight_km').value = product.weight || '';
-                    document.getElementById('edit_roast_level_km').value = product.roast_level || '';
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error fetching Khmer product data:', error);
             });
 
             // Open the edit sidebar
-            const editSidebar = document.getElementById('editProductSidebar');
-            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            var editSidebar = document.getElementById('editProductSidebar');
+            var sidebarOverlay = document.querySelector('.sidebar-overlay');
             editSidebar.classList.add('open');
             sidebarOverlay.classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -2337,56 +2502,133 @@ $categories = $stmt->fetchAll();
 
         // Custom Fields Management Functions
         function loadCustomFields(customFieldsJson, containerId = 'customFieldsContainer') {
-            const container = document.getElementById(containerId);
+            var container = document.getElementById(containerId);
             container.innerHTML = '';
 
             try {
-                const customFields = JSON.parse(customFieldsJson);
+                var customFields = JSON.parse(customFieldsJson);
                 // Handle both old format (simple object) and new format (with translations)
                 if (customFields && typeof customFields === 'object') {
-                    Object.keys(customFields).forEach(key => {
-                        const fieldData = customFields[key];
-                        if (typeof fieldData === 'string') {
-                            // Old format: convert to new format
-                            addCustomField({
-                                name: { en: key.replace(':', ''), km: '' },
-                                value: { en: fieldData, km: '' }
-                            }, containerId);
-                        } else if (fieldData && fieldData.name && fieldData.value) {
-                            // New format with translations
-                            addCustomField(fieldData, containerId);
-                        }
-                    });
+                        Object.keys(customFields).forEach(function(key) {
+                        var fieldData = customFields[key];
+                            if (typeof fieldData === 'string') {
+                                // Old format: convert to new format
+                                fieldData = {
+                                    name: { en: key.replace(':', ''), km: '' },
+                                    value: { en: fieldData, km: '' },
+                                    type: 'text'
+                                };
+                            }
+
+                            // Normalize table rows/value-pairs to expected shape
+                            if (fieldData && fieldData.type && fieldData.type === 'table' && Array.isArray(fieldData.value)) {
+                                fieldData.value = fieldData.value.map(function(r) {
+                                    // Normalize label
+                                    var label = (r && r.label) ? r.label : { en: '', km: '' };
+                                    var normLabel = {
+                                        en: (label.en !== undefined) ? label.en : (label[Object.keys(label)[0]] || ''),
+                                        km: (label.km !== undefined) ? label.km : ''
+                                    };
+
+                                    // Normalize values array
+                                    var valuesArray = Array.isArray(r.value) ? r.value : (r.value ? [r.value] : []);
+                                    var normValues = valuesArray.map(function(vp) {
+                                        if (!vp) return { en: '', km: '' };
+                                        if (typeof vp === 'string') return { en: vp, km: '' };
+                                        return {
+                                            en: vp.en !== undefined ? vp.en : (vp[Object.keys(vp)[0]] || ''),
+                                            km: vp.km !== undefined ? vp.km : ''
+                                        };
+                                    });
+
+                                    return { label: normLabel, value: normValues };
+                                });
+                            }
+
+                            if (fieldData && fieldData.name && fieldData.value) {
+                                try { console.log('Loading custom field for editor:', key, fieldData); } catch(e) {}
+                                addCustomField(fieldData, containerId, key);
+                            }
+                        });
                 }
             } catch (e) {
                 console.error('Error parsing custom fields:', e);
             }
         }
 
-        function addCustomField(fieldData = null, containerId = 'customFieldsContainer') {
-            const container = document.getElementById(containerId);
-            const fieldId = 'custom_field_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        function addCustomField(fieldData = null, containerId = 'customFieldsContainer', existingKey = null) {
+            var container = document.getElementById(containerId);
+            var fieldId = existingKey || ('custom_field_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
 
             // Default values
-            let fieldNameEn = '';
-            let fieldNameKm = '';
-            let fieldValueEn = '';
-            let fieldValueKm = '';
-            let positionValue = 'end';
+            var fieldNameEn = '';
+            var fieldNameKm = '';
+            var fieldValueEn = '';
+            var fieldValueKm = '';
+            var fieldType = 'text';
+            var tableRows = [];
 
             // If fieldData is provided, extract translations
             if (fieldData && typeof fieldData === 'object' && fieldData.name && fieldData.value) {
                 fieldNameEn = fieldData.name.en || '';
                 fieldNameKm = fieldData.name.km || '';
-                fieldValueEn = fieldData.value.en || '';
-                fieldValueKm = fieldData.value.km || '';
-                if (fieldData.position_after) positionValue = fieldData.position_after;
+                // If this is a table-type field, value may be an array of rows
+                if (fieldData.type && fieldData.type === 'table' && Array.isArray(fieldData.value)) {
+                    fieldType = 'table';
+                    tableRows = fieldData.value;
+                } else {
+                    fieldValueEn = fieldData.value.en || '';
+                    fieldValueKm = fieldData.value.km || '';
+                }
+                if (fieldData.type) fieldType = fieldData.type;
             }
 
-            const fieldHtml = `
+            // Pre-build table rows HTML to avoid nested template-literal complexity
+            var tableRowsHtml = '';
+            if (tableRows && tableRows.length) {
+                tableRows.forEach(function(r, ri) {
+                    tableRowsHtml += '<div class="table-row mb-2" data-row-index="' + ri + '">';
+                    tableRowsHtml += '<div class="d-flex gap-2 align-items-start mb-2">';
+                    tableRowsHtml += '<input class="form-control form-control-sm row-label-en" placeholder="Label (EN)" value="' + (r.label && r.label.en ? ('' + r.label.en).replace(/"/g, '&quot;') : '') + '">';
+                    tableRowsHtml += '<input class="form-control form-control-sm row-label-km" placeholder="Label (KM)" value="' + (r.label && r.label.km ? ('' + r.label.km).replace(/"/g, '&quot;') : '') + '">';
+                    tableRowsHtml += '<div class="ms-auto d-flex gap-2">';
+                    tableRowsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary move-row-up" title="Move row up">↑</button>';
+                    tableRowsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary move-row-down" title="Move row down">↓</button>';
+                    tableRowsHtml += '<button type="button" class="btn btn-sm btn-outline-secondary add-value-pair">Add Value</button>';
+                    tableRowsHtml += '<button type="button" class="btn btn-sm btn-outline-danger remove-table-row">Remove</button>';
+                    tableRowsHtml += '</div></div>';
+                    tableRowsHtml += '<div class="value-pairs">';
+                    if (r.value && Array.isArray(r.value)) {
+                        r.value.forEach(function(vp) {
+                            tableRowsHtml += '<div class="value-pair d-flex gap-2 align-items-start mb-1 flex-nowrap">';
+                            tableRowsHtml += '<input class="form-control form-control-sm row-value-en" placeholder="Value (EN)" value="' + (vp && vp.en ? ('' + vp.en).replace(/"/g, '&quot;') : '') + '">';
+                            tableRowsHtml += '<input class="form-control form-control-sm row-value-km" placeholder="Value (KM)" value="' + (vp && vp.km ? ('' + vp.km).replace(/"/g, '&quot;') : '') + '">';
+                            tableRowsHtml += '<button type="button" class="btn btn-sm btn-outline-danger remove-value-pair">Remove</button>';
+                            tableRowsHtml += '</div>';
+                        });
+                    } else {
+                        tableRowsHtml += '<div class="value-pair d-flex gap-2 align-items-start mb-1 flex-nowrap">';
+                        tableRowsHtml += '<input class="form-control form-control-sm row-value-en" placeholder="Value (EN)">';
+                        tableRowsHtml += '<input class="form-control form-control-sm row-value-km" placeholder="Value (KM)">';
+                        tableRowsHtml += '<button type="button" class="btn btn-sm btn-outline-danger remove-value-pair">Remove</button>';
+                        tableRowsHtml += '</div>';
+                    }
+                    tableRowsHtml += '</div></div>';
+                });
+            }
+
+            var fieldHtml = `
                 <div class="custom-field-item mb-3 border rounded p-3 bg-light" data-field-id="${fieldId}">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="fw-bold text-primary mb-0">Field Name</h6>
+                        <div class="d-flex gap-2">
+                            <span class="drag-handle" style="cursor: grab; font-size: 1.2em;">⋮⋮</span>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-field" title="Remove field">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <h6 class="fw-bold text-primary mb-3">Field Name</h6>
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">English</label>
@@ -2411,23 +2653,23 @@ $categories = $stmt->fetchAll();
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex justify-end">
-                        <div class="me-2">
-                            <label class="form-label mb-1">Insert After</label>
-                            <select class="form-select form-select-sm field-position">
-                                <option value="end" ${positionValue === 'end' ? 'selected' : ''}>End (default)</option>
-                                <option value="detailed_description" ${positionValue === 'detailed_description' ? 'selected' : ''}>Detailed Description</option>
-                                <option value="ingredients" ${positionValue === 'ingredients' ? 'selected' : ''}>Ingredients</option>
-                                <option value="origin" ${positionValue === 'origin' ? 'selected' : ''}>Origin</option>
-                                <option value="brewing_instructions" ${positionValue === 'brewing_instructions' ? 'selected' : ''}>Brewing Instructions</option>
-                                <option value="tasting_notes" ${positionValue === 'tasting_notes' ? 'selected' : ''}>Tasting Notes</option>
-                                <option value="weight" ${positionValue === 'weight' ? 'selected' : ''}>Weight</option>
-                                <option value="roast_level" ${positionValue === 'roast_level' ? 'selected' : ''}>Roast Level</option>
-                            </select>
+                    <div class="mb-3">
+                        <label class="form-label">Field Type</label>
+                        <select class="form-select form-select-sm field-type">
+                            <option value="text" ${fieldType === 'text' ? 'selected' : ''}>Text</option>
+                            <option value="table" ${fieldType === 'table' ? 'selected' : ''}>Nutrition Table</option>
+                        </select>
+                    </div>
+                    
+                    <div class="table-editor mt-3" style="display: ${fieldType === 'table' ? 'block' : 'none'};">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Nutrition Table Rows</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary add-table-row">Add Row</button>
                         </div>
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-field" title="Remove field">
-                            <i class="bi bi-trash"></i> Remove Field
-                        </button>
+                        <div class="table-rows-container">
+                            <!-- rows will be inserted here -->
+                            ${ tableRowsHtml }
+                        </div>
                     </div>
                 </div>
             `;
@@ -2440,32 +2682,58 @@ $categories = $stmt->fetchAll();
         }
 
         function collectCustomFields(containerId = 'customFieldsContainer') {
-            const customFields = {};
-            const fieldItems = document.querySelectorAll(`#${containerId} .custom-field-item`);
+            var customFields = {};
+            var fieldItems = document.querySelectorAll(`#${containerId} .custom-field-item`);
             console.log('Found field items in', containerId, ':', fieldItems.length);
 
-            fieldItems.forEach((item, index) => {
+            fieldItems.forEach(function(item, index) {
                 console.log('Processing field item', index);
-                const nameEnInput = item.querySelector('.field-name-en');
-                const nameKmInput = item.querySelector('.field-name-km');
-                const valueEnInput = item.querySelector('.field-value-en');
-                const valueKmInput = item.querySelector('.field-value-km');
+                var nameEnInput = item.querySelector('.field-name-en');
+                var nameKmInput = item.querySelector('.field-name-km');
+                var valueEnInput = item.querySelector('.field-value-en');
+                var valueKmInput = item.querySelector('.field-value-km');
 
-                if (nameEnInput && valueEnInput && nameEnInput.value.trim() && valueEnInput.value.trim()) {
-                    const fieldId = 'field_' + Date.now() + '_' + index;
-                    const positionSelect = item.querySelector('.field-position');
-                    const positionValue = positionSelect ? positionSelect.value : 'end';
-                    customFields[fieldId] = {
-                        name: {
-                            en: nameEnInput.value.trim(),
-                            km: nameKmInput ? nameKmInput.value.trim() : ''
-                        },
-                        value: {
-                            en: valueEnInput.value.trim(),
-                            km: valueKmInput ? valueKmInput.value.trim() : ''
-                        },
-                        position_after: positionValue
-                    };
+                if (nameEnInput && ((valueEnInput && nameEnInput.value.trim() && valueEnInput.value.trim()) || item.querySelector('.field-type') && item.querySelector('.field-type').value === 'table')) {
+                    var existingFieldId = item.dataset.fieldId;
+                    var fieldId = existingFieldId || ('field_' + Date.now() + '_' + index);
+                    var typeSelect = item.querySelector('.field-type');
+                    var typeValue = typeSelect ? typeSelect.value : 'text';
+
+                    // If table, collect rows
+                        if (typeValue === 'table') {
+                            var rows = [];
+                            item.querySelectorAll('.table-row').forEach(function(r, ri) {
+                                var labelEn = r.querySelector('.row-label-en') ? r.querySelector('.row-label-en').value.trim() : '';
+                                var labelKm = r.querySelector('.row-label-km') ? r.querySelector('.row-label-km').value.trim() : '';
+                                var values = [];
+                                r.querySelectorAll('.value-pair').forEach(function(vp) {
+                                    var valueEn = vp.querySelector('.row-value-en') ? vp.querySelector('.row-value-en').value.trim() : '';
+                                    var valueKm = vp.querySelector('.row-value-km') ? vp.querySelector('.row-value-km').value.trim() : '';
+                                    if (valueEn || valueKm) values.push({ en: valueEn, km: valueKm });
+                                });
+                                if (labelEn || values.length) {
+                                    rows.push({ label: { en: labelEn, km: labelKm }, value: values });
+                                }
+                            });
+
+                                    customFields[fieldId] = {
+                                name: { en: nameEnInput.value.trim(), km: nameKmInput ? nameKmInput.value.trim() : '' },
+                                value: rows,
+                                type: 'table'
+                            };
+                        } else {
+                                customFields[fieldId] = {
+                            name: {
+                                en: nameEnInput.value.trim(),
+                                km: nameKmInput ? nameKmInput.value.trim() : ''
+                            },
+                            value: {
+                                en: valueEnInput ? valueEnInput.value.trim() : '',
+                                km: valueKmInput ? valueKmInput.value.trim() : ''
+                            },
+                            type: 'text'
+                        };
+                    }
                     console.log('Added field:', fieldId, customFields[fieldId]);
                 } else {
                     console.log('Skipped field - missing required inputs or empty values');
@@ -2476,6 +2744,199 @@ $categories = $stmt->fetchAll();
             return customFields;
         }
 
+        // Copy Custom Fields Logic
+        var currentCopyTargetContainer = '';
+        var allProductsList = [];
+
+        function loadProductsForCopy() {
+            if (allProductsList.length > 0) return Promise.resolve(allProductsList);
+            
+            return fetch(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'action=get_all_products')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allProductsList = data.products;
+                        const select = document.getElementById('copyFieldsProductSelect');
+                        select.innerHTML = '<option value="">-- Select a product --</option>';
+                        allProductsList.forEach(p => {
+                            const option = document.createElement('option');
+                            option.value = p.base_product_id;
+                            option.textContent = p.name + ' ($' + p.price + ')';
+                            select.appendChild(option);
+                        });
+                        return allProductsList;
+                    }
+                    return [];
+                })
+                .catch(err => {
+                    console.error('Error loading products for copy:', err);
+                    return [];
+                });
+        }
+
+        function openCopyModal(containerId) {
+            currentCopyTargetContainer = containerId;
+            loadProductsForCopy().then(() => {
+                const modalElement = document.getElementById('copyFieldsModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                // Ensure z-index is high enough if it opens over another modal
+                modalElement.style.zIndex = '2100';
+                modal.show();
+            });
+        }
+
+        // Add event listeners for the copy buttons
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('#copyCustomFieldsAdd, #copyCustomFieldsEdit, #copyCustomFields');
+            if (btn) {
+                var target = '';
+                if (btn.id === 'copyCustomFieldsAdd') target = 'customFieldsContainerAdd';
+                else if (btn.id === 'copyCustomFieldsEdit') target = 'customFieldsContainerEdit';
+                else if (btn.id === 'copyCustomFields') target = 'customFieldsContainer';
+                
+                if (target) openCopyModal(target);
+            }
+        });
+
+        document.getElementById('confirmCopyFields').addEventListener('click', function() {
+            const baseProductId = document.getElementById('copyFieldsProductSelect').value;
+            if (!baseProductId) {
+                alert('Please select a product.');
+                return;
+            }
+
+            const confirmBtn = this;
+            const originalHtml = confirmBtn.innerHTML;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+            // Function to process and add fields
+            const processFields = (customFieldsJson) => {
+                try {
+                    const customFields = typeof customFieldsJson === 'string' ? JSON.parse(customFieldsJson) : customFieldsJson;
+                    if (!customFields || Object.keys(customFields).length === 0 || (Object.keys(customFields).length === 1 && customFields.show_in_collection !== undefined)) {
+                        return 0;
+                    }
+
+                    let count = 0;
+                    Object.keys(customFields).forEach(key => {
+                        if (key === 'show_in_collection') return;
+                        
+                        let fieldData = customFields[key];
+                        // Normalization (support old format)
+                        if (typeof fieldData === 'string') {
+                            fieldData = {
+                                name: { en: key.replace(':', ''), km: '' },
+                                value: { en: fieldData, km: '' },
+                                type: 'text'
+                            };
+                        } else if (fieldData && fieldData.type === 'table' && Array.isArray(fieldData.value)) {
+                            // Basic table normalization if needed
+                        }
+
+                        if (fieldData && typeof fieldData === 'object') {
+                            const newKey = 'field_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                            addCustomField(fieldData, currentCopyTargetContainer, newKey);
+                            count++;
+                        }
+                    });
+                    return count;
+                } catch (e) {
+                    console.error('Error in processFields:', e);
+                    return -1;
+                }
+            };
+
+            // Fetch custom fields (try current lang, then fallbacks)
+            const fetchAndCopy = (lang) => {
+                return fetch(window.location.href, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `get_product_data=1&base_product_id=${baseProductId}&language=${lang}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.product && data.product.custom_fields && data.product.custom_fields !== '{}') {
+                        const count = processFields(data.product.custom_fields);
+                        if (count > 0) {
+                            const modalElement = document.getElementById('copyFieldsModal');
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) modal.hide();
+                            showNotification(count + ' custom fields copied successfully!', 'success');
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+            };
+
+            // Try current language, then fallback to English, then Khmer
+            const currentLang = '<?php echo addslashes($currentLanguage); ?>';
+            fetchAndCopy(currentLang)
+                .then(success => {
+                    if (!success && currentLang !== 'en') return fetchAndCopy('en');
+                    return success;
+                })
+                .then(success => {
+                    if (!success && currentLang !== 'km') return fetchAndCopy('km');
+                    return success;
+                })
+                .then(success => {
+                    if (!success) {
+                        alert('This product has no custom fields to copy in any language.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error copying fields:', err);
+                    alert('An error occurred while copying fields.');
+                })
+                .finally(() => {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalHtml;
+                });
+        });
+
+                // Update the "Insert After" select options inside the given container
+                function updatePositionOptions(containerId = 'customFieldsContainer') {
+                    var container = document.getElementById(containerId);
+                    if (!container) return;
+
+                    // Gather current custom fields in order
+                    var items = Array.from(container.querySelectorAll('.custom-field-item'));
+                    var customFieldOptions = items.map(function(it) {
+                        var id = it.dataset.fieldId;
+                        var nameInput = it.querySelector('.field-name-en');
+                        var name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Unnamed Field';
+                        return { id: id, name: name };
+                    });
+
+                    // Build options HTML: standard positions first
+                    var standardOptions = [
+                        { value: 'end', label: 'End (default)' },
+                        { value: 'detailed_description', label: 'Detailed Description' },
+                        { value: 'ingredients', label: 'Ingredients' },
+                        { value: 'origin', label: 'Origin' },
+                        { value: 'brewing_instructions', label: 'Brewing Instructions' },
+                        { value: 'tasting_notes', label: 'Tasting Notes' },
+                        { value: 'weight', label: 'Weight' },
+                        { value: 'roast_level', label: 'Roast Level' }
+                    ];
+
+                    // For each position select, rebuild options preserving selected value when possible
+                    container.querySelectorAll('.field-position').forEach(function(select) {
+                        var current = select.value;
+                        var html = '';
+                        standardOptions.forEach(function(opt) {
+                            html += `<option value="${opt.value}" ${current === opt.value ? 'selected' : ''}>${opt.label}</option>`;
+                        });
+                        // Then add custom-field-specific options
+                        customFieldOptions.forEach(function(cf) {
+                            var val = 'field:' + cf.id;
+                            html += `<option value="${val}" ${current === cf.id || current === val ? 'selected' : ''}>After: ${cf.name}</option>`;
+                        });
+                        select.innerHTML = html;
+                    });
+                }
         // Add custom field button handlers
         document.getElementById('addCustomField').addEventListener('click', function() {
             addCustomField();
@@ -2492,8 +2953,164 @@ $categories = $stmt->fetchAll();
         // Remove field handler (delegated)
         document.addEventListener('click', function(e) {
             if (e.target.closest('.remove-field')) {
-                e.target.closest('.custom-field-item').remove();
+                var item = e.target.closest('.custom-field-item');
+                if (item) item.remove();
             }
+            // Add table row
+            if (e.target.closest('.add-table-row')) {
+                var btn = e.target.closest('.add-table-row');
+                var container = btn.closest('.table-editor').querySelector('.table-rows-container');
+                var idx = container.querySelectorAll('.table-row').length;
+                var rowHtml = `
+                    <div class="table-row mb-2" data-row-index="${idx}">
+                        <div class="d-flex gap-2 align-items-start mb-2">
+                            <input class="form-control form-control-sm row-label-en" placeholder="Label (EN)">
+                            <input class="form-control form-control-sm row-label-km" placeholder="Label (KM)">
+                            <div class="ms-auto d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary move-row-up" title="Move row up">↑</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary move-row-down" title="Move row down">↓</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary add-value-pair">Add Value</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-table-row">Remove</button>
+                            </div>
+                        </div>
+                        <div class="value-pairs">
+                            <div class="value-pair d-flex gap-2 align-items-start mb-1 flex-nowrap">
+                                <input class="form-control form-control-sm row-value-en" placeholder="Value (EN)">
+                                <input class="form-control form-control-sm row-value-km" placeholder="Value (KM)">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-value-pair">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', rowHtml);
+            }
+
+            // Remove table row
+            if (e.target.closest('.remove-table-row')) {
+                var row = e.target.closest('.table-row');
+                if (row) row.remove();
+            }
+            // Move row up
+            if (e.target.closest('.move-row-up')) {
+                var row = e.target.closest('.table-row');
+                if (row && row.previousElementSibling) {
+                    row.parentNode.insertBefore(row, row.previousElementSibling);
+                }
+            }
+
+            // Move row down
+            if (e.target.closest('.move-row-down')) {
+                var row = e.target.closest('.table-row');
+                if (row && row.nextElementSibling) {
+                    row.parentNode.insertBefore(row.nextElementSibling, row);
+                }
+            }
+
+            // Add value pair inside a row
+            if (e.target.closest('.add-value-pair')) {
+                var btn = e.target.closest('.add-value-pair');
+                var row = btn.closest('.table-row');
+                var container = row.querySelector('.value-pairs');
+                var pairHtml = `
+                    <div class="value-pair d-flex gap-2 align-items-start mb-1">
+                        <input class="form-control form-control-sm row-value-en" placeholder="Value (EN)">
+                        <input class="form-control form-control-sm row-value-km" placeholder="Value (KM)">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-value-pair">Remove</button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', pairHtml);
+            }
+
+            // Remove value pair
+            if (e.target.closest('.remove-value-pair')) {
+                var vp = e.target.closest('.value-pair');
+                if (vp) vp.remove();
+            }
+        });
+
+        // Toggle Collection Visibility - Moved outside the other click listener to prevent issues
+        $(document).on('click', '.toggle-collection-btn', function(e) {
+            e.preventDefault(); // Prevent default button behavior
+            var btn = $(this);
+            var productId = btn.data('product-id');
+            var icon = btn.find('i');
+
+            // Disable button
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: 'products.php',
+                type: 'POST',
+                data: {
+                    ajax_toggle_collection_visibility: 1,
+                    product_id: productId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        if (response.show_in_collection) {
+                            icon.removeClass('bi-collection').addClass('bi-collection-fill');
+                            btn.attr('title', 'Remove from collection list (Syrup/Powder)');
+                        } else {
+                            icon.removeClass('bi-collection-fill').addClass('bi-collection');
+                            btn.attr('title', 'Show in collection list');
+                        }
+                        showNotification('Collection visibility updated!', 'success');
+                    } else {
+                        showNotification('Error: ' + response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('An error occurred. Please try again.', 'error');
+                },
+                complete: function() {
+                    btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Continue with other delegated listeners...
+        document.addEventListener('click', function(e) {
+
+            // Toggle table editor visibility when type changes
+            if (e.target.closest('.field-type')) {
+                var select = e.target.closest('.field-type');
+                var item = select.closest('.custom-field-item');
+                var editor = item.querySelector('.table-editor');
+                if (editor) {
+                    editor.style.display = select.value === 'table' ? 'block' : 'none';
+                }
+            }
+        });
+        
+        // Modal Language Toggles
+        document.getElementById('modal-en-btn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('modal-km-btn').classList.remove('active');
+            document.getElementById('modal-lang-en').style.display = 'block';
+            document.getElementById('modal-lang-km').style.display = 'none';
+        });
+
+        document.getElementById('modal-km-btn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('modal-en-btn').classList.remove('active');
+            document.getElementById('modal-lang-km').style.display = 'block';
+            document.getElementById('modal-lang-en').style.display = 'none';
+        });
+
+        // Edit Category Modal Language Toggles
+        document.getElementById('edit-cat-en-btn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('edit-cat-km-btn').classList.remove('active');
+            document.getElementById('edit-cat-lang-en').style.display = 'block';
+            document.getElementById('edit-cat-lang-km').style.display = 'none';
+        });
+
+        document.getElementById('edit-cat-km-btn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('edit-cat-en-btn').classList.remove('active');
+            document.getElementById('edit-cat-lang-km').style.display = 'block';
+            document.getElementById('edit-cat-lang-en').style.display = 'none';
         });
 
         // Handle detailed product form submission
@@ -2502,15 +3119,15 @@ $categories = $stmt->fetchAll();
             console.log('Form submission triggered');
 
             // Collect custom fields data
-            const customFields = collectCustomFields();
+            var customFields = collectCustomFields();
             console.log('Collected custom fields:', customFields);
             document.getElementById('custom_fields_data').value = JSON.stringify(customFields);
             console.log('Hidden input value set to:', document.getElementById('custom_fields_data').value);
             // Continue with form submission for testing
-            const formData = new FormData(this);
+            var formData = new FormData(this);
             console.log('FormData contents:');
-            for (let [key, value] of formData.entries()) {
-                console.log(key + ':', value);
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ':', pair[1]);
             }
 
             formData.append('update_product', '1');
@@ -2519,20 +3136,20 @@ $categories = $stmt->fetchAll();
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
+            .then(function(response) {
                 console.log('Response status:', response.status);
                 return response.text();
             })
-            .then(data => {
+            .then(function(data) {
                 console.log('Response data:', data);
                 // Close the modal
-                const detailedModal = bootstrap.Modal.getInstance(document.getElementById('detailedProductModal'));
+                var detailedModal = bootstrap.Modal.getInstance(document.getElementById('detailedProductModal'));
                 detailedModal.hide();
                 
                 // Reload the page to show updated data
                 location.reload();
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error updating product details:', error);
                 alert('Error updating product details. Please try again.');
             });
@@ -2555,16 +3172,16 @@ $categories = $stmt->fetchAll();
                 },
                 body: 'get_category_data=1&base_category_id=' + categoryData.base_category_id + '&language=en'
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 console.log('English category data received:', data);
                 if (data.success) {
-                    const category = data.category;
+                    var category = data.category;
                     document.getElementById('edit_category_name_en').value = category.name || '';
                     document.getElementById('edit_category_description_en').value = category.description || '';
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error fetching English category data:', error);
             });
 
@@ -2576,33 +3193,33 @@ $categories = $stmt->fetchAll();
                 },
                 body: 'get_category_data=1&base_category_id=' + categoryData.base_category_id + '&language=km'
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 console.log('Khmer category data received:', data);
                 if (data.success) {
-                    const category = data.category;
+                    var category = data.category;
                     document.getElementById('edit_category_name_km').value = category.name || '';
                     document.getElementById('edit_category_description_km').value = category.description || '';
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error fetching Khmer category data:', error);
             });
 
             document.getElementById('edit_category_id').value = categoryData.id;
 
-            const imagePreview = document.getElementById('current_category_image_preview');
+            var imagePreview = document.getElementById('current_category_image_preview');
             if (categoryData.image) { imagePreview.src = categoryData.image; imagePreview.style.display = 'block'; }
             else { imagePreview.style.display = 'none'; }
 
             document.getElementById('edit_category_image').value = '';
             document.getElementById('edit_category_image_url').value = '';
 
-            const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+            var editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
             editModal.show();
         }
 
-        document.getElementById('editCategoryModal').addEventListener('hidden.bs.modal', function () { const form = this.querySelector('form'); form.reset(); });
+        document.getElementById('editCategoryModal').addEventListener('hidden.bs.modal', function () { var form = this.querySelector('form'); form.reset(); });
     </script>
 
     
@@ -2642,13 +3259,20 @@ $categories = $stmt->fetchAll();
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .custom-field-item {
+            transition: all 0.2s ease;
+        }
+        .drag-handle {
+            user-select: none;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const sortableProducts = document.getElementById('sortableProducts');
+            var sortableProducts = document.getElementById('sortableProducts');
 
             if (sortableProducts) {
-                const sortable = Sortable.create(sortableProducts, {
+                var sortable = Sortable.create(sortableProducts, {
                     handle: '.sortable-handle',
                     animation: 150,
                     ghostClass: 'sortable-ghost',
@@ -2656,11 +3280,13 @@ $categories = $stmt->fetchAll();
                     dragClass: 'sortable-drag',
                     onEnd: function(evt) {
                         // Get new order with correct sort_order values
-                        const rows = sortableProducts.querySelectorAll('tr[data-base-product-id]');
-                        const order = Array.from(rows).map((row, index) => ({
-                            base_product_id: parseInt(row.getAttribute('data-base-product-id')),
-                            sort_order: <?php echo $offset; ?> + index + 1
-                        }));
+                        var rows = sortableProducts.querySelectorAll('tr[data-base-product-id]');
+                        var order = Array.from(rows).map(function(row, index) {
+                            return {
+                                base_product_id: parseInt(row.getAttribute('data-base-product-id')),
+                                sort_order: <?php echo $offset; ?> + index + 1
+                            };
+                        });
 
                         // Send to server
                         fetch(window.location.href, {
@@ -2670,8 +3296,8 @@ $categories = $stmt->fetchAll();
                             },
                             body: 'update_order=1&order=' + encodeURIComponent(JSON.stringify(order))
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
                             if (data.success) {
                                 // Show success message
                                 showNotification('Product order updated successfully!', 'success');
@@ -2681,7 +3307,7 @@ $categories = $stmt->fetchAll();
                                 location.reload();
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             showNotification('Error updating order: ' + error.message, 'error');
                             location.reload();
                         });
@@ -2689,13 +3315,28 @@ $categories = $stmt->fetchAll();
                 });
             }
 
+            // Initialize sortable for custom fields
+            ['customFieldsContainer', 'customFieldsContainerEdit', 'customFieldsContainerAdd'].forEach(function(id) {
+                var container = document.getElementById(id);
+                if (container) {
+                    Sortable.create(container, {
+                        handle: '.drag-handle',
+                        animation: 150,
+                        onEnd: function(evt) {
+                            // Update position options after reordering
+                            updatePositionOptions(id);
+                        }
+                    });
+                }
+            });
+
             // Handle all button clicks with event delegation
             document.addEventListener('click', function(e) {
                 // Handle delete product button clicks
                 if (e.target.closest('.delete-product-btn')) {
                     e.preventDefault();
-                    const button = e.target.closest('.delete-product-btn');
-                    const productId = button.getAttribute('data-product-id');
+                    var button = e.target.closest('.delete-product-btn');
+                    var productId = button.getAttribute('data-product-id');
 
                     if (confirm('Are you sure you want to delete this product?')) {
                         // Show loading state
@@ -2709,22 +3350,22 @@ $categories = $stmt->fetchAll();
                             },
                             body: 'ajax_delete_product=1&product_id=' + productId
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
                             if (data.success) {
                                 // Remove the row from the table
-                                const row = button.closest('tr');
+                                var row = button.closest('tr');
                                 row.remove();
                                 showNotification('Product deleted successfully!', 'success');
                             } else {
                                 showNotification('Error deleting product: ' + (data.message || 'Unknown error'), 'error');
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             console.error('Error deleting product:', error);
                             showNotification('Error deleting product. Please try again.', 'error');
                         })
-                        .finally(() => {
+                        .finally(function() {
                             // Reset button state
                             button.disabled = false;
                             button.innerHTML = '<i class="bi bi-trash"></i>';
@@ -2735,8 +3376,8 @@ $categories = $stmt->fetchAll();
                 // Handle delete category button clicks
                 if (e.target.closest('.delete-category-btn')) {
                     e.preventDefault();
-                    const button = e.target.closest('.delete-category-btn');
-                    const categoryId = button.getAttribute('data-category-id');
+                    var button = e.target.closest('.delete-category-btn');
+                    var categoryId = button.getAttribute('data-category-id');
 
                     if (confirm('Are you sure you want to delete this category? All products in this category will be uncategorized.')) {
                         // Show loading state
@@ -2750,26 +3391,26 @@ $categories = $stmt->fetchAll();
                             },
                             body: 'ajax_delete_category=1&category_id=' + categoryId
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
                             if (data.success) {
                                 // Remove the row from the table
-                                const row = button.closest('tr');
+                                var row = button.closest('tr');
                                 row.remove();
                                 showNotification('Category deleted successfully!', 'success');
                                 // Refresh the page to update product counts
-                                setTimeout(() => {
+                                setTimeout(function() {
                                     window.location.reload();
                                 }, 1000);
                             } else {
                                 showNotification('Error deleting category: ' + (data.message || 'Unknown error'), 'error');
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             console.error('Error deleting category:', error);
                             showNotification('Error deleting category. Please try again.', 'error');
                         })
-                        .finally(() => {
+                        .finally(function() {
                             // Reset button state
                             button.disabled = false;
                             button.innerHTML = '<i class="bi bi-trash"></i>';
@@ -2780,12 +3421,12 @@ $categories = $stmt->fetchAll();
                 // Handle toggle featured button clicks
                 if (e.target.closest('.toggle-featured-btn')) {
                     e.preventDefault();
-                    const button = e.target.closest('.toggle-featured-btn');
-                    const productId = button.getAttribute('data-product-id');
+                    var button = e.target.closest('.toggle-featured-btn');
+                    var productId = button.getAttribute('data-product-id');
 
                     // Show loading state
                     button.disabled = true;
-                    const originalIcon = button.innerHTML;
+                    var originalIcon = button.innerHTML;
                     button.innerHTML = '<i class="bi bi-spinner bi-spin"></i>';
 
                     fetch(window.location.href, {
@@ -2795,19 +3436,19 @@ $categories = $stmt->fetchAll();
                         },
                         body: 'ajax_toggle_featured=1&product_id=' + productId
                     })
-                    .then(response => response.json())
-                    .then(data => {
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
                         if (data.success) {
                             // Update the button icon and title
-                            const isFeatured = data.featured == 1;
+                            var isFeatured = data.featured == 1;
                             button.innerHTML = `<i class="bi ${isFeatured ? 'bi-star-fill' : 'bi-star'}"></i>`;
                             button.setAttribute('title', isFeatured ? 'Remove from featured' : 'Make featured');
 
                             // Update the badge in the table
-                            const row = button.closest('tr');
-                            const badgeCell = row.cells[7]; // Featured column
+                            var row = button.closest('tr');
+                            var badgeCell = row.cells[7]; // Featured column
                             if (badgeCell) {
-                                const badge = badgeCell.querySelector('.badge');
+                                var badge = badgeCell.querySelector('.badge');
                                 if (badge) {
                                     badge.className = `badge ${isFeatured ? 'bg-warning' : 'bg-light text-muted'}`;
                                     badge.innerHTML = `<i class="bi ${isFeatured ? 'bi-star-fill' : 'bi-star'} me-1"></i>${isFeatured ? 'Yes' : 'No'}`;
@@ -2819,11 +3460,62 @@ $categories = $stmt->fetchAll();
                             showNotification('Error updating featured status: ' + (data.message || 'Unknown error'), 'error');
                         }
                     })
-                    .catch(error => {
+                    .catch(function(error) {
                         console.error('Error toggling featured:', error);
                         showNotification('Error updating featured status. Please try again.', 'error');
                     })
-                    .finally(() => {
+                    .finally(function() {
+                        // Reset button state
+                        button.disabled = false;
+                    });
+                }
+                
+                // Handle toggle enabled button clicks
+                if (e.target.closest('.toggle-enabled-btn')) {
+                    e.preventDefault();
+                    var button = e.target.closest('.toggle-enabled-btn');
+                    var productId = button.getAttribute('data-product-id');
+
+                    // Show loading state
+                    button.disabled = true;
+                    var originalIcon = button.innerHTML;
+                    button.innerHTML = '<i class="bi bi-spinner bi-spin"></i>';
+
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'ajax_toggle_enabled=1&product_id=' + productId
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            var isEnabled = data.enabled == 1;
+                            button.innerHTML = `<i class="bi ${isEnabled ? 'bi-eye-fill' : 'bi-eye'}"></i>`;
+                            button.setAttribute('title', isEnabled ? 'Disable product' : 'Enable product');
+
+                            // Update the badge in the table
+                            var row = button.closest('tr');
+                            var badgeCell = row.cells[9]; // Enabled column
+                            if (badgeCell) {
+                                var badge = badgeCell.querySelector('.badge');
+                                if (badge) {
+                                    badge.className = `badge ${isEnabled ? 'bg-primary text-white' : 'bg-light text-muted'}`;
+                                    badge.innerHTML = `<i class="bi ${isEnabled ? 'bi-eye-fill' : 'bi-eye'} me-1"></i>${isEnabled ? 'Yes' : 'No'}`;
+                                }
+                            }
+
+                            showNotification('Product visibility updated!', 'success');
+                        } else {
+                            showNotification('Error updating product visibility: ' + (data.message || 'Unknown error'), 'error');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error toggling enabled:', error);
+                        showNotification('Error updating product visibility. Please try again.', 'error');
+                    })
+                    .finally(function() {
                         // Reset button state
                         button.disabled = false;
                     });
@@ -2832,12 +3524,12 @@ $categories = $stmt->fetchAll();
                 // Handle toggle best seller button clicks
                 if (e.target.closest('.toggle-best-seller-btn')) {
                     e.preventDefault();
-                    const button = e.target.closest('.toggle-best-seller-btn');
-                    const productId = button.getAttribute('data-product-id');
+                    var button = e.target.closest('.toggle-best-seller-btn');
+                    var productId = button.getAttribute('data-product-id');
 
                     // Show loading state
                     button.disabled = true;
-                    const originalIcon = button.innerHTML;
+                    var originalIcon = button.innerHTML;
                     button.innerHTML = '<i class="bi bi-spinner bi-spin"></i>';
 
                     fetch(window.location.href, {
@@ -2847,19 +3539,19 @@ $categories = $stmt->fetchAll();
                         },
                         body: 'ajax_toggle_best_seller=1&product_id=' + productId
                     })
-                    .then(response => response.json())
-                    .then(data => {
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
                         if (data.success) {
                             // Update the button icon and title
-                            const isBestSeller = data.best_seller == 1;
+                            var isBestSeller = data.best_seller == 1;
                             button.innerHTML = `<i class="bi ${isBestSeller ? 'bi-trophy-fill' : 'bi-trophy'}"></i>`;
                             button.setAttribute('title', isBestSeller ? 'Remove from best sellers' : 'Make best seller');
 
                             // Update the badge in the table
-                            const row = button.closest('tr');
-                            const badgeCell = row.cells[8]; // Best seller column
+                            var row = button.closest('tr');
+                            var badgeCell = row.cells[8]; // Best seller column
                             if (badgeCell) {
-                                const badge = badgeCell.querySelector('.badge');
+                                var badge = badgeCell.querySelector('.badge');
                                 if (badge) {
                                     badge.className = `badge ${isBestSeller ? 'bg-success' : 'bg-light text-muted'}`;
                                     badge.innerHTML = `<i class="bi ${isBestSeller ? 'bi-trophy-fill' : 'bi-trophy'} me-1"></i>${isBestSeller ? 'Yes' : 'No'}`;
@@ -2871,11 +3563,11 @@ $categories = $stmt->fetchAll();
                             showNotification('Error updating best seller status: ' + (data.message || 'Unknown error'), 'error');
                         }
                     })
-                    .catch(error => {
+                    .catch(function(error) {
                         console.error('Error toggling best seller:', error);
                         showNotification('Error updating best seller status. Please try again.', 'error');
                     })
-                    .finally(() => {
+                    .finally(function() {
                         // Reset button state
                         button.disabled = false;
                     });
@@ -2885,98 +3577,98 @@ $categories = $stmt->fetchAll();
 
         // Related Products functionality
         function updateCustomImageFile(formType, index, file) {
-            const handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
+            var handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
             if (handler && handler.updateCustomImageFile) {
                 handler.updateCustomImageFile(index, file);
             }
         }
 
         function updateCustomUrl(formType, index, value) {
-            const handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
+            var handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
             if (handler && handler.updateCustomUrl) {
                 handler.updateCustomUrl(index, value);
             }
         }
 
         function updateCustomName(formType, index, value) {
-            const handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
+            var handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
             if (handler && handler.updateCustomName) {
                 handler.updateCustomName(index, value);
             }
         }
 
         function updateCustomImageUrl(formType, index, value) {
-            const handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
+            var handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
             if (handler && handler.updateCustomImageUrl) {
                 handler.updateCustomImageUrl(index, value);
             }
         }
 
         window.removeSelectedProductGlobal = function(baseId) {
-            const handler = addRelatedProductsHandler || editRelatedProductsHandler;
+            var handler = addRelatedProductsHandler || editRelatedProductsHandler;
             if (handler && handler.removeSelectedProduct) {
                 handler.removeSelectedProduct(baseId);
             }
         };
 
         function updateCustomImageUrl(formType, index, value) {
-            const handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
+            var handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
             if (handler && handler.updateCustomImageUrl) {
                 handler.updateCustomImageUrl(index, value);
             }
         }
 
         function initializeRelatedProducts(formType) {
-            const searchInput = document.getElementById(`related_products_search_${formType}`);
-            const productsList = document.getElementById(`related_products_list_${formType}`);
-            const selectedContainer = document.getElementById(`selected_related_products_${formType}`);
-            const dataInput = document.getElementById(`related_products_data_${formType}`);
-            let selectedProducts = [];
-            let allProducts = [];
+            var searchInput = document.getElementById(`related_products_search_${formType}`);
+            var productsList = document.getElementById(`related_products_list_${formType}`);
+            var selectedContainer = document.getElementById(`selected_related_products_${formType}`);
+            var dataInput = document.getElementById(`related_products_data_${formType}`);
+            var selectedProducts = [];
+            var allProducts = [];
 
             // Load all products
             function loadProducts() {
                 fetch('../public/api.php?action=get_all_products')
-                    .then(response => response.json())
-                    .then(data => {
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
                         if (data.success) {
                             allProducts = data.products;
                             renderProductsList('');
                         }
                     })
-                    .catch(error => console.error('Error loading products:', error));
+                    .catch(function(error) { console.error('Error loading products:', error); });
             }
 
             // Render products list
             function renderProductsList(searchTerm) {
-                const filtered = allProducts.filter(product => 
-                    product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                    !selectedProducts.find(p => p.base_id == product.base_product_id)
-                );
+                var filtered = allProducts.filter(function(product) {
+                    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                        !selectedProducts.find(function(p) { return p.base_id == product.base_product_id; });
+                });
 
-                productsList.innerHTML = filtered.map(product => `
-                    <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
-                        <div class="d-flex align-items-center">
-                            <img src="${product.image || '/kouprey/public/assets/images/placeholder.png'}" 
-                                 alt="${product.name}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                            <div>
-                                <div class="fw-bold">${product.name}</div>
-                                <small class="text-muted">$${product.price}</small>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary add-related-btn" 
-                                data-base-id="${product.base_product_id}" data-name="${product.name}" data-image="${product.image}">
-                            <i class="bi bi-plus"></i> Add
-                        </button>
-                    </div>
-                `).join('');
+                productsList.innerHTML = filtered.map(function(product) {
+                    return '<div class="d-flex align-items-center justify-content-between p-2 border-bottom">' +
+                        '<div class="d-flex align-items-center">' +
+                            '<img src="' + (product.image || '/kouprey/public/assets/images/placeholder.png') + '" ' +
+                                 'alt="' + (product.name || '') + '" class="rounded me-2" style="width: 40px; height: 40px; object-fit: contain; background-color: #f8f9fa;">' +
+                            '<div>' +
+                                '<div class="fw-bold">' + (product.name || '') + '</div>' +
+                                '<small class="text-muted">$' + (product.price || '') + '</small>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button type="button" class="btn btn-sm btn-outline-primary add-related-btn" ' +
+                                'data-base-id="' + (product.base_product_id || '') + '" data-name="' + (product.name || '').replace(/"/g, '&quot;') + '" data-image="' + (product.image || '') + '">' +
+                            '<i class="bi bi-plus"></i> Add' +
+                        '</button>' +
+                    '</div>';
+                }).join('');
 
                 // Add event listeners to add buttons
-                productsList.querySelectorAll('.add-related-btn').forEach(btn => {
+                productsList.querySelectorAll('.add-related-btn').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        const baseId = this.getAttribute('data-base-id');
-                        const name = this.getAttribute('data-name');
-                        const image = this.getAttribute('data-image');
+                        var baseId = this.getAttribute('data-base-id');
+                        var name = this.getAttribute('data-name');
+                        var image = this.getAttribute('data-image');
                         addSelectedProduct(baseId, name, image);
                     });
                 });
@@ -2984,7 +3676,7 @@ $categories = $stmt->fetchAll();
 
             // Add selected product
             function addSelectedProduct(baseId, name, image) {
-                if (!selectedProducts.find(p => p.base_id == baseId)) {
+                if (!selectedProducts.find(function(p) { return p.base_id == baseId; })) {
                     selectedProducts.push({base_id: baseId, name: name, image: image, custom_image: '', custom_url: '', custom_image_file: null, custom_image_url: ''});
                     updateSelectedDisplay();
                     renderProductsList(searchInput.value);
@@ -2994,7 +3686,7 @@ $categories = $stmt->fetchAll();
 
             // Remove selected product
             function removeSelectedProduct(baseId) {
-                selectedProducts = selectedProducts.filter(p => p.base_id != baseId);
+                selectedProducts = selectedProducts.filter(function(p) { return p.base_id != baseId; });
                 updateSelectedDisplay();
                 renderProductsList(searchInput.value);
                 updateDataInput();
@@ -3002,28 +3694,32 @@ $categories = $stmt->fetchAll();
 
             // Update selected products display
             function updateSelectedDisplay() {
-                selectedContainer.innerHTML = selectedProducts.map((product, index) => `
-                    <div class="d-inline-block m-1 text-center" style="width: 80px;">
-                        <img src="${product.custom_image_url || product.custom_image || product.image || '/kouprey/public/assets/images/placeholder.png'}" alt="${product.name}" class="rounded mb-1" style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" title="${product.name}">
-                        <input type="file" class="form-control form-control-sm mb-1" name="custom_image_${formType}_${index}" accept="image/*" onchange="updateCustomImageFile('${formType}', ${index}, this.files[0])" style="font-size: 10px;">
-                        ${product.base_id.startsWith('custom_') ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Image URL" value="${product.custom_image_url}" onchange="updateCustomImageUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
-                        <input type="text" class="form-control form-control-sm mb-1" placeholder="URL" value="${product.custom_url}" onchange="updateCustomUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">
-                        ${product.base_id.startsWith('custom_') ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Name" value="${product.name}" onchange="updateCustomName('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
-                        <button type="button" class="btn btn-sm btn-danger" onclick="removeSelectedProductGlobal('${product.base_id}')" style="font-size: 10px; padding: 2px 5px;"><i class="bi bi-x"></i></button>
-                    </div>
-                `).join('');
-            }
+                    selectedContainer.innerHTML = selectedProducts.map(function(product, index) {
+                        return `
+                        <div class="d-inline-block m-1 text-center" style="width: 80px;">
+                            <img src="${product.custom_image_url || product.custom_image || product.image || '/kouprey/public/assets/images/placeholder.png'}" alt="${product.name}" class="rounded mb-1" style="width: 60px; height: 60px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;" title="${product.name}">
+                            <input type="file" class="form-control form-control-sm mb-1" name="custom_image_${formType}_${index}" accept="image/*" onchange="updateCustomImageFile('${formType}', ${index}, this.files[0])" style="font-size: 10px;">
+                            ${product.base_id.startsWith('custom_') ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Image URL" value="${product.custom_image_url}" onchange="updateCustomImageUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
+                            <input type="text" class="form-control form-control-sm mb-1" placeholder="URL" value="${product.custom_url}" onchange="updateCustomUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">
+                            ${product.base_id.startsWith('custom_') ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Name" value="${product.name}" onchange="updateCustomName('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
+                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSelectedProductGlobal('${product.base_id}')" style="font-size: 10px; padding: 2px 5px;"><i class="bi bi-x"></i></button>
+                        </div>
+                    `;
+                    }).join('');
+                }
 
             // Update hidden input
             function updateDataInput() {
-                const data = selectedProducts.map(p => ({
-                    base_id: p.base_id,
-                    name: p.name,
-                    image: p.image,
-                    custom_image: p.custom_image,
-                    custom_url: p.custom_url,
-                    custom_image_url: p.custom_image_url
-                }));
+                var data = selectedProducts.map(function(p) {
+                    return {
+                        base_id: p.base_id,
+                        name: p.name,
+                        image: p.image,
+                        custom_image: p.custom_image,
+                        custom_url: p.custom_url,
+                        custom_image_url: p.custom_image_url
+                    };
+                });
                 dataInput.value = JSON.stringify(data);
             }
 
@@ -3047,9 +3743,9 @@ $categories = $stmt->fetchAll();
                     selectedProducts[index].custom_image_file = file;
                     // Show preview if file selected
                     if (file) {
-                        const reader = new FileReader();
+                        var reader = new FileReader();
                         reader.onload = function(e) {
-                            const img = selectedContainer.children[index].querySelector('img');
+                            var img = selectedContainer.children[index].querySelector('img');
                             if (img) img.src = e.target.result;
                         };
                         reader.readAsDataURL(file);
@@ -3070,7 +3766,7 @@ $categories = $stmt->fetchAll();
                     updateDataInput();
                 },
                 addCustomProduct: function() {
-                    const customId = 'custom_' + Date.now();
+                    var customId = 'custom_' + Date.now();
                     selectedProducts.push({base_id: customId, name: 'Custom Product', image: '', custom_image: '', custom_url: '', custom_image_file: null, custom_image_url: ''});
                     updateSelectedDisplay();
                     updateDataInput();
@@ -3080,7 +3776,7 @@ $categories = $stmt->fetchAll();
         }
 
         // Initialize related products for add and edit forms
-        let addRelatedProductsHandler, editRelatedProductsHandler;
+        var addRelatedProductsHandler, editRelatedProductsHandler;
 
         // Add Product Modal
         document.getElementById('addProductBtn').addEventListener('click', function() {
@@ -3107,8 +3803,8 @@ $categories = $stmt->fetchAll();
         // Edit Product Modal
         document.addEventListener('click', function(e) {
             if (e.target.closest('.edit-product-btn')) {
-                const button = e.target.closest('.edit-product-btn');
-                const baseProductId = button.getAttribute('data-base-product-id');
+                var button = e.target.closest('.edit-product-btn');
+                var baseProductId = button.getAttribute('data-base-product-id');
                 
                 // Load product data
                 fetch(window.location.href, {
@@ -3118,8 +3814,8 @@ $categories = $stmt->fetchAll();
                     },
                     body: `get_product_data=1&base_product_id=${baseProductId}&language=en`
                 })
-                    .then(response => response.json())
-                    .then(data => {
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
                         if (data.success) {
                             populateEditForm(data.product, baseProductId);
                             // Initialize related products
@@ -3135,7 +3831,7 @@ $categories = $stmt->fetchAll();
                             });
                         }
                     })
-                    .catch(error => console.error('Error loading product data:', error));
+                    .catch(function(error) { console.error('Error loading product data:', error); });
                 
                 document.getElementById('editProductSidebar').classList.add('active');
             }
@@ -3143,17 +3839,17 @@ $categories = $stmt->fetchAll();
 
         function loadRelatedProducts(baseProductId) {
             fetch(`../public/api.php?action=get_related_products&base_product_id=${baseProductId}`)
-                .then(response => response.json())
-                .then(data => {
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
                     if (data.success && editRelatedProductsHandler) {
-                        const selected = data.related_products.map(p => {
-                            const base_id = p.base_product_id || ('custom_' + Date.now() + '_' + Math.random());
+                        var selected = data.related_products.map(function(p) {
+                            var base_id = p.base_product_id || ('custom_' + Date.now() + '_' + Math.random());
                             return {base_id: base_id, name: p.name, image: p.image, custom_image: p.custom_image || '', custom_url: p.custom_url || '', custom_image_file: null, custom_image_url: p.custom_image_url || ''};
                         });
                         editRelatedProductsHandler.setSelectedProducts(selected);
                     }
                 })
-                .catch(error => console.error('Error loading related products:', error));
+                .catch(function(error) { console.error('Error loading related products:', error); });
         }
 
         function populateEditForm(product, baseProductId) {
@@ -3161,6 +3857,31 @@ $categories = $stmt->fetchAll();
             // Populate other fields...
             // (existing code for populating form fields)
         }
+
+        // Image Preview Logic
+        function setupImagePreview(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            
+            if (input && preview) {
+                input.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+        }
+
+        setupImagePreview('sidebar_image', 'sidebar_image_preview'); // You might need to add this ID to the HTML
+        setupImagePreview('edit_image', 'current_image_preview');
+        setupImagePreview('sidebar_category_image', 'sidebar_category_image_preview');
+        setupImagePreview('edit_category_image', 'current_category_image_preview');
+
     </script>
 
 <?php
