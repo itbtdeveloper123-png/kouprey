@@ -132,3 +132,24 @@
 .social-icon-preview.ig:hover { background: #E4405F; }
 .social-icon-preview.tt:hover { background: #000000; }
 .social-icon-preview.tg:hover { background: #0088cc; }
+
+/* ============================================
+   Settings Tabs - Force horizontal layout
+   ============================================ */
+#settingsTabs {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-bottom: 0 !important;
+    gap: 4px;
+}
+#settingsTabs .nav-item {
+    list-style: none !important;
+    flex-shrink: 0;
+}
+#settingsTabs .nav-link {
+    display: inline-block;
+    white-space: nowrap;
+}

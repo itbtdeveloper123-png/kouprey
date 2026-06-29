@@ -140,6 +140,33 @@ require_once __DIR__ . '/../app/Config/settings.php';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Fallback Tab Switcher - ensures tabs work even if Bootstrap JS fails
+        document.addEventListener('DOMContentLoaded', function() {
+            var tabButtons = document.querySelectorAll('#settingsTabs [data-bs-toggle="tab"]');
+            if (tabButtons.length > 0) {
+                tabButtons.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var targetId = this.getAttribute('data-bs-target').replace('#', '');
+                        
+                        // Deactivate all tabs
+                        tabButtons.forEach(function(b) { b.classList.remove('active'); });
+                        document.querySelectorAll('#settingsTabContent .tab-pane').forEach(function(p) {
+                            p.classList.remove('show', 'active');
+                        });
+                        
+                        // Activate clicked tab
+                        this.classList.add('active');
+                        var targetPane = document.getElementById(targetId);
+                        if (targetPane) {
+                            targetPane.classList.add('show', 'active');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    <script>
         // Sidebar Toggle for Mobile
         $('#sidebar-toggle').on('click', function() {
             $('#sidebar').toggleClass('show');
