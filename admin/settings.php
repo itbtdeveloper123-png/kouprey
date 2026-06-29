@@ -1246,10 +1246,14 @@ ob_start();
                                             <div class="col-md-6">
                                                 <div class="setting-item">
                                                     <label class="setting-label">
-                                                        <?php echo htmlspecialchars($setting['description'] ?? ucfirst(str_replace('_', ' ', $setting['setting_key']))); ?>
+                                                        <?php 
+                                                        $label = ucfirst(str_replace('_', ' ', $setting['setting_key']));
+                                                        $desc = isset($setting['description']) ? trim((string)$setting['description']) : '';
+                                                        echo htmlspecialchars($label);
+                                                        ?>
                                                     </label>
-                                                    <?php if (isset($setting['description']) && $setting['description']): ?>
-                                                        <div class="setting-description"><?php echo htmlspecialchars($setting['description']); ?></div>
+                                                    <?php if ($desc !== '' && strcasecmp($desc, $label) !== 0): ?>
+                                                        <div class="setting-description"><?php echo htmlspecialchars($desc); ?></div>
                                                     <?php endif; ?>
 
                                                     <?php if ($setting['setting_key'] === 'hero_background_image'): ?>

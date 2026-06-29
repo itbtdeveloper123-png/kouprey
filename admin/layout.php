@@ -10,6 +10,9 @@ if (!isset($activeNav)) $activeNav = '';
 if (!isset($pageContent)) $pageContent = '';
 
 require_once __DIR__ . '/../app/Config/settings.php';
+
+$adminBase = (strpos($_SERVER['REQUEST_URI'], '/kouprey/') !== false) ? '/kouprey/admin/' : '/admin/';
+$projectRoot = (strpos($_SERVER['REQUEST_URI'], '/kouprey/') !== false) ? '/kouprey/' : '/';
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -30,9 +33,9 @@ require_once __DIR__ . '/../app/Config/settings.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom Modern Admin Styles -->
-    <link href="assets/css/modern-admin.css" rel="stylesheet">
-    <link href="assets/css/admin.css" rel="stylesheet">
-    <link href="assets/css/rte-editor.css" rel="stylesheet">
+    <link href="<?php echo $adminBase; ?>assets/css/modern-admin.css" rel="stylesheet">
+    <link href="<?php echo $adminBase; ?>assets/css/admin.css" rel="stylesheet">
+    <link href="<?php echo $adminBase; ?>assets/css/rte-editor.css" rel="stylesheet">
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -48,6 +51,9 @@ require_once __DIR__ . '/../app/Config/settings.php';
                     if (empty($logoUrl)) {
                         $logoUrl = getSetting('company_logo', '', 'en');
                     }
+                    if (!empty($logoUrl) && strpos((string)$logoUrl, '/kouprey/') === 0) {
+                        $logoUrl = $projectRoot . substr((string)$logoUrl, 9);
+                    }
                     ?>
                     <?php if (!empty($logoUrl)): ?>
                         <img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="Logo" class="img-fluid" style="max-height: 40px;">
@@ -59,34 +65,34 @@ require_once __DIR__ . '/../app/Config/settings.php';
             
             <div class="sidebar-nav">
                 <div class="nav-label">Main Menu</div>
-                <a href="index.php" class="nav-link-item <?php echo ($activeNav==='dashboard') ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>index.php" class="nav-link-item <?php echo ($activeNav==='dashboard') ? 'active' : ''; ?>">
                     <i class="bi bi-grid-1x2-fill"></i> Dashboard
                 </a>
                 
                 <div class="nav-label mt-4">Content</div>
-                <a href="products.php" class="nav-link-item <?php echo ($activeNav==='management' && strpos($_SERVER['PHP_SELF'], 'products.php') !== false) ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>products.php" class="nav-link-item <?php echo ($activeNav==='management' && strpos($_SERVER['PHP_SELF'], 'products.php') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-box-seam-fill"></i> Products
                 </a>
-                <a href="features.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'features.php') !== false) ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>features.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'features.php') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-star-fill"></i> Features
                 </a>
-                <a href="reviews.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'reviews.php') !== false) ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>reviews.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'reviews.php') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-chat-heart-fill"></i> Reviews
                 </a>
                 
                 <div class="nav-label mt-4">System</div>
-                <a href="about.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'about.php') !== false) ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>about.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'about.php') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-info-circle-fill"></i> About Content
                 </a>
-                <a href="admin_users.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'admin_users.php') !== false) ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>admin_users.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'admin_users.php') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-people-fill"></i> Team Admins
                 </a>
-                <a href="settings.php" class="nav-link-item <?php echo ($activeNav === 'settings') ? 'active' : ''; ?>">
+                <a href="<?php echo $adminBase; ?>settings.php" class="nav-link-item <?php echo ($activeNav === 'settings') ? 'active' : ''; ?>">
                     <i class="bi bi-gear-fill"></i> Site Settings
                 </a>
                 
                 <div class="mt-5 px-3">
-                    <a href="logout.php" class="btn btn-danger w-100 rounded-pill py-2 shadow-sm">
+                    <a href="<?php echo $adminBase; ?>logout.php" class="btn btn-danger w-100 rounded-pill py-2 shadow-sm">
                         <i class="bi bi-box-arrow-right me-2"></i> Logout
                     </a>
                 </div>
@@ -108,7 +114,7 @@ require_once __DIR__ . '/../app/Config/settings.php';
                     </div>
 
                     <?php if ($activeNav === 'settings'): ?>
-                        <a href="index.php" class="btn btn-light rounded-pill px-4 ms-4 shadow-sm fw-bold animate-fade-in" style="border: 1px solid var(--gray-200);">
+                        <a href="<?php echo $adminBase; ?>index.php" class="btn btn-light rounded-pill px-4 ms-4 shadow-sm fw-bold animate-fade-in" style="border: 1px solid var(--gray-200);">
                             <i class="bi bi-arrow-left me-2"></i> Exit Settings
                         </a>
                     <?php endif; ?>
@@ -123,9 +129,9 @@ require_once __DIR__ . '/../app/Config/settings.php';
                             <i class="bi bi-chevron-down small text-secondary"></i>
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 mt-2" style="border-radius: 15px;">
-                            <li><a class="dropdown-item rounded-3 py-2" href="settings.php"><i class="bi bi-person me-2"></i> My Settings</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2" href="<?php echo $adminBase; ?>settings.php"><i class="bi bi-person me-2"></i> My Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item rounded-3 py-2 text-danger" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 text-danger" href="<?php echo $adminBase; ?>logout.php"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
                         </ul>
                     </div>
                 </div>
