@@ -349,6 +349,18 @@ foreach ($settings as $setting) {
 
 ob_start();
 ?>
+    <style>
+    /* Critical: Force settings tabs horizontal */
+    ul#settingsTabs{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;list-style:none!important;padding:0!important;margin:0!important;overflow-x:auto!important;gap:4px}
+    ul#settingsTabs>li{list-style:none!important;flex-shrink:0}
+    ul#settingsTabs>li>button.nav-link{display:inline-block!important;white-space:nowrap!important;padding:8px 18px!important;border-radius:50px!important;font-weight:600!important;font-size:14px!important;background:#fff;color:#64748b;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s}
+    ul#settingsTabs>li>button.nav-link:hover{background:#f1f5f9;color:#4f46e5}
+    ul#settingsTabs>li>button.nav-link.active{background:#4f46e5!important;color:#fff!important;border-color:#4f46e5!important}
+    /* Hide inactive tab panes */
+    #settingsTabContent>.tab-pane{display:none!important}
+    #settingsTabContent>.tab-pane.show.active{display:block!important}
+    #settingsTabContent>.tab-pane.show.active.fade{display:block!important}
+    </style>
     <div class="container-fluid py-4">
         <?php if (isset($message)): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
