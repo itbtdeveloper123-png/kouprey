@@ -1229,16 +1229,20 @@ ob_start();
                                         // ===== Sync contenteditable → hidden textarea =====
                                         function syncTextarea(editorId) {
                                             var editor = document.getElementById(editorId);
+                                            if (!editor) return;
                                             var textareaId = editor.getAttribute('data-textarea') + '_textarea';
                                             var textarea = document.getElementById(textareaId);
                                             if (textarea) {
                                                 textarea.value = editor.innerHTML;
                                             }
-                                            // Auto-update preview
-                                            var activePreview = document.getElementById('previewFrame').getAttribute('data-active');
-                                            var target = editor.getAttribute('data-textarea');
-                                            if (activePreview && target && activePreview === target) {
-                                                updatePreview(target);
+                                            // Auto-update preview (only if previewFrame exists)
+                                            var previewFrame = document.getElementById('previewFrame');
+                                            if (previewFrame) {
+                                                var activePreview = previewFrame.getAttribute('data-active');
+                                                var target = editor.getAttribute('data-textarea');
+                                                if (activePreview && target && activePreview === target) {
+                                                    updatePreview(target);
+                                                }
                                             }
                                         }
 
@@ -1302,9 +1306,11 @@ ob_start();
                                                 'privacy_policy': 'Privacy Policy',
                                                 'terms_of_service': 'Terms of Service'
                                             };
-                                            document.getElementById('previewLabel').textContent = labelMap[target] || target;
+                                            var previewLabel = document.getElementById('previewLabel');
+                                            if (previewLabel) previewLabel.textContent = labelMap[target] || target;
 
                                             var previewFrame = document.getElementById('previewFrame');
+                                            if (!previewFrame) return;
                                             previewFrame.setAttribute('data-active', target);
 
                                             var borderColor = target === 'privacy_policy' ? '#3B82F6' : (target === 'terms_of_service' ? '#10B981' : '#F59E0B');
