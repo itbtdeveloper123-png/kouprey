@@ -808,74 +808,190 @@ ob_start();
                                     </div>
 
                                 <?php elseif ($category === 'policies'): ?>
-                                    <!-- Policies & Legal with Rich Text Editor and Preview -->
+                                    <!-- Policies & Legal with Custom Rich Text Editor and Preview -->
+                                    <style>
+                                    .rte-toolbar {
+                                        display: flex;
+                                        flex-wrap: wrap;
+                                        gap: 2px;
+                                        padding: 8px;
+                                        background: #f8f9fa;
+                                        border: 1px solid #dee2e6;
+                                        border-bottom: none;
+                                        border-radius: 8px 8px 0 0;
+                                        align-items: center;
+                                    }
+                                    .rte-toolbar button, .rte-toolbar .rte-group {
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        min-width: 32px;
+                                        height: 32px;
+                                        padding: 4px 8px;
+                                        border: 1px solid transparent;
+                                        background: transparent;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-size: 13px;
+                                        color: #495057;
+                                        transition: all 0.15s ease;
+                                        white-space: nowrap;
+                                    }
+                                    .rte-toolbar button:hover, .rte-toolbar .rte-group:hover {
+                                        background: #e9ecef;
+                                        border-color: #ced4da;
+                                    }
+                                    .rte-toolbar button.active {
+                                        background: #0d6efd;
+                                        color: #fff;
+                                        border-color: #0d6efd;
+                                    }
+                                    .rte-toolbar .rte-sep {
+                                        width: 1px;
+                                        height: 24px;
+                                        background: #dee2e6;
+                                        margin: 0 4px;
+                                    }
+                                    .rte-toolbar select {
+                                        height: 32px;
+                                        padding: 2px 6px;
+                                        border: 1px solid #dee2e6;
+                                        border-radius: 4px;
+                                        font-size: 13px;
+                                        cursor: pointer;
+                                        background: #fff;
+                                    }
+                                    .rte-toolbar input[type="color"] {
+                                        width: 28px;
+                                        height: 28px;
+                                        border: 1px solid #dee2e6;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        padding: 1px;
+                                    }
+                                    .rte-editor {
+                                        min-height: 250px;
+                                        max-height: 400px;
+                                        overflow-y: auto;
+                                        padding: 12px 16px;
+                                        border: 1px solid #dee2e6;
+                                        border-radius: 0 0 8px 8px;
+                                        background: #fff;
+                                        font-family: 'Hanuman', serif;
+                                        font-size: 15px;
+                                        line-height: 1.8;
+                                        color: #333;
+                                        outline: none;
+                                    }
+                                    .rte-editor:focus {
+                                        border-color: #86b7fe;
+                                        box-shadow: 0 0 0 0.2rem rgba(13,110,253,.15);
+                                    }
+                                    .rte-editor h1 { font-size: 1.6rem; margin: 0.8rem 0 0.4rem; }
+                                    .rte-editor h2 { font-size: 1.35rem; margin: 0.7rem 0 0.3rem; }
+                                    .rte-editor h3 { font-size: 1.15rem; margin: 0.6rem 0 0.3rem; }
+                                    .rte-editor p { margin: 0 0 0.6rem; }
+                                    .rte-editor ul, .rte-editor ol { margin: 0.3rem 0 0.6rem 1.5rem; }
+                                    .rte-editor li { margin: 0.2rem 0; }
+                                    .rte-editor img { max-width: 100%; height: auto; border-radius: 6px; }
+                                    .rte-editor table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
+                                    .rte-editor table td, .rte-editor table th { border: 1px solid #ddd; padding: 6px 10px; }
+                                    .rte-editor blockquote { border-left: 3px solid #3B82F6; padding-left: 12px; margin: 0.5rem 0; color: #6B7280; }
+                                    .rte-emoji-panel {
+                                        display: none;
+                                        position: absolute;
+                                        z-index: 1000;
+                                        background: #fff;
+                                        border: 1px solid #dee2e6;
+                                        border-radius: 8px;
+                                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                        padding: 8px;
+                                        max-width: 280px;
+                                        flex-wrap: wrap;
+                                        gap: 4px;
+                                    }
+                                    .rte-emoji-panel.show { display: flex; }
+                                    .rte-emoji-panel span {
+                                        cursor: pointer;
+                                        font-size: 20px;
+                                        padding: 4px;
+                                        border-radius: 4px;
+                                        transition: background 0.1s;
+                                    }
+                                    .rte-emoji-panel span:hover { background: #e9ecef; }
+                                    </style>
+
                                     <div class="row">
                                         <div class="col-lg-7">
-                                            <!-- Contact Us -->
+                                            <?php
+                                            $policyFields = [
+                                                ['key' => 'contact_us', 'label' => 'Contact Us', 'badge' => 'bg-primary', 'icon' => 'bi-telephone'],
+                                                ['key' => 'privacy_policy', 'label' => 'Privacy Policy', 'badge' => 'bg-info', 'icon' => 'bi-shield-check'],
+                                                ['key' => 'terms_of_service', 'label' => 'Terms of Service', 'badge' => 'bg-success', 'icon' => 'bi-file-earmark-text'],
+                                            ];
+                                            foreach ($policyFields as $pf):
+                                                $content = '';
+                                                foreach ($groupedSettings['policies'] as $s) {
+                                                    if ($s['setting_key'] === $pf['key']) $content = $s['setting_value'] ?? '';
+                                                }
+                                            ?>
                                             <div class="card border mb-4">
                                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                                     <div>
-                                                        <span class="badge bg-primary me-2">Contact Us</span>
-                                                        <small class="text-muted">Contact Us information</small>
+                                                        <span class="badge <?php echo $pf['badge']; ?> me-2"><?php echo $pf['label']; ?></span>
+                                                        <small class="text-muted"><?php echo $pf['label']; ?> content</small>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="contact_us">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="<?php echo $pf['key']; ?>">
                                                         <i class="bi bi-eye"></i> Preview
                                                     </button>
                                                 </div>
-                                                <div class="card-body">
-                                                    <?php 
-                                                    $contactUsContent = '';
-                                                    foreach ($groupedSettings['policies'] as $s) {
-                                                        if ($s['setting_key'] === 'contact_us') $contactUsContent = $s['setting_value'] ?? '';
-                                                    }
-                                                    ?>
-                                                    <textarea id="contact_us_editor" name="contact_us" class="richtext-editor"><?php echo htmlspecialchars($contactUsContent); ?></textarea>
-                                                </div>
-                                            </div>
-
-                                            <!-- Privacy Policy -->
-                                            <div class="card border mb-4">
-                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <span class="badge bg-info me-2">Privacy Policy</span>
-                                                        <small class="text-muted">Privacy Policy content</small>
+                                                <div class="card-body p-0">
+                                                    <!-- Toolbar -->
+                                                    <div class="rte-toolbar" data-editor="<?php echo $pf['key']; ?>_editor">
+                                                        <button type="button" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                                                        <button type="button" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                                                        <button type="button" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                                                        <button type="button" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+                                                        <span class="rte-sep"></span>
+                                                        <select data-cmd="formatBlock" title="Heading / Paragraph">
+                                                            <option value="p">Paragraph</option>
+                                                            <option value="h1">Heading 1</option>
+                                                            <option value="h2">Heading 2</option>
+                                                            <option value="h3">Heading 3</option>
+                                                        </select>
+                                                        <span class="rte-sep"></span>
+                                                        <input type="color" data-cmd="foreColor" title="Text Color" value="#333333">
+                                                        <button type="button" data-cmd="hiliteColor" title="Highlight" style="background:#fff3cd;">🖌</button>
+                                                        <span class="rte-sep"></span>
+                                                        <button type="button" data-cmd="insertUnorderedList" title="Bullet List">•≡</button>
+                                                        <button type="button" data-cmd="insertOrderedList" title="Numbered List">1≡</button>
+                                                        <span class="rte-sep"></span>
+                                                        <button type="button" data-cmd="justifyLeft" title="Align Left">≡◁</button>
+                                                        <button type="button" data-cmd="justifyCenter" title="Align Center">≡◌</button>
+                                                        <button type="button" data-cmd="justifyRight" title="Align Right">▷≡</button>
+                                                        <span class="rte-sep"></span>
+                                                        <button type="button" data-cmd="createLink" title="Insert Link">🔗</button>
+                                                        <button type="button" data-cmd="unlink" title="Remove Link">✂</button>
+                                                        <span class="rte-sep"></span>
+                                                        <button type="button" class="rte-emoji-btn" title="Insert Icon / Emoji">😊</button>
+                                                        <button type="button" data-cmd="removeFormat" title="Clear Formatting" style="color:#dc3545;">✕</button>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="privacy_policy">
-                                                        <i class="bi bi-eye"></i> Preview
-                                                    </button>
-                                                </div>
-                                                <div class="card-body">
-                                                    <?php 
-                                                    $privacyContent = '';
-                                                    foreach ($groupedSettings['policies'] as $s) {
-                                                        if ($s['setting_key'] === 'privacy_policy') $privacyContent = $s['setting_value'] ?? '';
-                                                    }
-                                                    ?>
-                                                    <textarea id="privacy_policy_editor" name="privacy_policy" class="richtext-editor"><?php echo htmlspecialchars($privacyContent); ?></textarea>
-                                                </div>
-                                            </div>
-
-                                            <!-- Terms of Service -->
-                                            <div class="card border mb-4">
-                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <span class="badge bg-success me-2">Terms of Service</span>
-                                                        <small class="text-muted">Terms of Service content</small>
+                                                    <!-- Emoji Panel -->
+                                                    <div class="rte-emoji-panel" data-editor="<?php echo $pf['key']; ?>_editor">
+                                                        <?php
+                                                        $emojiList = ['📌','🔴','🟢','🔵','🟡','⭐','✅','❌','⚠️','ℹ️','💡','🔥','🎯','📝','📋','📎','🔒','🔑','💬','📧','📞','📍','🏠','🌐','💻','📱','🛒','📦','🚚','💰','💳','📊','📈','🏆','🎉','❤️','👍','👎','➡️','⬅️','⬆️','⬇️','▶️','⏸️','⏹️','🔄','➕','➖','✖️','➗','®','©','™','°','•','§','¶'];
+                                                        foreach ($emojiList as $emoji) {
+                                                            echo '<span onclick="insertEmoji(\'' . $pf['key'] . '_editor\', \'' . $emoji . '\')">' . $emoji . '</span>';
+                                                        }
+                                                        ?>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="terms_of_service">
-                                                        <i class="bi bi-eye"></i> Preview
-                                                    </button>
-                                                </div>
-                                                <div class="card-body">
-                                                    <?php 
-                                                    $termsContent = '';
-                                                    foreach ($groupedSettings['policies'] as $s) {
-                                                        if ($s['setting_key'] === 'terms_of_service') $termsContent = $s['setting_value'] ?? '';
-                                                    }
-                                                    ?>
-                                                    <textarea id="terms_of_service_editor" name="terms_of_service" class="richtext-editor"><?php echo htmlspecialchars($termsContent); ?></textarea>
+                                                    <!-- Editor -->
+                                                    <div id="<?php echo $pf['key']; ?>_editor" class="rte-editor" contenteditable="true" data-textarea="<?php echo $pf['key']; ?>"><?php echo $content; ?></div>
+                                                    <!-- Hidden textarea for form submission -->
+                                                    <textarea name="<?php echo $pf['key']; ?>" id="<?php echo $pf['key']; ?>_textarea" style="display:none;"><?php echo htmlspecialchars($content); ?></textarea>
                                                 </div>
                                             </div>
+                                            <?php endforeach; ?>
                                         </div>
 
                                         <!-- Preview Panel -->
@@ -892,37 +1008,141 @@ ob_start();
                                         </div>
                                     </div>
 
-                                    <!-- TinyMCE Initialization -->
+                                    <!-- Custom Rich Text Editor JavaScript -->
                                     <script>
                                     document.addEventListener('DOMContentLoaded', function() {
-                                        // Initialize TinyMCE on all richtext editors
-                                        tinymce.init({
-                                            selector: '.richtext-editor',
-                                            height: 350,
-                                            menubar: true,
-                                            plugins: [
-                                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                                                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                                                'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons'
-                                            ],
-                                            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | emoticons charmap | removeformat fullscreen preview | code',
-                                            font_family_formats: 'Hanuman (Khmer)=Hanuman, serif; Inter=sans-serif; Arial=arial,helvetica,sans-serif;',
-                                            content_style: 'body { font-family: Hanuman, serif; font-size: 16px; line-height: 1.8; }',
-                                            setup: function(editor) {
-                                                editor.on('change', function() {
-                                                    var activePreview = document.getElementById('previewFrame').getAttribute('data-active');
-                                                    if (activePreview && editor.id === activePreview + '_editor') {
-                                                        updatePreview(activePreview);
+                                        // ===== Toolbar Button Handlers =====
+                                        document.querySelectorAll('.rte-toolbar').forEach(function(toolbar) {
+                                            var editorId = toolbar.getAttribute('data-editor');
+
+                                            toolbar.querySelectorAll('button[data-cmd]').forEach(function(btn) {
+                                                btn.addEventListener('click', function(e) {
+                                                    e.preventDefault();
+                                                    var cmd = this.getAttribute('data-cmd');
+                                                    var editor = document.getElementById(editorId);
+                                                    editor.focus();
+
+                                                    if (cmd === 'createLink') {
+                                                        var url = prompt('Enter URL:', 'https://');
+                                                        if (url) document.execCommand('createLink', false, url);
+                                                    } else if (cmd === 'hiliteColor') {
+                                                        document.execCommand('hiliteColor', false, '#FFF3CD');
+                                                    } else {
+                                                        document.execCommand(cmd, false, null);
                                                     }
+                                                    syncTextarea(editorId);
+                                                });
+                                            });
+
+                                            toolbar.querySelector('select[data-cmd="formatBlock"]').addEventListener('change', function() {
+                                                var editor = document.getElementById(editorId);
+                                                editor.focus();
+                                                document.execCommand('formatBlock', false, '<' + this.value + '>');
+                                                syncTextarea(editorId);
+                                            });
+
+                                            toolbar.querySelector('input[type="color"]').addEventListener('input', function() {
+                                                var editor = document.getElementById(editorId);
+                                                editor.focus();
+                                                document.execCommand('foreColor', false, this.value);
+                                                syncTextarea(editorId);
+                                            });
+                                        });
+
+                                        // ===== Emoji Button Toggle =====
+                                        document.querySelectorAll('.rte-emoji-btn').forEach(function(btn) {
+                                            btn.addEventListener('click', function(e) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                var panel = this.parentElement.nextElementSibling;
+                                                // Close all panels first
+                                                document.querySelectorAll('.rte-emoji-panel').forEach(function(p) {
+                                                    if (p !== panel) p.classList.remove('show');
+                                                });
+                                                panel.classList.toggle('show');
+                                            });
+                                        });
+
+                                        // Close emoji panel on outside click
+                                        document.addEventListener('click', function(e) {
+                                            if (!e.target.closest('.rte-emoji-btn') && !e.target.closest('.rte-emoji-panel')) {
+                                                document.querySelectorAll('.rte-emoji-panel').forEach(function(p) {
+                                                    p.classList.remove('show');
                                                 });
                                             }
                                         });
 
+                                        // ===== Sync contenteditable → hidden textarea =====
+                                        function syncTextarea(editorId) {
+                                            var editor = document.getElementById(editorId);
+                                            var textareaId = editor.getAttribute('data-textarea') + '_textarea';
+                                            var textarea = document.getElementById(textareaId);
+                                            if (textarea) {
+                                                textarea.value = editor.innerHTML;
+                                            }
+                                            // Auto-update preview
+                                            var activePreview = document.getElementById('previewFrame').getAttribute('data-active');
+                                            var target = editor.getAttribute('data-textarea');
+                                            if (activePreview && target && activePreview === target) {
+                                                updatePreview(target);
+                                            }
+                                        }
+
+                                        window.insertEmoji = function(editorId, emoji) {
+                                            var editor = document.getElementById(editorId);
+                                            editor.focus();
+                                            // Insert at cursor
+                                            var sel = window.getSelection();
+                                            if (sel.rangeCount) {
+                                                var range = sel.getRangeAt(0);
+                                                range.deleteContents();
+                                                var textNode = document.createTextNode(emoji + ' ');
+                                                range.insertNode(textNode);
+                                                range.setStartAfter(textNode);
+                                                range.collapse(true);
+                                                sel.removeAllRanges();
+                                                sel.addRange(range);
+                                            }
+                                            syncTextarea(editorId);
+                                            // Close panel
+                                            document.querySelectorAll('.rte-emoji-panel').forEach(function(p) { p.classList.remove('show'); });
+                                        };
+
+                                        // Sync on input/blur
+                                        document.querySelectorAll('.rte-editor').forEach(function(editor) {
+                                            editor.addEventListener('input', function() {
+                                                syncTextarea(this.id);
+                                            });
+                                            editor.addEventListener('blur', function() {
+                                                syncTextarea(this.id);
+                                            });
+                                            // Keyboard shortcuts
+                                            editor.addEventListener('keydown', function(e) {
+                                                if (e.ctrlKey || e.metaKey) {
+                                                    switch (e.key) {
+                                                        case 'b': e.preventDefault(); document.execCommand('bold'); syncTextarea(this.id); break;
+                                                        case 'i': e.preventDefault(); document.execCommand('italic'); syncTextarea(this.id); break;
+                                                        case 'u': e.preventDefault(); document.execCommand('underline'); syncTextarea(this.id); break;
+                                                        case '1': case '2': case '3':
+                                                            e.preventDefault();
+                                                            document.execCommand('formatBlock', false, '<h' + e.key + '>');
+                                                            syncTextarea(this.id);
+                                                            break;
+                                                        case '0':
+                                                            e.preventDefault();
+                                                            document.execCommand('formatBlock', false, '<p>');
+                                                            syncTextarea(this.id);
+                                                            break;
+                                                    }
+                                                }
+                                            });
+                                        });
+
+                                        // ===== Preview Functionality =====
                                         function updatePreview(target) {
-                                            var editorId = target + '_editor';
-                                            var editor = tinymce.get(editorId);
-                                            var content = editor ? editor.getContent() : document.getElementById(editorId)?.value || '';
-                                            
+                                            var editor = document.getElementById(target + '_editor');
+                                            var content = editor ? editor.innerHTML : '';
+
                                             var labelMap = {
                                                 'contact_us': 'Contact Us',
                                                 'privacy_policy': 'Privacy Policy',
@@ -932,7 +1152,7 @@ ob_start();
 
                                             var previewFrame = document.getElementById('previewFrame');
                                             previewFrame.setAttribute('data-active', target);
-                                            
+
                                             var borderColor = target === 'privacy_policy' ? '#3B82F6' : (target === 'terms_of_service' ? '#10B981' : '#F59E0B');
                                             var previewHTML = '<!DOCTYPE html><html lang="km"><head><meta charset="UTF-8">' +
                                                 '<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">' +
@@ -947,12 +1167,11 @@ ob_start();
                                                 'li { padding: 0.3rem 0; color: #4B5563; }' +
                                                 'strong { font-weight: 700; }' +
                                                 '.content-section { border-left: 4px solid ' + borderColor + '; padding-left: 1.5rem; margin: 1.5rem 0; }' +
-                                                '.icon-circle { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: #EFF6FF; color: ' + borderColor + '; margin-right: 0.5rem; }' +
                                                 'img { max-width: 100%; height: auto; border-radius: 8px; }' +
                                                 'table { border-collapse: collapse; width: 100%; margin: 1rem 0; }' +
                                                 'table td, table th { border: 1px solid #ddd; padding: 8px 12px; }' +
                                                 '</style></head><body><div class="content-section">' + content + '</div></body></html>';
-                                            
+
                                             previewFrame.srcdoc = previewHTML;
                                         }
 
@@ -965,9 +1184,16 @@ ob_start();
                                             });
                                         });
 
-                                        // Save TinyMCE content back to textarea before form submit
+                                        // Sync all on form submit
                                         document.getElementById('settingsForm').addEventListener('submit', function() {
-                                            tinymce.triggerSave();
+                                            document.querySelectorAll('.rte-editor').forEach(function(editor) {
+                                                syncTextarea(editor.id);
+                                            });
+                                        });
+
+                                        // Initial sync
+                                        document.querySelectorAll('.rte-editor').forEach(function(editor) {
+                                            syncTextarea(editor.id);
                                         });
                                     });
                                     </script>

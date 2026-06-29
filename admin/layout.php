@@ -29,9 +29,6 @@ require_once __DIR__ . '/../app/Config/settings.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- TinyMCE Rich Text Editor -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-    
     <!-- Custom Modern Admin Styles -->
     <link href="assets/css/modern-admin.css" rel="stylesheet">
     <link href="assets/css/admin.css" rel="stylesheet"> <!-- Keep for legacy component styles -->
