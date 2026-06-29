@@ -31,7 +31,8 @@ require_once __DIR__ . '/../app/Config/settings.php';
     
     <!-- Custom Modern Admin Styles -->
     <link href="assets/css/modern-admin.css" rel="stylesheet">
-    <link href="assets/css/admin.css" rel="stylesheet"> <!-- Keep for legacy component styles -->
+    <link href="assets/css/admin.css" rel="stylesheet">
+    <link href="assets/css/rte-editor.css" rel="stylesheet">
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
