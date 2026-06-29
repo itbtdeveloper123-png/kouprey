@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     foreach ($_POST as $key => $value) {
-        if ($key !== 'update_settings' && $key !== 'language' && $key !== 'delete_hero_image' && $key !== 'delete_hero_file' && $key !== 'delete_company_logo' && $key !== 'active_tab' && $key !== 'delete_file_manager' && $key !== 'upload_file_manager') {
+        if ($key !== 'update_settings' && $key !== 'language' && $key !== 'delete_hero_image' && $key !== 'delete_hero_file' && $key !== 'delete_company_logo' && $key !== 'active_tab' && $key !== 'delete_file_manager' && $key !== 'upload_file_manager' && $key !== 'convert_webp_all' && $key !== 'delete_file_manager_bulk' && strpos($key, 'file_manager_replace_') !== 0) {
             // If value is an array (dynamic fields), JSON encode it
             $saveValue = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value;
             
