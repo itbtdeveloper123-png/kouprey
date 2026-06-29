@@ -54,8 +54,8 @@ $projectRoot = ($projectRoot === '/' || $projectRoot === '\\') ? '/' : rtrim($pr
                     if (empty($logoUrl)) {
                         $logoUrl = getSetting('company_logo', '', 'en');
                     }
-                    if (!empty($logoUrl) && strpos($logoUrl, '/kouprey/') === 0) {
-                        $logoUrl = $projectRoot . substr($logoUrl, 9);
+                    if (!empty($logoUrl) && strpos((string)$logoUrl, '/kouprey/') === 0) {
+                        $logoUrl = $projectRoot . substr((string)$logoUrl, 9);
                     }
                     ?>
                     <?php if (!empty($logoUrl)): ?>

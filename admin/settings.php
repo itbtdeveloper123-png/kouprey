@@ -1251,7 +1251,7 @@ ob_start();
                                                         echo htmlspecialchars($label); 
                                                         ?>
                                                     </label>
-                                                    <?php if (isset($setting['description']) && $setting['description'] && strcasecmp(trim($setting['description']), trim($label)) !== 0): ?>
+                                                    <?php if (isset($setting['description']) && $setting['description'] && strcasecmp(trim((string)$setting['description']), trim((string)$label)) !== 0): ?>
                                                         <div class="setting-description"><?php echo htmlspecialchars($setting['description']); ?></div>
                                                     <?php endif; ?>
 
