@@ -1246,9 +1246,12 @@ ob_start();
                                             <div class="col-md-6">
                                                 <div class="setting-item">
                                                     <label class="setting-label">
-                                                        <?php echo htmlspecialchars($setting['description'] ?? ucfirst(str_replace('_', ' ', $setting['setting_key']))); ?>
+                                                        <?php 
+                                                        $label = ucfirst(str_replace('_', ' ', $setting['setting_key']));
+                                                        echo htmlspecialchars($label); 
+                                                        ?>
                                                     </label>
-                                                    <?php if (isset($setting['description']) && $setting['description']): ?>
+                                                    <?php if (isset($setting['description']) && $setting['description'] && strcasecmp(trim($setting['description']), trim($label)) !== 0): ?>
                                                         <div class="setting-description"><?php echo htmlspecialchars($setting['description']); ?></div>
                                                     <?php endif; ?>
 
