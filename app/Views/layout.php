@@ -318,9 +318,9 @@ $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
     <footer class="mt-auto py-6 bg-gray-100 md:block hidden">
         <div class="max-w-6xl mx-auto px-6 text-center text-sm text-gray-600">© <?php echo date('Y'); ?> KouPrey. All rights reserved.</div>
         <div class="max-w-6xl mx-auto px-6 mt-4 flex justify-center space-x-6">
-                <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors"><i class="fab fa-facebook-f text-xl"></i></a>
-                <a href="#" class="text-gray-600 hover:text-pink-600 transition-colors"><i class="fab fa-tiktok text-xl"></i></a>
-                <a href="#" class="text-gray-600 hover:text-blue-500 transition-colors"><i class="fab fa-telegram-plane text-xl"></i></a>
+                <?php if (getSetting('social_facebook')): ?><a href="<?php echo htmlspecialchars(getSetting('social_facebook')); ?>" target="_blank" class="text-gray-600 hover:text-blue-600 transition-colors"><i class="fab fa-facebook-f text-xl"></i></a><?php endif; ?>
+                <?php if (getSetting('social_tiktok')): ?><a href="<?php echo htmlspecialchars(getSetting('social_tiktok')); ?>" target="_blank" class="text-gray-600 hover:text-pink-600 transition-colors"><i class="fab fa-tiktok text-xl"></i></a><?php endif; ?>
+                <?php if (getSetting('social_telegram')): ?><a href="<?php echo htmlspecialchars(getSetting('social_telegram')); ?>" target="_blank" class="text-gray-600 hover:text-blue-500 transition-colors"><i class="fab fa-telegram-plane text-xl"></i></a><?php endif; ?>
         </div>
     </footer>
 

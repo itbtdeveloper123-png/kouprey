@@ -416,7 +416,7 @@ ob_start();
             <!-- Tab content -->
             <div class="tab-content" id="settingsTabContent">
                 <?php foreach ($categories as $category => $categoryInfo): ?>
-                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies'])) continue; ?>
+                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social'])) continue; ?>
                     <div class="tab-pane fade <?php echo ($category === $activeTab) ? 'show active' : ''; ?>" id="<?php echo $category; ?>" role="tabpanel">
                         <div class="card border-0 shadow-premium overflow-hidden" style="border-radius: 28px;">
                             <div class="card-header bg-white border-bottom p-4">
@@ -806,6 +806,160 @@ ob_start();
                                             </div>
                                         </div>
                                     </div>
+
+                                <?php elseif ($category === 'social'): ?>
+                                    <!-- Social Media with Preview -->
+                                    <style>
+                                    .social-icon-preview {
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        width: 44px;
+                                        height: 44px;
+                                        border-radius: 50%;
+                                        background: #1a1a2e;
+                                        color: #fff;
+                                        font-size: 20px;
+                                        transition: all 0.3s ease;
+                                        text-decoration: none;
+                                    }
+                                    .social-icon-preview:hover { transform: translateY(-3px); }
+                                    .social-icon-preview.fb:hover { background: #1877F2; }
+                                    .social-icon-preview.ig:hover { background: #E4405F; }
+                                    .social-icon-preview.tt:hover { background: #000000; }
+                                    .social-icon-preview.tg:hover { background: #0088cc; }
+                                    </style>
+                                    <?php
+                                    $socialBannerText = '';
+                                    foreach ($groupedSettings['social'] as $s) {
+                                        if ($s['setting_key'] === 'social_banner_text') $socialBannerText = $s['setting_value'] ?? '';
+                                    }
+                                    $fbUrl = getSetting('social_facebook', '', $currentLanguage);
+                                    $igUrl = getSetting('social_instagram', '', $currentLanguage);
+                                    $ttUrl = getSetting('social_tiktok', '', $currentLanguage);
+                                    $tgUrl = getSetting('social_telegram', '', $currentLanguage);
+                                    ?>
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <!-- Social Banner Heading (Rich Text) -->
+                                            <div class="card border mb-4">
+                                                <div class="card-header bg-light">
+                                                    <span class="badge bg-dark me-2"><i class="bi bi-megaphone"></i> Banner Heading</span>
+                                                    <small class="text-muted">Social media banner text (supports rich formatting, icons, headings)</small>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="rte-toolbar" data-editor="social_banner_editor">
+                                                        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+                                                        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+                                                        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                        <span class="rte-sep"></span>
+                                                        <select data-cmd="formatBlock" title="Heading">
+                                                            <option value="p">Paragraph</option>
+                                                            <option value="h2">Heading 2</option>
+                                                            <option value="h3">Heading 3</option>
+                                                        </select>
+                                                        <span class="rte-sep"></span>
+                                                        <input type="color" data-cmd="foreColor" title="Text Color" value="#ffffff">
+                                                        <span class="rte-sep"></span>
+                                                        <button type="button" data-cmd="justifyLeft" title="Left">≡◁</button>
+                                                        <button type="button" data-cmd="justifyCenter" title="Center">≡◌</button>
+                                                        <button type="button" data-cmd="justifyRight" title="Right">▷≡</button>
+                                                        <span class="rte-sep"></span>
+                                                        <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
+                                                        <button type="button" data-cmd="removeFormat" title="Clear" style="color:#dc3545;">✕</button>
+                                                    </div>
+                                                    <div class="rte-emoji-panel" data-editor="social_banner_editor">
+                                                        <?php
+                                                        $emojiList = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','⬆️','⬇️','▶️','®','©','™','°','•'];
+                                                        foreach ($emojiList as $emoji) {
+                                                            echo '<span onclick="insertEmoji(\'social_banner_editor\', \'' . $emoji . '\')">' . $emoji . '</span>';
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                    <div id="social_banner_editor" class="rte-editor" contenteditable="true" data-textarea="social_banner_text"><?php echo $socialBannerText; ?></div>
+                                                    <textarea name="social_banner_text" id="social_banner_text_textarea" style="display:none;"><?php echo htmlspecialchars($socialBannerText); ?></textarea>
+                                                </div>
+                                            </div>
+
+                                            <!-- Social Media URLs -->
+                                            <div class="card border mb-4">
+                                                <div class="card-header bg-light">
+                                                    <span class="badge bg-primary me-2"><i class="bi bi-link-45deg"></i> Social Links</span>
+                                                    <small class="text-muted">Add your social media profile URLs</small>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">
+                                                                <i class="fab fa-facebook-f text-primary me-2"></i>Facebook Page URL
+                                                            </label>
+                                                            <input type="url" name="social_facebook" class="form-control" value="<?php echo htmlspecialchars($fbUrl); ?>" placeholder="https://www.facebook.com/yourpage">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">
+                                                                <i class="fab fa-instagram text-danger me-2"></i>Instagram Page URL
+                                                            </label>
+                                                            <input type="url" name="social_instagram" class="form-control" value="<?php echo htmlspecialchars($igUrl); ?>" placeholder="https://instagram.com/yourprofile">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">
+                                                                <i class="fab fa-tiktok text-dark me-2"></i>TikTok Page URL
+                                                            </label>
+                                                            <input type="url" name="social_tiktok" class="form-control" value="<?php echo htmlspecialchars($ttUrl); ?>" placeholder="https://tiktok.com/@yourhandle">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-bold">
+                                                                <i class="fab fa-telegram-plane text-info me-2"></i>Telegram URL
+                                                            </label>
+                                                            <input type="url" name="social_telegram" class="form-control" value="<?php echo htmlspecialchars($tgUrl); ?>" placeholder="https://t.me/yourchannel">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Preview Panel -->
+                                        <div class="col-lg-4">
+                                            <div class="card border shadow-sm sticky-top" style="top: 20px; z-index: 10;">
+                                                <div class="card-header bg-dark text-white">
+                                                    <h5 class="mb-0"><i class="bi bi-eye-fill me-2"></i>Live Preview</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <!-- Banner Preview -->
+                                                    <div style="background: #111; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px;">
+                                                        <div id="socialBannerPreview" style="color: #fff; font-family: Hanuman, serif; font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
+                                                            <?php echo $socialBannerText ?: '<span style="opacity:0.5;">Banner text will appear here</span>'; ?>
+                                                        </div>
+                                                        <div style="display: flex; justify-content: center; gap: 12px;">
+                                                            <span class="social-icon-preview fb"><i class="fab fa-facebook-f"></i></span>
+                                                            <span class="social-icon-preview ig"><i class="fab fa-instagram"></i></span>
+                                                            <span class="social-icon-preview tt"><i class="fab fa-tiktok"></i></span>
+                                                            <span class="social-icon-preview tg"><i class="fab fa-telegram-plane"></i></span>
+                                                        </div>
+                                                    </div>
+                                                    <small class="text-muted d-block text-center">↑ Front-end social banner preview</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                    // Live update social banner preview
+                                    (function() {
+                                        var bannerEditor = document.getElementById('social_banner_editor');
+                                        var bannerPreview = document.getElementById('socialBannerPreview');
+                                        if (bannerEditor && bannerPreview) {
+                                            var updateBannerPreview = function() {
+                                                var html = bannerEditor.innerHTML.trim();
+                                                bannerPreview.innerHTML = html || '<span style="opacity:0.5;">Banner text will appear here</span>';
+                                            };
+                                            bannerEditor.addEventListener('input', updateBannerPreview);
+                                            bannerEditor.addEventListener('blur', updateBannerPreview);
+                                            // Also update on toolbar actions
+                                            bannerEditor.addEventListener('keyup', updateBannerPreview);
+                                        }
+                                    })();
+                                    </script>
 
                                 <?php elseif ($category === 'policies'): ?>
                                     <!-- Policies & Legal with Custom Rich Text Editor and Preview -->
