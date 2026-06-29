@@ -11,8 +11,9 @@ if (!isset($pageContent)) $pageContent = '';
 
 require_once __DIR__ . '/../app/Config/settings.php';
 
-$adminBase = (strpos($_SERVER['REQUEST_URI'], '/kouprey/') !== false) ? '/kouprey/admin/' : '/admin/';
-$projectRoot = (strpos($_SERVER['REQUEST_URI'], '/kouprey/') !== false) ? '/kouprey/' : '/';
+$requestUri = isset($_SERVER['REQUEST_URI']) ? (string)$_SERVER['REQUEST_URI'] : '';
+$adminBase = (strpos($requestUri, '/kouprey/') !== false) ? '/kouprey/admin/' : '/admin/';
+$projectRoot = (strpos($requestUri, '/kouprey/') !== false) ? '/kouprey/' : '/';
 ?>
 <!DOCTYPE html>
 <html lang="km">
