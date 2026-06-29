@@ -1,5 +1,7 @@
 /* Admin Panel Styles - Clean System UI */
 
+
+
 :root {
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
@@ -32,7 +34,7 @@ body {
     font-family: 'Freeman', sans-serif;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     background-attachment: fixed;
-    background-image: 
+    background-image:
         radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
         radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
     color: var(--gray-800);
@@ -168,6 +170,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -396,6 +399,42 @@ body {
     padding: 1.5rem 2rem;
 }
 
+/* Nutrition table editor: keep value-pairs together and prevent wrapping */
+.table-rows-container .value-pairs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.table-rows-container .value-pair {
+    display: flex !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+}
+
+.table-rows-container .value-pair input[type="text"],
+.table-rows-container .value-pair .form-control {
+    flex: 0 0 auto;
+    min-width: 120px;
+}
+
+/* Frontend product view: keep nutrition value columns inline */
+.injected-custom-field .nutrition-rows .col-span-7 {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.injected-custom-field .nutrition-rows .col-span-5 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Badge Styles */
 .badge {
     font-size: 0.75rem;
@@ -596,17 +635,19 @@ body {
 .product-image {
     width: 50px;
     height: 50px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: var(--border-radius);
     border: 1px solid var(--gray-200);
+    background-color: #f8f9fa;
 }
 
 .category-image {
     width: 50px;
     height: 50px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: var(--border-radius);
     border: 1px solid var(--gray-200);
+    background-color: #f8f9fa;
 }
 
 .btn-group .btn {
@@ -794,8 +835,15 @@ body {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
 }
 
 .dashboard-header .container {
@@ -1130,146 +1178,172 @@ body {
     max-height: 100vh !important;
 }
 
-/* Product Sidebar Styles */
-.product-sidebar {
-    position: fixed;
-    top: 0;
-    right: -500px;
-    width: 480px;
-    height: 100vh;
-    background: var(--white);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-    z-index: 1050;
-    transition: right 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.product-sidebar.open {
-    right: 0;
-}
-
-.product-sidebar .sidebar-header {
-    background: #f8f9fa;
-    color: #212529;
-    border-bottom: 1px solid #dee2e6;
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: none;
-    flex-shrink: 0;
-}
-
-.product-sidebar .sidebar-title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.product-sidebar .btn-close-sidebar {
-    background: none;
-    border: none;
-    color: #6c757d;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.25rem;
-    transition: background-color 0.2s;
-}
-
-.product-sidebar .btn-close-sidebar:hover {
-    background-color: #e9ecef;
-    color: #495057;
-}
-
-.product-sidebar .sidebar-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.5rem;
-    background: var(--gray-50);
-}
-
-.product-sidebar .sidebar-footer {
-    background: var(--white);
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--gray-200);
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    flex-shrink: 0;
-}
-
-/* Category Sidebar Styles */
+/* Product Sidebar Styles - Enhanced Premium Look */
+.product-sidebar,
 .category-sidebar {
     position: fixed;
     top: 0;
-    right: -500px;
-    width: 480px;
+    right: -550px;
+    width: 520px;
     height: 100vh;
     background: var(--white);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-    z-index: 1050;
-    transition: right 0.3s ease-in-out;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+    z-index: 1060;
+    /* Above regular modals if needed */
+    transition: right 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border-left: 1px solid var(--gray-100);
 }
 
+.product-sidebar.open,
 .category-sidebar.open {
     right: 0;
 }
 
-.category-sidebar .sidebar-header {
-    background: #f8f9fa;
-    color: #212529;
-    border-bottom: 1px solid #dee2e6;
-    padding: 1rem 1.5rem;
+.sidebar-header {
+    background: linear-gradient(to right, #f8fafc, #ffffff);
+    padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: none;
+    border-bottom: 1px solid var(--gray-100);
     flex-shrink: 0;
 }
 
-.category-sidebar .sidebar-title {
+.sidebar-title {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    letter-spacing: -0.5px;
 }
 
-.category-sidebar .btn-close-sidebar {
-    background: none;
+.btn-close-sidebar {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
     border: none;
-    color: #6c757d;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.25rem;
-    transition: background-color 0.2s;
+    border-radius: 50%;
+    color: var(--gray-600);
+    transition: all 0.2s ease;
 }
 
-.category-sidebar .btn-close-sidebar:hover {
-    background-color: #e9ecef;
-    color: #495057;
+.btn-close-sidebar:hover {
+    background: var(--danger-color);
+    color: white;
+    transform: rotate(90deg);
 }
 
-.category-sidebar .sidebar-content {
+.sidebar-content {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem;
-    background: var(--gray-50);
+    padding: 2rem;
+    background: #ffffff;
 }
 
-.category-sidebar .sidebar-footer {
-    background: var(--white);
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--gray-200);
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--gray-200);
+    border-radius: 10px;
+}
+
+.sidebar-footer {
+    background: #ffffff;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--gray-100);
     display: flex;
     justify-content: flex-end;
-    gap: 0.75rem;
+    gap: 1rem;
     flex-shrink: 0;
+    box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.02);
+}
+
+/* Premium Form Elements */
+.product-sidebar .card,
+.category-sidebar .card {
+    border: 1px solid var(--gray-100);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.product-sidebar .card:hover,
+.category-sidebar .card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--gray-200);
+}
+
+.product-sidebar .card-header,
+.category-sidebar .card-header {
+    background: var(--gray-50);
+    font-weight: 700;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray-600);
+}
+
+.product-sidebar .nav-tabs-premium {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    background: var(--gray-100);
+    border-radius: 12px;
+    border: none;
+}
+
+.product-sidebar .nav-tabs-premium .nav-link {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.product-sidebar .nav-tabs-premium .nav-link.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.form-floating-custom {
+    margin-bottom: 1.25rem;
+}
+
+.form-floating-custom label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control-premium {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.form-control-premium:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
 /* Sidebar Overlay */
@@ -1296,8 +1370,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Clickable Cards */

@@ -33,10 +33,34 @@ switch ($action) {
         echo json_encode($controller->getRelatedProducts($baseProductId, $language));
         break;
 
-    case 'get_product':
+    case 'get_product_modal_data':
         $baseProductId = $_GET['base_product_id'] ?? 0;
-        $language = $_GET['language'] ?? null;
-        echo json_encode($controller->getProductByBaseId($baseProductId, $language));
+        $language = $_GET['language'] ?? 'en';
+        
+        // Get product data
+        $productResult = $controller->getProductByBaseId($baseProductId, $language);
+        
+        if (!$productResult['success'] || !$productResult['product']) {
+            echo json_encode(['success' => false, 'error' => 'Product not found']);
+            break;
+        }
+        
+        $product = $productResult['product'];
+        
+        // Get reviews
+        $reviewsResult = $controller->getReviews($product['id']);
+        
+        // Get related products
+        $relatedResult = $controller->getRelatedProducts($baseProductId, $language);
+        
+        echo json_encode([
+            'success' => true,
+            'product' => $product,
+            'reviews' => $reviewsResult['reviews'] ?? [],
+            'avg_rating' => $reviewsResult['avg_rating'] ?? 0,
+            'total_reviews' => $reviewsResult['total_reviews'] ?? 0,
+            'related_products' => $relatedResult['related_products'] ?? []
+        ]);
         break;
 
     default:

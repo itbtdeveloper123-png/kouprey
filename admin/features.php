@@ -36,6 +36,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_feature'])) {
     $message = "Feature added successfully!";
 }
 
+// Handle update feature
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_feature'])) {
+    $base_id = $_POST['base_feature_id'];
+    $title_en = $_POST['title_en'];
+    $desc_en = $_POST['description_en'];
+    $title_km = $_POST['title_km'];
+    $desc_km = $_POST['description_km'];
+
+    // Update/Insert English
+    $stmt = $pdo->prepare("SELECT id FROM features WHERE base_feature_id = ? AND language = 'en'");
+    $stmt->execute([$base_id]);
+    $exists_en = $stmt->fetch();
+
+    if ($exists_en) {
+        $stmt = $pdo->prepare("UPDATE features SET title = ?, description = ? WHERE id = ?");
+        $stmt->execute([$title_en, $desc_en, $exists_en['id']]);
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO features (title, description, language, base_feature_id) VALUES (?, ?, 'en', ?)");
+        $stmt->execute([$title_en, $desc_en, $base_id]);
+    }
+
+    // Update/Insert Khmer
+    $stmt = $pdo->prepare("SELECT id FROM features WHERE base_feature_id = ? AND language = 'km'");
+    $stmt->execute([$base_id]);
+    $exists_km = $stmt->fetch();
+
+    if ($exists_km) {
+        $stmt = $pdo->prepare("UPDATE features SET title = ?, description = ? WHERE id = ?");
+        $stmt->execute([$title_km, $desc_km, $exists_km['id']]);
+    } else {
+         if (!empty($title_km) || !empty($desc_km)) {
+            $stmt = $pdo->prepare("INSERT INTO features (title, description, language, base_feature_id) VALUES (?, ?, 'km', ?)");
+            $stmt->execute([$title_km, $desc_km, $base_id]);
+         }
+    }
+    $message = "Feature updated successfully!";
+}
+
 // Handle delete feature
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
@@ -87,6 +125,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_products'])) {
 $stmt = $pdo->prepare("SELECT * FROM features WHERE language = ? ORDER BY id DESC");
 $stmt->execute([$currentLanguage]);
 $features = $stmt->fetchAll();
+
+// Fetch all features grouped by base_feature_id for editing
+$stmt = $pdo->query("SELECT * FROM features");
+$allFeaturesRaw = $stmt->fetchAll();
+$allFeaturesGrouped = [];
+foreach ($allFeaturesRaw as $f) {
+    if ($f['language'] === 'en') {
+        // Ensure base_feature_id is set for the English version if it's acting as base
+        $bid = $f['base_feature_id'] ?: $f['id']; 
+        $allFeaturesGrouped[$bid]['en'] = $f;
+    } else {
+        $bid = $f['base_feature_id'];
+        if ($bid) {
+            $allFeaturesGrouped[$bid][$f['language']] = $f;
+        }
+    }
+}
 
 // Fetch all products
 $currentLanguage = isset($_GET['lang']) ? $_GET['lang'] : 'en';
@@ -272,6 +327,10 @@ foreach ($features as $feature) {
                                                             onclick="loadProductsForFeature(<?php echo $feature['id']; ?>, '<?php echo htmlspecialchars($feature['title']); ?>')">
                                                         <i class="bi bi-box-seam me-1"></i>Assign
                                                     </button>
+                                                    <button type="button" class="btn btn-warning btn-sm btn-custom me-2" 
+                                                            onclick="openEditModal(<?php echo $feature['base_feature_id'] ?? $feature['id']; ?>)">
+                                                        <i class="bi bi-pencil-square me-1"></i>Edit
+                                                    </button>
                                                     <a href="?delete=<?php echo $feature['id']; ?>" 
                                                        class="btn btn-danger btn-sm btn-custom" 
                                                        onclick="return confirm('Are you sure you want to delete this feature?')">
@@ -285,6 +344,72 @@ foreach ($features as $feature) {
                             </div>
                         <?php endif; ?>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Feature Modal -->
+    <div class="modal fade" id="editFeatureModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-dark">
+                        <i class="bi bi-pencil-square me-2"></i>Edit Feature
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" id="editFeatureForm">
+                        <input type="hidden" name="base_feature_id" id="edit_base_feature_id">
+                        
+                        <!-- Language Tabs -->
+                        <ul class="nav nav-tabs nav-fill mb-3" id="editFeatureLangTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="edit-en-tab" data-bs-toggle="tab" data-bs-target="#edit-en-content" type="button" role="tab" aria-controls="edit-en-content" aria-selected="true">
+                                    <i class="bi bi-translate me-1"></i>English
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="edit-km-tab" data-bs-toggle="tab" data-bs-target="#edit-km-content" type="button" role="tab" aria-controls="edit-km-content" aria-selected="false">
+                                    <i class="bi bi-translate me-1"></i>Khmer
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content">
+                            <!-- English Content -->
+                            <div class="tab-pane fade show active" id="edit-en-content" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="edit_title_en" class="form-label fw-bold">Title (English) *</label>
+                                    <input type="text" class="form-control" id="edit_title_en" name="title_en" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_description_en" class="form-label fw-bold">Description (English) *</label>
+                                    <textarea class="form-control" id="edit_description_en" name="description_en" rows="4" required></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Khmer Content -->
+                            <div class="tab-pane fade" id="edit-km-content" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="edit_title_km" class="form-label fw-bold">Title (Khmer)</label>
+                                    <input type="text" class="form-control" id="edit_title_km" name="title_km">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_description_km" class="form-label fw-bold">Description (Khmer)</label>
+                                    <textarea class="form-control" id="edit_description_km" name="description_km" rows="4"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" name="update_feature" class="btn btn-warning fw-bold">
+                                <i class="bi bi-check-circle-fill me-2"></i>Update Feature
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -345,6 +470,8 @@ foreach ($features as $feature) {
             window.location.href = '?lang=' + lang;
         }
 
+        const featuresData = <?php echo json_encode($allFeaturesGrouped); ?>;
+
         function loadProductsForFeature(featureId, featureTitle) {
             document.getElementById('modalFeatureId').value = featureId;
             document.getElementById('featureTitle').textContent = featureTitle;
@@ -362,6 +489,26 @@ foreach ($features as $feature) {
                     if (checkbox) checkbox.checked = true;
                 });
             }
+        }
+
+        function openEditModal(baseId) {
+            const data = featuresData[baseId];
+            if (!data) return;
+
+            document.getElementById('edit_base_feature_id').value = baseId;
+
+            // Populate English
+            const enData = data['en'] || {};
+            document.getElementById('edit_title_en').value = enData.title || '';
+            document.getElementById('edit_description_en').value = enData.description || '';
+
+            // Populate Khmer
+            const kmData = data['km'] || {};
+            document.getElementById('edit_title_km').value = kmData.title || '';
+            document.getElementById('edit_description_km').value = kmData.description || '';
+
+            // Show modal
+            new bootstrap.Modal(document.getElementById('editFeatureModal')).show();
         }
     </script>
 

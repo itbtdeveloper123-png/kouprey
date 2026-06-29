@@ -40,25 +40,66 @@ if (!isset($pageTitle)) {
 $cssFile = realpath(__DIR__ . '/../../public/css/output.css');
 $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
 ?><!doctype html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(getCurrentLanguage()); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title><?php echo htmlspecialchars($pageTitle, ENT_QUOTES); ?></title>
-    <link rel="icon" type="image/png" href="https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png">
+    <?php 
+    $logoUrl = getSetting('company_logo'); 
+    if (empty($logoUrl)) {
+        $logoUrl = getSetting('company_logo', '', 'en');
+    }
+    ?>
+    <link rel="icon" type="image/png" href="<?php echo !empty($logoUrl) ? htmlspecialchars($logoUrl) : 'https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png'; ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Freeman&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">
     <style>
-    .font-freeman {
-        font-family: 'Freeman', serif;
+    /* Global fixes for mobile horizontal overflow */
+    html {
+        overflow-x: hidden;
+        width: 100%;
+        position: relative;
+    }
+    
+    body {
+        width: 100%;
+        position: relative;
     }
 
-    /* Use Kantumruy from Google Fonts CDN for Khmer text, with sensible fallbacks */
-    :lang(km), html[lang="km"] body, .lang-km, .km-text {
-        font-family: 'Kantumruy', 'Noto Sans Khmer', 'Khmer OS', 'Khmer OS System', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @font-face {
+        font-family: 'Superspace Bold';
+        src: url('/kouprey/public/fonts/Superspace Bold ver 1.00.ttf') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+    }
+    
+    .font-freeman {
+        font-family: 'Superspace Bold', 'Freeman', serif;
+    }
+
+    /* Khmer font: Hanuman for Khmer language and elements with .kh
+       Apply only to common text elements to avoid overriding icon fonts (e.g. Font Awesome) */
+    :lang(km) :where(h1,h2,h3,h4,h5,h6,p,span,div,li,button,a,label,input,textarea,strong,b,em),
+    [lang="km"] :where(h1,h2,h3,h4,h5,h6,p,span,div,li,button,a,label,input,textarea,strong,b,em),
+    .kh {
+        font-family: 'Hanuman', serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Khmer characters look larger, so we reduce size slightly for app-like look */
+        font-size: 0.94em; 
+    }
+
+    :lang(km) h1, :lang(km) h2, :lang(km) h3 {
+        line-height: 1.4;
+    }
+
+    /* utility class to force Hanuman bold weight when needed */
+    .kh-700, :lang(km) strong, :lang(km) b {
+        font-weight: 700;
     }
 
     /* Mobile App-like Styles */
@@ -103,20 +144,58 @@ $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
             body {
                 padding-top: env(safe-area-inset-top);
             }
+            :lang(km) {
+                font-size: 0.92em;
+            }
         }
     }
 
-    /* Animated background for body */
+    /* Future iOS Style - Background */
     body {
-        background: linear-gradient(-45deg, #fef7e0, #f59e0b, #92400e, #d97706);
-        background-size: 400% 400%;
-        animation: gradientShift 15s ease infinite;
+        background: #ffffff;
+        background-attachment: fixed;
     }
 
-    @keyframes gradientShift {
+    /* Ultra-Glassmorphism Header */
+    header {
+        background: rgba(255, 255, 255, 0.4) !important;
+        backdrop-filter: blur(30px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+        border-bottom: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+    }
+
+    header.scrolled {
+        background: rgba(255, 255, 255, 0.7) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    /* iOS 26 Active Menu Style */
+    nav a.active-menu {
+        background: rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(10px);
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+    }
+
+        /* Scroll effects for Header */
+        header.scrolled {
+            background-color: rgba(255, 255, 255, 0.85); /* Slightly more opaque on scroll but still glassy */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Stronger shadow on scroll */
+            border-bottom-color: rgba(229, 231, 235, 0.8);
+            backdrop-blur: 20px;
+        }
+
+        @keyframes gradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
+    }
+
+    /* Scroll effects for Header */
+    header.scrolled {
+        background-color: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border-bottom-color: rgba(229, 231, 235, 0.5);
     }
     </style>
     <?php
@@ -126,56 +205,55 @@ $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
         echo '<script src="https://cdn.tailwindcss.com"></script>';
     }
     ?>
+    <style>
+        /* Ensure anchored sections are not hidden under the fixed header */
+        #products { scroll-margin-top: 6rem; }
+        @media (max-width: 768px) { #products { scroll-margin-top: 10rem; } }
+    </style>
 </head>
 <body class="text-gray-800 font-freeman min-h-screen pb-20 flex flex-col">
-	<header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 md:px-6 md:py-4 sticky top-0 z-50">
-        <div class="flex items-center justify-between max-w-6xl mx-auto">
-            <!-- Logo -->
-            <div class="flex items-center">
-                <a href="/" class="flex items-center">
-                    <img src="https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-8 w-auto md:h-10">
-                    <span class="text-lg md:text-xl font-bold ml-2 text-gray-800">KouPrey</span>
-                </a>
-            </div>
-            
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex space-x-8">
-                <a href="product.php" class="text-gray-600 hover:text-gray-900 transition-colors flex items-center">
-                    <i class="fas fa-box mr-2"></i><?php echo getSetting('nav_product', 'Products'); ?>
-                </a>
-                <a href="features.php" class="text-gray-600 hover:text-gray-900 transition-colors flex items-center">
-                    <i class="fas fa-star mr-2"></i><?php echo getSetting('nav_features', 'Features'); ?>
-                </a>
-                <a href="reviews.php" class="text-gray-600 hover:text-gray-900 transition-colors flex items-center">
-                    <i class="fas fa-comments mr-2"></i><?php echo getSetting('nav_reviews', 'Reviews'); ?>
-                </a>
-                <a href="about.php" class="text-gray-600 hover:text-gray-900 transition-colors flex items-center">
-                    <i class="fas fa-info-circle mr-2"></i><?php echo getSetting('nav_about', 'About'); ?>
-                </a>
-                <!-- Language Switcher -->
-                <button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center space-x-1 text-sm bg-transparent border-none outline-none cursor-pointer hover:bg-gray-100 rounded px-2 py-1 transition-colors" title="Switch Language">
-                    <img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Flag_of_Cambodia.svg/2560px-Flag_of_Cambodia.svg.png'; ?>" 
-                         alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
-                         class="w-6 h-4 object-cover rounded">
-                    <span class="font-medium"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
-                </button>
-            </nav>
-            
-            <!-- Mobile Actions -->
-            <div class="flex items-center space-x-3">
-                <!-- Language Switcher -->
-                <button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center space-x-1 text-sm bg-transparent border-none outline-none cursor-pointer hover:bg-gray-100 rounded px-2 py-1 transition-colors" title="Switch Language">
-                    <img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Flag_of_Cambodia.svg/2560px-Flag_of_Cambodia.svg.png'; ?>" 
-                         alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
-                         class="w-6 h-4 object-cover rounded">
-                    <span class="font-medium"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
-                </button>
-                <button class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors" title="Search">
-                    <i class="fas fa-search w-5 h-5"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+	<header class="px-4 py-4 md:px-6 md:py-3 sticky top-0 z-50 transition-all duration-500">
+		<div class="flex items-center justify-between max-w-7xl mx-auto h-full">
+			<!-- Logo -->
+			<div class="flex items-center">
+				<a href="product.php" class="flex items-center transform active:scale-95 transition-transform">
+					<?php 
+					$logoUrl = getSetting('company_logo'); 
+					if (empty($logoUrl)) {
+						$logoUrl = getSetting('company_logo', '', 'en');
+					}
+					?>
+					<?php if (!empty($logoUrl)): ?>
+						<img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-14 w-auto object-contain" style="height: 56px;">
+					<?php endif; ?>
+				</a>
+			</div>
+			
+			<!-- Desktop Navigation -->
+			<nav class="hidden md:flex items-center space-x-4">
+                <a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', 'Product')); ?></a>
+				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></a>
+				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></a>
+				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></a>
+			</nav>
+			
+			<!-- Mobile Actions -->
+			<div class="flex items-center gap-3">
+				<!-- Language Switcher -->
+				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-4 py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="Switch Language">
+                    <img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://cdn-icons-png.flaticon.com/512/16022/16022033.png'; ?>" 
+						 alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
+						 class="w-6 h-6 object-cover rounded-full shadow-sm">
+					<span class="font-bold text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
+				</button>
+				<button id="searchButton" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="Search">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+	</header>
 
     <main class="px-4 py-6 md:px-6 md:py-8">
         <?php
@@ -192,36 +270,50 @@ $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
         ?>
     </main>
 
-    <!-- Mobile Bottom Navigation -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-        <div class="flex items-center justify-around py-2">
-            <a href="product.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 text-gray-600">
-                <i class="fas fa-box w-6 h-6 mb-1"></i>
-                <span class="text-xs font-medium"><?php echo getSetting('nav_product', 'Products'); ?></span>
-            </a>
-            <a href="features.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 text-gray-600">
-                <i class="fas fa-star w-6 h-6 mb-1"></i>
-                <span class="text-xs font-medium"><?php echo getSetting('nav_features', 'Features'); ?></span>
-            </a>
-            <a href="reviews.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 text-gray-600">
-                <i class="fas fa-comments w-6 h-6 mb-1"></i>
-                <span class="text-xs font-medium"><?php echo getSetting('nav_reviews', 'Reviews'); ?></span>
-            </a>
-            <a href="about.php" class="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1 text-gray-600">
-                <i class="fas fa-info-circle w-6 h-6 mb-1"></i>
-                <span class="text-xs font-medium"><?php echo getSetting('nav_about', 'About'); ?></span>
-            </a>
-        </div>
-    </nav>
+	<!-- Mobile Bottom Navigation (iOS 26 Floating Island) -->
+	<nav class="md:hidden fixed bottom-6 left-6 right-6 bg-white/40 backdrop-blur-[30px] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] z-40 pb-safe px-2 overflow-hidden">
+		<div class="flex items-center justify-around py-1">
+            <a href="product.php#products" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'product.php' || $current_page == 'product_detail.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-mug-hot text-xl mb-1 <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_product', 'Products')); ?></span>
+			</a>
+			
+			<a href="features.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'features.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-bolt text-xl mb-1 <?php echo ($current_page == 'features.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'features.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></span>
+			</a>
 
-    <!-- Add bottom padding for mobile nav -->
+			<a href="reviews.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'reviews.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-star text-xl mb-1 <?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></span>
+			</a>
+
+			<a href="about.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
+				<?php if ($current_page == 'about.php'): ?>
+					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
+				<?php endif; ?>
+				<i class="fas fa-user text-xl mb-1 <?php echo ($current_page == 'about.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
+				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'about.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></span>
+			</a>
+		</div>
+	</nav>
+
     <style>
-        @media (max-width: 768px) {
-            body {
-                padding-bottom: 80px;
-            }
-        }
-    </style>
+		@media (max-width: 768px) {
+			body {
+				padding-bottom: 80px;
+			}
+		}
+	</style>
 
     <footer class="mt-auto py-6 bg-gray-100 md:block hidden">
         <div class="max-w-6xl mx-auto px-6 text-center text-sm text-gray-600">© <?php echo date('Y'); ?> KouPrey. All rights reserved.</div>
@@ -267,6 +359,55 @@ $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
             const newLang = current === 'en' ? 'km' : 'en';
             changeLanguage(newLang);
         }
+
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (header) {
+                if (window.scrollY > 10) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            }
+        });
+
+        // If page loaded with a hash (e.g. product.php#products), scroll to it accounting for fixed header
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const hash = window.location.hash;
+                if (hash) {
+                    const el = document.querySelector(hash);
+                    if (el) {
+                        const header = document.querySelector('header');
+                        const offset = header ? header.offsetHeight + 10 : 80;
+                        const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
+                        window.scrollTo({ top: top, behavior: 'smooth' });
+                    }
+                }
+
+                // If clicking an on-page products link while already on product.php, smooth-scroll instead of jumping
+                document.querySelectorAll('a[href*="#products"]').forEach(function(a){
+                    a.addEventListener('click', function(e){
+                        const target = document.querySelector('#products');
+                        if (!target) return; // allow normal navigation if not on this page
+                        // If link would navigate to the same page, prevent default and smooth scroll
+                        const href = a.getAttribute('href');
+                        if (href && (href === 'product.php#products' || href.endsWith('#products') )) {
+                            if (window.location.pathname.endsWith('product.php') || window.location.pathname === '/' || window.location.pathname.indexOf('product.php') !== -1) {
+                                e.preventDefault();
+                                const header = document.querySelector('header');
+                                const offset = header ? header.offsetHeight + 10 : 80;
+                                const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                                window.scrollTo({ top: top, behavior: 'smooth' });
+                            }
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error('Anchor scroll helper error:', err);
+            }
+        });
     </script>
 </body>
 </html>
