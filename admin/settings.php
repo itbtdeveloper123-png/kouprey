@@ -293,7 +293,7 @@ foreach ($groupedSettings as $cat => &$keys) {
 // Helper function to get setting values easily
 function getSettingVal($category, $key, $lang, $default = '') {
     global $groupedSettings;
-    return $groupedSettings[$category][$key]['values'][$lang] ?? $default;
+    return isset($groupedSettings[$category][$key]['values'][$lang]) ? $groupedSettings[$category][$key]['values'][$lang] : $default;
 }
 
 // Fetch all categories for collections (using English categories as reference)
@@ -1418,14 +1418,21 @@ ob_start();
                                                 'privacy_policy': 'Privacy Policy',
                                                 'terms_of_service': 'Terms of Service'
                                             };
+                                            
+                                            var cleanTarget = target.replace(/_(en|km)$/, '');
+                                            var langLabel = target.endsWith('_km') ? 'KM' : 'EN';
+                                            
                                             var previewLabel = document.getElementById('previewLabel');
-                                            if (previewLabel) previewLabel.textContent = labelMap[target] || target;
+                                            if (previewLabel) {
+                                                var baseLabel = labelMap[cleanTarget] || cleanTarget;
+                                                previewLabel.textContent = baseLabel + ' (' + langLabel + ')';
+                                            }
 
                                             var previewFrame = document.getElementById('previewFrame');
                                             if (!previewFrame) return;
                                             previewFrame.setAttribute('data-active', target);
 
-                                            var borderColor = target === 'privacy_policy' ? '#3B82F6' : (target === 'terms_of_service' ? '#10B981' : '#F59E0B');
+                                            var borderColor = cleanTarget === 'privacy_policy' ? '#3B82F6' : (cleanTarget === 'terms_of_service' ? '#10B981' : '#F59E0B');
                                             var previewHTML = '<!DOCTYPE html><html lang="km"><head><meta charset="UTF-8">' +
                                                 '<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">' +
                                                 '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' +
