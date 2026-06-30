@@ -31,7 +31,7 @@
 }
 
 body {
-    font-family: 'Freeman', sans-serif;
+    font-family: 'Inter', 'Outfit', sans-serif;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     background-attachment: fixed;
     background-image:

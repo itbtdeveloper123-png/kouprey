@@ -149,24 +149,15 @@ $projectRoot = (strpos($requestUri, '/kouprey/') !== false) ? '/kouprey/' : '/';
     <script>
         // Fallback Tab Switcher - ensures tabs work even if Bootstrap JS fails
         document.addEventListener('DOMContentLoaded', function() {
-            var tabButtons = document.querySelectorAll('#settingsTabs [data-bs-toggle="tab"]');
+            var tabButtons = document.querySelectorAll('#settingsTabs .settings-tab-btn');
             if (tabButtons.length > 0) {
                 tabButtons.forEach(function(btn) {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
-                        var targetId = this.getAttribute('data-bs-target').replace('#', '');
-                        
-                        // Deactivate all tabs
-                        tabButtons.forEach(function(b) { b.classList.remove('active'); });
-                        document.querySelectorAll('#settingsTabContent .tab-pane').forEach(function(p) {
-                            p.classList.remove('show', 'active');
-                        });
-                        
-                        // Activate clicked tab
-                        this.classList.add('active');
-                        var targetPane = document.getElementById(targetId);
-                        if (targetPane) {
-                            targetPane.classList.add('show', 'active');
+                        var targetId = this.getAttribute('data-tab-target') ||
+                                       (this.getAttribute('id') || '').replace('-tab', '');
+                        if (typeof switchSettingsTab === 'function') {
+                            switchSettingsTab(this, targetId);
                         }
                     });
                 });

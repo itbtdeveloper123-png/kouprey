@@ -462,7 +462,8 @@ ul#settingsTabs {
     overflow-y: hidden !important;
 }
 
-ul#settingsTabs > li > button.nav-link {
+ul#settingsTabs > li > button.nav-link,
+ul#settingsTabs > li > button.settings-tab-btn {
     font-family: 'Outfit', sans-serif !important;
     padding: 10px 22px !important;
     border-radius: 50px !important;
@@ -472,14 +473,17 @@ ul#settingsTabs > li > button.nav-link {
     background: transparent !important;
     border: 1px solid transparent !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
 }
 
-ul#settingsTabs > li > button.nav-link:hover {
+ul#settingsTabs > li > button.nav-link:hover,
+ul#settingsTabs > li > button.settings-tab-btn:hover {
     color: #4f46e5 !important;
     background: rgba(79, 70, 229, 0.05) !important;
 }
 
-ul#settingsTabs > li > button.nav-link.active {
+ul#settingsTabs > li > button.nav-link.active,
+ul#settingsTabs > li > button.settings-tab-btn.active {
     background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
     color: #ffffff !important;
     border-color: transparent !important;

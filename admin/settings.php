@@ -356,13 +356,15 @@ ob_start();
     /* Critical: Force settings tabs horizontal */
     ul#settingsTabs{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;list-style:none!important;padding:0!important;margin:0!important;overflow-x:auto!important;gap:4px}
     ul#settingsTabs>li{list-style:none!important;flex-shrink:0}
-    ul#settingsTabs>li>button.nav-link{display:inline-block!important;white-space:nowrap!important;padding:8px 18px!important;border-radius:50px!important;font-weight:600!important;font-size:14px!important;background:#fff;color:#64748b;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s}
-    ul#settingsTabs>li>button.nav-link:hover{background:#f1f5f9;color:#4f46e5}
-    ul#settingsTabs>li>button.nav-link.active{background:#4f46e5!important;color:#fff!important;border-color:#4f46e5!important}
+    ul#settingsTabs>li>button.nav-link,
+    ul#settingsTabs>li>button.settings-tab-btn{display:inline-block!important;white-space:nowrap!important;padding:8px 18px!important;border-radius:50px!important;font-weight:600!important;font-size:14px!important;background:#fff;color:#64748b;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s}
+    ul#settingsTabs>li>button.nav-link:hover,
+    ul#settingsTabs>li>button.settings-tab-btn:hover{background:#f1f5f9;color:#4f46e5}
+    ul#settingsTabs>li>button.nav-link.active,
+    ul#settingsTabs>li>button.settings-tab-btn.active{background:#4f46e5!important;color:#fff!important;border-color:#4f46e5!important}
     /* Hide inactive tab panes */
     #settingsTabContent>.tab-pane{display:none!important}
     #settingsTabContent>.tab-pane.show.active{display:block!important}
-    #settingsTabContent>.tab-pane.show.active.fade{display:block!important}
     </style>
     <div class="container-fluid py-4">
         <?php if (isset($message)): ?>
@@ -420,7 +422,7 @@ ob_start();
                 <ul class="nav nav-pills premium-pills bg-white p-2 rounded-4 shadow-sm border overflow-auto flex-nowrap" id="settingsTabs" role="tablist">
                     <?php foreach ($categories as $category => $categoryInfo): ?>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill px-4 py-2 me-2 <?php echo ($category === $activeTab) ? 'active' : ''; ?>" id="<?php echo $category; ?>-tab" data-bs-toggle="tab" data-bs-target="#<?php echo $category; ?>" type="button" role="tab">
+                            <button class="nav-link rounded-pill px-4 py-2 me-2 settings-tab-btn <?php echo ($category === $activeTab) ? 'active' : ''; ?>" id="<?php echo $category; ?>-tab" data-tab-target="<?php echo $category; ?>" type="button" role="tab" onclick="switchSettingsTab(this, '<?php echo $category; ?>')">
                                 <i class="bi <?php echo $categoryInfo['icon']; ?> me-2"></i><?php echo $categoryInfo['title']; ?>
                             </button>
                         </li>
@@ -1398,17 +1400,29 @@ ob_start();
             }
         }
 
-        // Keep track of active tab
-        document.addEventListener('DOMContentLoaded', function() {
-            var tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
-            tabs.forEach(function(tab) {
-                tab.addEventListener('shown.bs.tab', function(event) {
-                    var targetId = event.target.getAttribute('data-bs-target').replace('#', '');
-                    var input = document.getElementById('activeTabInput');
-                    if (input) input.value = targetId;
-                });
+        // Tab switching function — works without data-bs-toggle
+        function switchSettingsTab(btn, tabId) {
+            // Update hidden activeTab input for form submission
+            var input = document.getElementById('activeTabInput');
+            if (input) input.value = tabId;
+
+            // Deactivate all tab buttons
+            document.querySelectorAll('#settingsTabs .settings-tab-btn').forEach(function(b) {
+                b.classList.remove('active');
             });
-        });
+            // Activate clicked button
+            btn.classList.add('active');
+
+            // Hide all tab panes
+            document.querySelectorAll('#settingsTabContent .tab-pane').forEach(function(p) {
+                p.classList.remove('show', 'active');
+            });
+            // Show target pane
+            var targetPane = document.getElementById(tabId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        }
     </script>
 
     <style>
