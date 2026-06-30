@@ -6,6 +6,70 @@ session_start();
 require_once '../app/Config/database.php';
 require_once '../app/Config/settings.php';
 
+// Database Self-Healing: Repair invalid setting categories and remove duplicates
+try {
+    $keyCategoryMap = [
+        'contact_us' => 'policies',
+        'privacy_policy' => 'policies',
+        'terms_of_service' => 'policies',
+        'social_banner_text' => 'social',
+        'social_facebook' => 'social',
+        'social_instagram' => 'social',
+        'social_tiktok' => 'social',
+        'social_telegram' => 'social',
+        'company_logo' => 'contact',
+        'company_email' => 'contact',
+        'company_phone' => 'contact',
+        'company_address' => 'contact',
+        'working_hours' => 'contact',
+        'google_maps_embed' => 'contact',
+        'about_banner_title' => 'about',
+        'about_banner_desc' => 'about',
+        'about_story_title' => 'about',
+        'about_story_desc' => 'about',
+        'about_mission' => 'about',
+        'about_vision' => 'about',
+        'hero_title' => 'collections',
+        'hero_description' => 'collections',
+        'hero_background_image' => 'collections',
+        'syrup_title' => 'collections',
+        'syrup_description' => 'collections',
+        'powder_title' => 'collections',
+        'powder_description' => 'collections',
+    ];
+
+    $stmt = $pdo->query("SELECT id, setting_key, setting_value, language, category FROM settings WHERE category IS NULL OR category = '' OR category = 'grid' OR category = 'general'");
+    $invalidRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($invalidRows as $row) {
+        $key = $row['setting_key'];
+        $lang = $row['language'];
+        $val = $row['setting_value'];
+        
+        if (isset($keyCategoryMap[$key])) {
+            $correctCat = $keyCategoryMap[$key];
+            
+            $checkStmt = $pdo->prepare("SELECT id FROM settings WHERE setting_key = ? AND language = ? AND category = ?");
+            $checkStmt->execute([$key, $lang, $correctCat]);
+            $existingRow = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($existingRow) {
+                $updateStmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE id = ?");
+                $updateStmt->execute([$val, $existingRow['id']]);
+                
+                $deleteStmt = $pdo->prepare("DELETE FROM settings WHERE id = ?");
+                $deleteStmt->execute([$row['id']]);
+            } else {
+                $updateStmt = $pdo->prepare("UPDATE settings SET category = ? WHERE id = ?");
+                $updateStmt->execute([$correctCat, $row['id']]);
+            }
+        }
+    }
+} catch (Exception $e) {
+    // Fail silently in case of table structure differences
+}
+
+
 if (!isset($_SESSION['admin_logged_in'])) {
     header('Location: login.php');
     exit;
@@ -226,6 +290,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $activeTab = $_POST['active_tab'];
     }
 
+    // Fetch existing keys/categories/types to preserve them
+    $existingSettings = [];
+    try {
+        $stmt = $pdo->query("SELECT setting_key, category, setting_type FROM settings");
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $existingSettings[$row['setting_key']] = [
+                'category' => $row['category'],
+                'setting_type' => $row['setting_type']
+            ];
+        }
+    } catch (Exception $e) {
+        // fallback
+    }
+
     // Save inputs
     foreach ($_POST as $key => $value) {
         if (in_array($key, ['update_settings', 'language', 'active_tab', 'delete_file_manager', 'upload_file_manager', 'convert_webp_all', 'delete_file_manager_bulk', 'delete_hero_file']) || strpos($key, 'file_manager_replace_') === 0) {
@@ -241,14 +319,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $saveValue = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value;
             
-            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-            $stmt->execute([$settingKey, $saveValue, $lang]);
+            $catVal = (isset($existingSettings[$settingKey]) && !empty($existingSettings[$settingKey]['category'])) ? $existingSettings[$settingKey]['category'] : (($activeTab && $activeTab !== 'grid') ? $activeTab : 'general');
+            $typeVal = (isset($existingSettings[$settingKey]) && !empty($existingSettings[$settingKey]['setting_type'])) ? $existingSettings[$settingKey]['setting_type'] : 'text';
+            
+            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language, category, setting_type) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = VALUES(category), setting_type = VALUES(setting_type)");
+            $stmt->execute([$settingKey, $saveValue, $lang, $catVal, $typeVal]);
         } else {
             // Global value - save for both languages
             $saveValue = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value;
+            
+            $catVal = (isset($existingSettings[$key]) && !empty($existingSettings[$key]['category'])) ? $existingSettings[$key]['category'] : (($activeTab && $activeTab !== 'grid') ? $activeTab : 'general');
+            $typeVal = (isset($existingSettings[$key]) && !empty($existingSettings[$key]['setting_type'])) ? $existingSettings[$key]['setting_type'] : 'text';
+            
             foreach (['en', 'km'] as $lang) {
-                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-                $stmt->execute([$key, $saveValue, $lang]);
+                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language, category, setting_type) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = VALUES(category), setting_type = VALUES(setting_type)");
+                $stmt->execute([$key, $saveValue, $lang, $catVal, $typeVal]);
             }
         }
     }
