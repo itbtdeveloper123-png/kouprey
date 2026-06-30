@@ -4,7 +4,6 @@ ini_set('display_errors', 1);
 
 echo "<h2>Kouprey Settings Syntax Check</h2>";
 
-// Check if PHP can compile settings.php by loading it
 $filename = 'settings.php';
 if (!file_exists($filename)) {
     die("File $filename not found.");
@@ -12,91 +11,108 @@ if (!file_exists($filename)) {
 
 $code = file_get_contents($filename);
 
-// 1. Run PHP -l command (if shell_exec is available)
+// 1. Run PHP -l command
 if (function_exists('shell_exec')) {
     $output = shell_exec("php -l " . escapeshellarg($filename) . " 2>&1");
     echo "<h3>Command line check (php -l):</h3>";
     echo "<pre>" . htmlspecialchars($output) . "</pre>";
 }
 
-// 2. Token-based syntax checker
-echo "<h3>PHP Token validation:</h3>";
-try {
-    $tokens = token_get_all($code);
-    echo "Token parsing: OK (All tokens parsed without triggering parser crash).<br>";
-} catch (Throwable $e) {
-    echo "<b style='color:red;'>Token parser error:</b> " . htmlspecialchars($e->getMessage()) . " on line " . $e->getLine() . "<br>";
-}
+// 2. Brackets, parentheses and braces matching line by line
+echo "<h3>Line by line Braces/Parentheses matching:</h3>";
 
-// 3. Braces check
-echo "<h3>Brackets & Braces check:</h3>";
-$braces = 0;
-$parentheses = 0;
-$squares = 0;
-$len = strlen($code);
+$lines = explode("\n", $code);
+$bracesStack = [];
+$parenthesesStack = [];
 $inString = false;
 $stringChar = '';
 $inComment = false;
 $commentType = '';
 
-for ($i = 0; $i < $len; $i++) {
-    $char = $code[$i];
-    $nextChar = ($i + 1 < $len) ? $code[$i+1] : '';
+for ($lineIdx = 0; $lineIdx < count($lines); $lineIdx++) {
+    $lineNum = $lineIdx + 1;
+    $line = $lines[$lineIdx];
+    $len = strlen($line);
     
-    // Handle comments
-    if ($inComment) {
-        if ($commentType === 'single' && ($char === "\n" || $char === "\r")) {
-            $inComment = false;
-        } elseif ($commentType === 'multi' && $char === '*' && $nextChar === '/') {
-            $inComment = false;
+    // Single line comments reset at end of line
+    if ($inComment && $commentType === 'single') {
+        $inComment = false;
+    }
+    
+    for ($i = 0; $i < $len; $i++) {
+        $char = $line[$i];
+        $nextChar = ($i + 1 < $len) ? $line[$i+1] : '';
+        
+        if ($inComment) {
+            if ($commentType === 'multi' && $char === '*' && $nextChar === '/') {
+                $inComment = false;
+                $i++;
+            }
+            continue;
+        }
+        
+        if ($inString) {
+            if ($char === $stringChar && ($i === 0 || $line[$i-1] !== '\\')) {
+                $inString = false;
+            }
+            continue;
+        }
+        
+        // Check start of comment/string
+        if ($char === '/' && $nextChar === '/') {
+            $inComment = true;
+            $commentType = 'single';
             $i++;
+            continue;
         }
-        continue;
-    }
-    
-    // Handle strings
-    if ($inString) {
-        if ($char === $stringChar && $code[$i-1] !== '\\') {
-            $inString = false;
+        if ($char === '/' && $nextChar === '*') {
+            $inComment = true;
+            $commentType = 'multi';
+            $i++;
+            continue;
         }
-        continue;
+        if ($char === '#' && $nextChar !== '[') {
+            $inComment = true;
+            $commentType = 'single';
+            continue;
+        }
+        if ($char === '"' || $char === "'") {
+            $inString = true;
+            $stringChar = $char;
+            continue;
+        }
+        
+        // Brackets matching
+        if ($char === '{') {
+            $bracesStack[] = ['char' => '{', 'line' => $lineNum, 'pos' => $i];
+        } elseif ($char === '}') {
+            if (empty($bracesStack)) {
+                echo "<b style='color:red;'>Extra } found on line $lineNum</b><br>";
+            } else {
+                array_pop($bracesStack);
+            }
+        }
+        
+        if ($char === '(') {
+            $parenthesesStack[] = ['char' => '(', 'line' => $lineNum, 'pos' => $i];
+        } elseif ($char === ')') {
+            if (empty($parenthesesStack)) {
+                echo "<b style='color:red;'>Extra ) found on line $lineNum</b><br>";
+            } else {
+                array_pop($parenthesesStack);
+            }
+        }
     }
-    
-    // Check start of comment/string
-    if ($char === '/' && $nextChar === '/') {
-        $inComment = true;
-        $commentType = 'single';
-        $i++;
-        continue;
-    }
-    if ($char === '/' && $nextChar === '*') {
-        $inComment = true;
-        $commentType = 'multi';
-        $i++;
-        continue;
-    }
-    if ($char === '#' && $nextChar !== '[') { // PHP single line comment (excluding php8 attribute)
-        $inComment = true;
-        $commentType = 'single';
-        continue;
-    }
-    if ($char === '"' || $char === "'") {
-        $inString = true;
-        $stringChar = $char;
-        continue;
-    }
-    
-    // Bracket counting
-    if ($char === '{') $braces++;
-    if ($char === '}') $braces--;
-    if ($char === '(') $parentheses++;
-    if ($char === ')') $parentheses--;
-    if ($char === '[') $squares++;
-    if ($char === ']') $squares--;
 }
 
-echo "Braces balance: " . ($braces === 0 ? "OK" : "<b style='color:red;'>Unbalanced ($braces)</b>") . "<br>";
-echo "Parentheses balance: " . ($parentheses === 0 ? "OK" : "<b style='color:red;'>Unbalanced ($parentheses)</b>") . "<br>";
-echo "Square brackets balance: " . ($squares === 0 ? "OK" : "<b style='color:red;'>Unbalanced ($squares)</b>") . "<br>";
-
-// Safe lint end
+echo "<h4>Unclosed open brackets:</h4>";
+if (empty($bracesStack) && empty($parenthesesStack)) {
+    echo "<p style='color:green;'>No unclosed brackets/parentheses!</p>";
+} else {
+    foreach ($bracesStack as $b) {
+        echo "<b style='color:red;'>Unclosed { opened on line {$b['line']} (pos {$b['pos']})</b><br>";
+    }
+    foreach ($parenthesesStack as $p) {
+        echo "<b style='color:red;'>Unclosed ( opened on line {$p['line']} (pos {$p['pos']})</b><br>";
+    }
+}
