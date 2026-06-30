@@ -99,31 +99,4 @@ echo "Braces balance: " . ($braces === 0 ? "OK" : "<b style='color:red;'>Unbalan
 echo "Parentheses balance: " . ($parentheses === 0 ? "OK" : "<b style='color:red;'>Unbalanced ($parentheses)</b>") . "<br>";
 echo "Square brackets balance: " . ($squares === 0 ? "OK" : "<b style='color:red;'>Unbalanced ($squares)</b>") . "<br>";
 
-// 4. Try compile via eval (safe isolated compilation check)
-echo "<h3>Eval dry-run compile check:</h3>";
-// We replace database connection / actual logic blocks that execute queries so we don't execute actions
-$evalCode = preg_replace('/^\s*require_once.*$/m', '// required files skipped', $code);
-$evalCode = preg_replace('/^\s*include.*$/m', '// included files skipped', $code);
-// remove leading <?php and trailing ?>
-$evalCode = preg_replace('/^<\?php/', '', $evalCode);
-$evalCode = preg_replace('/\?>\s*$/', '', $evalCode);
-
-// Wrap in a function to isolate execution and prevent immediate fatal of this checker if parse error
-// We want to see if eval returns false or throws
-$wrappedEval = "return function() { 
-    ?> " . $evalCode . " <?php 
-};";
-
-try {
-    $result = eval($wrappedEval);
-    if ($result) {
-        echo "<b style='color:green;'>Compilation check PASSED (evaluated successfully without parse error).</b><br>";
-    } else {
-        echo "<b style='color:red;'>Compilation check FAILED.</b><br>";
-    }
-} catch (ParseError $e) {
-    echo "<b style='color:red;'>Syntax Compile Error:</b> " . htmlspecialchars($e->getMessage()) . " on line " . $e->getLine() . "<br>";
-} catch (Throwable $e) {
-    // Other runtime errors during eval wrap are ignored since we only care about parse errors
-    echo "Runtime check: " . htmlspecialchars($e->getMessage()) . " on line " . $e->getLine() . "<br>";
-}
+// Safe lint end
