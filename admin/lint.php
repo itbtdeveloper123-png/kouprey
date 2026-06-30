@@ -111,17 +111,6 @@ $evalCode = preg_replace('/\?>\s*$/', '', $evalCode);
 // Wrap in a function to isolate execution and prevent immediate fatal of this checker if parse error
 // We want to see if eval returns false or throws
 $wrappedEval = "return function() { 
-    // Mock classes/variables to prevent undefined fatal during mock run
-    class PDO { function prepare() {} }
-    \$pdo = new PDO();
-    \$currentLanguage = 'en';
-    \$activeTab = 'grid';
-    \$groupedSettings = [];
-    \$allCategories = [];
-    \$allProducts = [];
-    \$category = 'general';
-    \$categoryInfo = ['icon' => '', 'title' => '', 'description' => ''];
-    \$setting = ['setting_key' => '', 'setting_type' => '', 'values' => ['en'=>'', 'km'=>'']];
     ?> " . $evalCode . " <?php 
 };";
 
