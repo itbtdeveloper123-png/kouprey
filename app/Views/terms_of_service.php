@@ -291,7 +291,7 @@ $termsContent = getSetting('terms_of_service', '');
                 <?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'លក្ខខណ្ឌប្រើប្រាស់')); ?>
             </h1>
             <p class="text-gray-500 text-lg max-w-2xl mx-auto">
-                <?php echo getCurrentLanguage() === 'km' ? 'សូមអានលក្ខខណ្ឌប្រើប្រាស់ទាំងនេះដោយប្រុងប្រយ័ត្នមុនពេលប្រើប្រាស់សេវាកម្មរបស់យើង។' : 'Please read these Terms of Service carefully before using our services.'; ?>
+                <?php echo htmlspecialchars(getSetting('terms_of_service_desc', 'Please read these Terms of Service carefully before using our services.')); ?>
             </p>
             <div class="w-20 h-1 bg-gradient-to-r from-green-400 to-teal-500 mx-auto mt-4 rounded-full"></div>
         </div>

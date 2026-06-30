@@ -289,7 +289,7 @@ $privacyContent = getSetting('privacy_policy', '');
                 <?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'គោលការណ៍ឯកជនភាព')); ?>
             </h1>
             <p class="text-gray-500 text-lg max-w-2xl mx-auto">
-                <?php echo getCurrentLanguage() === 'km' ? 'យើងគោរពសិទ្ធិឯកជនភាពរបស់អ្នក និងប្តេជ្ញាការពារព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក។' : 'We respect your privacy and are committed to protecting your personal information.'; ?>
+                <?php echo htmlspecialchars(getSetting('privacy_policy_desc', 'We respect your privacy and are committed to protecting your personal information.')); ?>
             </p>
             <div class="w-20 h-1 bg-gradient-to-r from-blue-400 to-purple-500 mx-auto mt-4 rounded-full"></div>
         </div>
