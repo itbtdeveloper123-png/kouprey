@@ -11,16 +11,24 @@ if (!file_exists($filename)) {
 
 $code = file_get_contents($filename);
 
-// 1. Run PHP -l command
+// 1. Run PHP -l command with display_errors forced to on
 if (function_exists('shell_exec')) {
-    $output = shell_exec("php -l " . escapeshellarg($filename) . " 2>&1");
+    $output = shell_exec("php -d display_errors=on -l " . escapeshellarg($filename) . " 2>&1");
     echo "<h3>Command line check (php -l):</h3>";
-    echo "<pre>" . htmlspecialchars($output) . "</pre>";
+    echo "<pre style='background:#f8f9fa;border:1px solid #ddd;padding:15px;color:#dc3545;font-weight:bold;'>" . htmlspecialchars($output) . "</pre>";
 }
 
-// 2. Brackets, parentheses and braces matching line by line
-echo "<h3>Line by line Braces/Parentheses matching:</h3>";
+// 2. Token-based syntax checker
+echo "<h3>PHP Token validation:</h3>";
+try {
+    $tokens = token_get_all($code);
+    echo "Token parsing: OK (All tokens parsed without triggering parser crash).<br>";
+} catch (Throwable $e) {
+    echo "<b style='color:red;'>Token parser error:</b> " . htmlspecialchars($e->getMessage()) . " on line " . $e->getLine() . "<br>";
+}
 
+// 3. Line-by-line parenthesis/braces matching for diagnostic output
+echo "<h3>Parenthesis/Braces Diagnostics:</h3>";
 $lines = explode("\n", $code);
 $bracesStack = [];
 $parenthesesStack = [];
@@ -34,7 +42,6 @@ for ($lineIdx = 0; $lineIdx < count($lines); $lineIdx++) {
     $line = $lines[$lineIdx];
     $len = strlen($line);
     
-    // Single line comments reset at end of line
     if ($inComment && $commentType === 'single') {
         $inComment = false;
     }
@@ -58,7 +65,6 @@ for ($lineIdx = 0; $lineIdx < count($lines); $lineIdx++) {
             continue;
         }
         
-        // Check start of comment/string
         if ($char === '/' && $nextChar === '/') {
             $inComment = true;
             $commentType = 'single';
@@ -82,37 +88,24 @@ for ($lineIdx = 0; $lineIdx < count($lines); $lineIdx++) {
             continue;
         }
         
-        // Brackets matching
         if ($char === '{') {
-            $bracesStack[] = ['char' => '{', 'line' => $lineNum, 'pos' => $i];
+            $bracesStack[] = ['line' => $lineNum, 'pos' => $i];
         } elseif ($char === '}') {
             if (empty($bracesStack)) {
-                echo "<b style='color:red;'>Extra } found on line $lineNum</b><br>";
+                echo "Extra } on line $lineNum<br>";
             } else {
                 array_pop($bracesStack);
             }
         }
         
         if ($char === '(') {
-            $parenthesesStack[] = ['char' => '(', 'line' => $lineNum, 'pos' => $i];
+            $parenthesesStack[] = ['line' => $lineNum, 'pos' => $i];
         } elseif ($char === ')') {
             if (empty($parenthesesStack)) {
-                echo "<b style='color:red;'>Extra ) found on line $lineNum</b><br>";
+                echo "Extra ) on line $lineNum<br>";
             } else {
                 array_pop($parenthesesStack);
             }
         }
-    }
-}
-
-echo "<h4>Unclosed open brackets:</h4>";
-if (empty($bracesStack) && empty($parenthesesStack)) {
-    echo "<p style='color:green;'>No unclosed brackets/parentheses!</p>";
-} else {
-    foreach ($bracesStack as $b) {
-        echo "<b style='color:red;'>Unclosed { opened on line {$b['line']} (pos {$b['pos']})</b><br>";
-    }
-    foreach ($parenthesesStack as $p) {
-        echo "<b style='color:red;'>Unclosed ( opened on line {$p['line']} (pos {$p['pos']})</b><br>";
     }
 }
