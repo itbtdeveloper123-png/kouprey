@@ -14,7 +14,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
 // Get current language from GET or default to 'en'
 $currentLanguage = isset($_GET['lang']) ? $_GET['lang'] : 'en';
 $supportedLanguages = ['en' => 'English', 'km' => 'Khmer'];
-$activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
+$activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'grid';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -354,18 +354,42 @@ foreach ($settings as $setting) {
 ob_start();
 ?>
     <style>
-    /* Critical: Force settings tabs horizontal */
-    ul#settingsTabs{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;list-style:none!important;padding:0!important;margin:0!important;overflow-x:auto!important;gap:4px}
-    ul#settingsTabs>li{list-style:none!important;flex-shrink:0}
-    ul#settingsTabs>li>button.nav-link,
-    ul#settingsTabs>li>button.settings-tab-btn{display:inline-block!important;white-space:nowrap!important;padding:8px 18px!important;border-radius:50px!important;font-weight:600!important;font-size:14px!important;background:#fff;color:#64748b;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s}
-    ul#settingsTabs>li>button.nav-link:hover,
-    ul#settingsTabs>li>button.settings-tab-btn:hover{background:#f1f5f9;color:#4f46e5}
-    ul#settingsTabs>li>button.nav-link.active,
-    ul#settingsTabs>li>button.settings-tab-btn.active{background:#4f46e5!important;color:#fff!important;border-color:#4f46e5!important}
+    /* Workflow Grid Layout & Card Styles */
+    .card-workflow-item {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 20px !important;
+        background: #ffffff;
+        border: 1.5px solid #f1f5f9 !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02) !important;
+    }
+    .card-workflow-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.08), 0 10px 10px -5px rgba(79, 70, 229, 0.03) !important;
+        border-color: rgba(79, 70, 229, 0.3) !important;
+    }
+    .card-workflow-item:hover .stat-icon-box {
+        background: var(--primary) !important;
+        color: #fff !important;
+        transform: scale(1.08) rotate(5deg);
+    }
+    .card-workflow-item .stat-icon-box {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
     /* Hide inactive tab panes */
-    #settingsTabContent>.tab-pane{display:none!important}
-    #settingsTabContent>.tab-pane.show.active{display:block!important}
+    #settingsTabContent>.tab-pane {
+        display: none !important;
+    }
+    #settingsTabContent>.tab-pane.show.active {
+        display: block !important;
+    }
     </style>
     <div class="container-fluid py-4">
         <?php if (isset($message)): ?>
@@ -375,13 +399,18 @@ ob_start();
             </div>
         <?php endif; ?>
 
-        <!-- Language Selector -->
+        <!-- Dynamic Header -->
         <div class="row mb-5 align-items-center">
-            <div class="col-md-6">
-                <h1 class="h2 fw-800 text-dark mb-1">System Settings</h1>
-                <p class="text-secondary">Configure your website behavior, content, and integrations.</p>
+            <div class="col-md-8 d-flex align-items-center">
+                <button type="button" id="backToGridBtn" class="btn btn-light rounded-pill px-4 py-2 me-3 shadow-sm border d-none" onclick="showSettingsGrid()">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Settings
+                </button>
+                <div>
+                    <h1 class="h2 fw-800 text-dark mb-1" id="settingsPageTitle">System Settings</h1>
+                    <p class="text-secondary mb-0" id="settingsPageDesc">Configure your website behavior, content, and integrations.</p>
+                </div>
             </div>
-            <div class="col-md-6 text-md-end">
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <div class="d-inline-flex align-items-center bg-white p-2 rounded-pill shadow-sm border">
                     <label for="languageSelect" class="ms-3 me-2 small fw-bold text-muted">LANGUAGE</label>
                     <select id="languageSelect" class="form-select border-0 bg-transparent fw-bold" style="width: auto;" onchange="changeLanguage(this.value)">
@@ -398,7 +427,6 @@ ob_start();
             'general' => ['icon' => 'bi-globe', 'title' => 'General Settings', 'description' => 'Basic website information and branding'],
             'contact' => ['icon' => 'bi-telephone', 'title' => 'Contact Information', 'description' => 'Company contact details'],
             'hero' => ['icon' => 'bi-image', 'title' => 'Hero Section', 'description' => 'Main banner and call-to-action content'],
-
             'about' => ['icon' => 'bi-info-circle', 'title' => 'About Page', 'description' => 'About page content and sections'],
             'newsletter' => ['icon' => 'bi-envelope', 'title' => 'Newsletter', 'description' => 'Newsletter subscription settings'],
             'footer' => ['icon' => 'bi-file-text', 'title' => 'Footer', 'description' => 'Footer content and copyright'],
@@ -409,7 +437,6 @@ ob_start();
             'reviews' => ['icon' => 'bi-star', 'title' => 'Reviews Section', 'description' => 'Customer reviews page content'],
             'policies' => ['icon' => 'bi-file-earmark-text', 'title' => 'Policies & Legal', 'description' => 'Privacy Policy, Terms of Service, and Contact Us content'],
             'pagination' => ['icon' => 'bi-list', 'title' => 'Pagination', 'description' => 'Content display settings'],
-            'pagination' => ['icon' => 'bi-list', 'title' => 'Pagination', 'description' => 'Content display settings'],
             'navigation' => ['icon' => 'bi-compass', 'title' => 'Navigation', 'description' => 'Navigation menu labels'],
             'file_manager' => ['icon' => 'bi-folder', 'title' => 'File Manager', 'description' => 'Manage uploaded product images']
         ];
@@ -418,17 +445,30 @@ ob_start();
         <form id="settingsForm" method="POST" enctype="multipart/form-data" action="?lang=<?php echo $currentLanguage; ?>">
             <input type="hidden" name="active_tab" id="activeTabInput" value="<?php echo htmlspecialchars($activeTab); ?>">
             
-            <!-- Nav tabs -->
-            <div class="mb-4">
-                <ul class="nav nav-pills premium-pills bg-white p-2 rounded-4 shadow-sm border overflow-auto flex-nowrap" id="settingsTabs" role="tablist">
+            <!-- Cards Workflow Grid -->
+            <div id="settingsGrid" class="mb-5 <?php echo ($activeTab !== 'grid') ? 'd-none' : ''; ?>">
+                <div class="row g-4">
                     <?php foreach ($categories as $category => $categoryInfo): ?>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill px-4 py-2 me-2 settings-tab-btn <?php echo ($category === $activeTab) ? 'active' : ''; ?>" id="<?php echo $category; ?>-tab" data-tab-target="<?php echo $category; ?>" type="button" role="tab" onclick="switchSettingsTab(this, '<?php echo $category; ?>')">
-                                <i class="bi <?php echo $categoryInfo['icon']; ?> me-2"></i><?php echo $categoryInfo['title']; ?>
-                            </button>
-                        </li>
+                    <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social'])) continue; ?>
+                        <div class="col-xl-3 col-lg-4 col-md-6 animate-fade-in">
+                            <div class="card h-100 border-0 card-workflow-item" onclick="switchSettingsTab(this, '<?php echo $category; ?>')">
+                                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="stat-icon-box bg-primary-soft text-primary mb-3">
+                                            <i class="bi <?php echo $categoryInfo['icon']; ?>"></i>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-2"><?php echo $categoryInfo['title']; ?></h5>
+                                        <p class="text-secondary small mb-0" style="line-height: 1.4;"><?php echo $categoryInfo['description']; ?></p>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-top d-flex align-items-center justify-content-between text-primary fw-bold small">
+                                        <span>Configure Section</span>
+                                        <i class="bi bi-arrow-right-short fs-5 transition-all"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     <?php endforeach; ?>
-                </ul>
+                </div>
             </div>
 
             <!-- Tab content -->
@@ -1401,18 +1441,72 @@ ob_start();
             }
         }
 
-        // Tab switching function — works without data-bs-toggle
+        // Category details for dynamic header update
+        const categoryDetails = {
+            'general': { title: 'General Settings', desc: 'Basic website information and branding' },
+            'contact': { title: 'Contact Information', desc: 'Company contact details' },
+            'hero': { title: 'Hero Section', desc: 'Main banner and call-to-action content' },
+            'about': { title: 'About Page', desc: 'About page content and sections' },
+            'newsletter': { title: 'Newsletter Settings', desc: 'Newsletter subscription settings' },
+            'footer': { title: 'Footer Settings', desc: 'Footer content and copyright' },
+            'social': { title: 'Social Media', desc: 'Social media links and profiles' },
+            'features': { title: 'Features & Content', desc: 'Website features and page content' },
+            'product': { title: 'Product Information', desc: 'Product details and specifications' },
+            'collections': { title: 'Product Collections', desc: 'Manage Syrup & Powder collection texts' },
+            'reviews': { title: 'Reviews Section', desc: 'Customer reviews page content' },
+            'policies': { title: 'Policies & Legal', desc: 'Privacy Policy, Terms of Service, and Contact Us content' },
+            'pagination': { title: 'Pagination Settings', desc: 'Content display settings' },
+            'navigation': { title: 'Navigation Menu', desc: 'Navigation menu labels' },
+            'file_manager': { title: 'File Manager', desc: 'Manage uploaded product images' }
+        };
+
+        // Go back to the grid workflow overview
+        function showSettingsGrid() {
+            var input = document.getElementById('activeTabInput');
+            if (input) input.value = 'grid';
+
+            // Show grid, hide content, hide back button, hide save button
+            document.getElementById('settingsGrid').classList.remove('d-none');
+            document.getElementById('settingsTabContent').classList.add('d-none');
+            document.getElementById('backToGridBtn').classList.add('d-none');
+            
+            const saveBtn = document.querySelector('.floating-save-btn');
+            if (saveBtn) saveBtn.classList.add('d-none');
+
+            // Reset headers
+            document.getElementById('settingsPageTitle').textContent = 'System Settings';
+            document.getElementById('settingsPageDesc').textContent = 'Configure your website behavior, content, and integrations.';
+
+            // Remove active classes
+            document.querySelectorAll('#settingsTabContent .tab-pane').forEach(function(p) {
+                p.classList.remove('show', 'active');
+            });
+            
+            // Push history state to keep clean url state without tabs if possible
+            const url = new URL(window.location);
+            url.searchParams.set('tab', 'grid');
+            window.history.pushState({}, '', url);
+        }
+
+        // Switch to detail category view
         function switchSettingsTab(btn, tabId) {
             // Update hidden activeTab input for form submission
             var input = document.getElementById('activeTabInput');
             if (input) input.value = tabId;
 
-            // Deactivate all tab buttons
-            document.querySelectorAll('#settingsTabs .settings-tab-btn').forEach(function(b) {
-                b.classList.remove('active');
-            });
-            // Activate clicked button
-            btn.classList.add('active');
+            // Hide grid, show content, show back button, show save button
+            document.getElementById('settingsGrid').classList.add('d-none');
+            document.getElementById('settingsTabContent').classList.remove('d-none');
+            document.getElementById('backToGridBtn').classList.remove('d-none');
+            
+            const saveBtn = document.querySelector('.floating-save-btn');
+            if (saveBtn) saveBtn.classList.remove('d-none');
+
+            // Update dynamic header
+            if (categoryDetails[tabId]) {
+                document.getElementById('settingsPageTitle').textContent = categoryDetails[tabId].title;
+                document.getElementById('settingsPageDesc').textContent = categoryDetails[tabId].desc;
+            }
 
             // Hide all tab panes
             document.querySelectorAll('#settingsTabContent .tab-pane').forEach(function(p) {
@@ -1423,7 +1517,22 @@ ob_start();
             if (targetPane) {
                 targetPane.classList.add('show', 'active');
             }
+
+            // Push history state
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabId);
+            window.history.pushState({}, '', url);
         }
+
+        // Auto-run on load to initialize correct state
+        document.addEventListener('DOMContentLoaded', function() {
+            var activeTab = document.getElementById('activeTabInput').value;
+            if (!activeTab || activeTab === 'grid') {
+                showSettingsGrid();
+            } else {
+                switchSettingsTab(null, activeTab);
+            }
+        });
     </script>
 
     <style>
