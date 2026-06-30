@@ -1177,7 +1177,10 @@ ob_start();
                                             };
                                             bannerEditor.addEventListener('input', updateBannerPreview);
                                             bannerEditor.addEventListener('blur', updateBannerPreview);
-                                 <?php elseif ($category === 'policies'): ?>
+                                        }
+                                    })();
+                                    </script>
+                                <?php elseif ($category === 'policies'): ?>
                                     <!-- Policies & Legal with Custom Rich Text Editor and Preview -->
                                     <div class="row">
                                         <div class="col-lg-7">
@@ -1459,8 +1462,9 @@ ob_start();
                                                 syncTextarea(editor.id);
                                             });
                                         });
+                                    });
+                                    </script>
 
-                                        // In                                <?php else: ?>
                                     <!-- Default handling for other categories -->
                                     <div class="row">
                                         <?php foreach ($groupedSettings[$category] as $settingKey => $setting): ?>
