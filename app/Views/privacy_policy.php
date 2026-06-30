@@ -74,7 +74,7 @@ $privacyContent = getSetting('privacy_policy', '');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title><?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'គោលការណ៍ឯកជនភាព')); ?> - <?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?></title>
+    <title><?php echo htmlspecialchars(getSetting('privacy_policy_title', 'Privacy Policy')); ?> - <?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?></title>
     <?php 
     $logoUrl = getSetting('company_logo'); 
     if (empty($logoUrl)) {
@@ -286,7 +286,7 @@ $privacyContent = getSetting('privacy_policy', '');
                 <i class="fas fa-shield-halved text-blue-600 text-3xl"></i>
             </div>
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
-                <?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'គោលការណ៍ឯកជនភាព')); ?>
+                <?php echo htmlspecialchars(getSetting('privacy_policy_title', 'Privacy Policy')); ?>
             </h1>
             <p class="text-gray-500 text-lg max-w-2xl mx-auto">
                 <?php echo htmlspecialchars(getSetting('privacy_policy_desc', 'We respect your privacy and are committed to protecting your personal information.')); ?>

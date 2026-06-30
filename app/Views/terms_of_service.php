@@ -74,7 +74,7 @@ $termsContent = getSetting('terms_of_service', '');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title><?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'លក្ខខណ្ឌប្រើប្រាស់')); ?> - <?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?></title>
+    <title><?php echo htmlspecialchars(getSetting('terms_of_service_title', 'Terms of Service')); ?> - <?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?></title>
     <?php 
     $logoUrl = getSetting('company_logo'); 
     if (empty($logoUrl)) {
@@ -288,7 +288,7 @@ $termsContent = getSetting('terms_of_service', '');
                 <i class="fas fa-file-contract text-green-600 text-3xl"></i>
             </div>
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
-                <?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'លក្ខខណ្ឌប្រើប្រាស់')); ?>
+                <?php echo htmlspecialchars(getSetting('terms_of_service_title', 'Terms of Service')); ?>
             </h1>
             <p class="text-gray-500 text-lg max-w-2xl mx-auto">
                 <?php echo htmlspecialchars(getSetting('terms_of_service_desc', 'Please read these Terms of Service carefully before using our services.')); ?>

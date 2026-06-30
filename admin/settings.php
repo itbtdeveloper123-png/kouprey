@@ -12,7 +12,9 @@ try {
         'contact_us' => 'policies',
         'privacy_policy' => 'policies',
         'terms_of_service' => 'policies',
+        'privacy_policy_title' => 'policies',
         'privacy_policy_desc' => 'policies',
+        'terms_of_service_title' => 'policies',
         'terms_of_service_desc' => 'policies',
         'social_banner_text' => 'social',
         'social_facebook' => 'social',
@@ -1357,32 +1359,65 @@ ob_start();
                                             </div>
                                             <?php endforeach; ?>
 
-                                            <!-- Policies Page Header Descriptions -->
+                                            <!-- Policies Page Header Titles & Descriptions -->
                                             <div class="card border mb-4">
                                                 <div class="card-header bg-light">
-                                                    <span class="badge bg-secondary me-2"><i class="bi bi-chat-left-text"></i> Page Header Descriptions</span>
-                                                    <small class="text-muted">Edit short descriptions shown in the header of legal pages</small>
+                                                    <span class="badge bg-secondary me-2"><i class="bi bi-card-heading"></i> Page Titles & Header Descriptions</span>
+                                                    <small class="text-muted">Edit titles and short descriptions shown in the header of legal pages</small>
                                                 </div>
                                                 <div class="card-body">
                                                     <?php
                                                     $descFields = [
-                                                        ['key' => 'privacy_policy_desc', 'label' => 'Privacy Policy Description', 'default' => 'We respect your privacy and are committed to protecting your personal information.'],
-                                                        ['key' => 'terms_of_service_desc', 'label' => 'Terms of Service Description', 'default' => 'Please read these Terms of Service carefully before using our services.'],
+                                                        [
+                                                            'title_key' => 'privacy_policy_title', 
+                                                            'title_label' => 'Privacy Policy Title', 
+                                                            'title_default' => 'Privacy Policy', 
+                                                            'title_default_km' => 'គោលការណ៍ឯកជនភាព',
+                                                            'desc_key' => 'privacy_policy_desc', 
+                                                            'desc_label' => 'Privacy Policy Description', 
+                                                            'desc_default' => 'We respect your privacy and are committed to protecting your personal information.'
+                                                        ],
+                                                        [
+                                                            'title_key' => 'terms_of_service_title', 
+                                                            'title_label' => 'Terms of Service Title', 
+                                                            'title_default' => 'Terms of Service', 
+                                                            'title_default_km' => 'លក្ខខណ្ឌប្រើប្រាស់',
+                                                            'desc_key' => 'terms_of_service_desc', 
+                                                            'desc_label' => 'Terms of Service Description', 
+                                                            'desc_default' => 'Please read these Terms of Service carefully before using our services.'
+                                                        ],
                                                     ];
                                                     foreach ($descFields as $df):
-                                                        $valEn = getSettingVal('policies', $df['key'], 'en', $df['default']);
-                                                        $valKm = getSettingVal('policies', $df['key'], 'km', $df['default']);
+                                                        $titleEn = getSettingVal('policies', $df['title_key'], 'en', $df['title_default']);
+                                                        $titleKm = getSettingVal('policies', $df['title_key'], 'km', $df['title_default_km']);
+                                                        $valEn = getSettingVal('policies', $df['desc_key'], 'en', $df['desc_default']);
+                                                        $valKm = getSettingVal('policies', $df['desc_key'], 'km', $df['desc_default']);
                                                     ?>
                                                     <div class="mb-4 pb-3 border-bottom last-no-border">
-                                                        <label class="form-label fw-bold text-dark mb-2"><?php echo $df['label']; ?></label>
-                                                        <div class="row g-2">
-                                                            <div class="col-md-6">
-                                                                <span class="badge bg-secondary mb-1">English</span>
-                                                                <textarea name="<?php echo $df['key']; ?>_en" class="form-control" rows="2"><?php echo htmlspecialchars($valEn); ?></textarea>
+                                                        <div class="row g-3">
+                                                            <!-- English Column -->
+                                                            <div class="col-md-6 border-end">
+                                                                <span class="badge bg-secondary mb-2">English</span>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small fw-bold text-dark mb-1"><?php echo $df['title_label']; ?></label>
+                                                                    <input type="text" name="<?php echo $df['title_key']; ?>_en" class="form-control" value="<?php echo htmlspecialchars($titleEn); ?>">
+                                                                </div>
+                                                                <div>
+                                                                    <label class="form-label small fw-bold text-dark mb-1"><?php echo $df['desc_label']; ?></label>
+                                                                    <textarea name="<?php echo $df['desc_key']; ?>_en" class="form-control" rows="2"><?php echo htmlspecialchars($valEn); ?></textarea>
+                                                                </div>
                                                             </div>
+                                                            <!-- Khmer Column -->
                                                             <div class="col-md-6">
-                                                                <span class="badge bg-primary mb-1">Khmer</span>
-                                                                <textarea name="<?php echo $df['key']; ?>_km" class="form-control" rows="2"><?php echo htmlspecialchars($valKm); ?></textarea>
+                                                                <span class="badge bg-primary mb-2">Khmer</span>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small fw-bold text-dark mb-1"><?php echo $df['title_label']; ?></label>
+                                                                    <input type="text" name="<?php echo $df['title_key']; ?>_km" class="form-control" value="<?php echo htmlspecialchars($titleKm); ?>">
+                                                                </div>
+                                                                <div>
+                                                                    <label class="form-label small fw-bold text-dark mb-1"><?php echo $df['desc_label']; ?></label>
+                                                                    <textarea name="<?php echo $df['desc_key']; ?>_km" class="form-control" rows="2"><?php echo htmlspecialchars($valKm); ?></textarea>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
