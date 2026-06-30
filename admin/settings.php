@@ -1028,6 +1028,11 @@ ob_start();
                                                         else:
                                                         ?>
                                                             <div class="col-12 text-center py-5 text-muted">
+                                                                <i class="bi bi-folder2-open display-1 text-secondary opacity-25"></i>
+                                                                <p class="mt-3 fs-5">No product images found.</p>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
