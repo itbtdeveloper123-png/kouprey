@@ -18,105 +18,83 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'grid';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Handle file uploads first
-    if (isset($_FILES['hero_background_image']) && $_FILES['hero_background_image']['error'] == 0) {
-        $uploadDir = '../public/uploads/';
-        $fileName = 'hero-bg-' . time() . '.' . pathinfo($_FILES['hero_background_image']['name'], PATHINFO_EXTENSION);
-        $uploadPath = $uploadDir . $fileName;
+    // 1. Handle file uploads for both languages
+    foreach (['en', 'km'] as $lang) {
+        // Hero Background Image
+        $heroField = 'hero_background_image_' . $lang;
+        if (isset($_FILES[$heroField]) && $_FILES[$heroField]['error'] == 0) {
+            $uploadDir = '../public/uploads/';
+            $fileName = 'hero-bg-' . $lang . '-' . time() . '.' . pathinfo($_FILES[$heroField]['name'], PATHINFO_EXTENSION);
+            $uploadPath = $uploadDir . $fileName;
 
-        // Validate file type
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (in_array($_FILES['hero_background_image']['type'], $allowedTypes)) {
-            if (move_uploaded_file($_FILES['hero_background_image']['tmp_name'], $uploadPath)) {
-                // Compress the uploaded image
-                require_once '../app/Config/image_utils.php';
-                $settings = getCompressionSettings('hero');
-                compressImage($uploadPath, $uploadPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
-                
-                $_POST['hero_background_image'] = '/kouprey/public/uploads/' . $fileName;
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (in_array($_FILES[$heroField]['type'], $allowedTypes)) {
+                if (move_uploaded_file($_FILES[$heroField]['tmp_name'], $uploadPath)) {
+                    require_once '../app/Config/image_utils.php';
+                    $settings = getCompressionSettings('hero');
+                    compressImage($uploadPath, $uploadPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                    
+                    $_POST['hero_background_image_' . $lang] = '/kouprey/public/uploads/' . $fileName;
+                }
+            }
+        }
+
+        // Company Logo
+        $logoField = 'company_logo_' . $lang;
+        if (isset($_FILES[$logoField]) && $_FILES[$logoField]['error'] == 0) {
+            $uploadDir = '../public/uploads/';
+            $fileName = 'company-logo-' . $lang . '-' . time() . '.' . pathinfo($_FILES[$logoField]['name'], PATHINFO_EXTENSION);
+            $uploadPath = $uploadDir . $fileName;
+
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (in_array($_FILES[$logoField]['type'], $allowedTypes)) {
+                if (move_uploaded_file($_FILES[$logoField]['tmp_name'], $uploadPath)) {
+                    require_once '../app/Config/image_utils.php';
+                    $settings = getCompressionSettings('logo');
+                    compressImage($uploadPath, $uploadPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                    
+                    $_POST['company_logo_' . $lang] = '/kouprey/public/uploads/' . $fileName;
+                }
             }
         }
     }
 
-    // Handle company logo upload
-    if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] == 0) {
-        $uploadDir = '../public/uploads/';
-        $fileName = 'company-logo-' . time() . '.' . pathinfo($_FILES['company_logo']['name'], PATHINFO_EXTENSION);
-        $uploadPath = $uploadDir . $fileName;
-
-        // Validate file type
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (in_array($_FILES['company_logo']['type'], $allowedTypes)) {
-            if (move_uploaded_file($_FILES['company_logo']['tmp_name'], $uploadPath)) {
-                // Compress the uploaded image
-                require_once '../app/Config/image_utils.php';
-                $settings = getCompressionSettings('logo');
-                compressImage($uploadPath, $uploadPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
-                
-                $_POST['company_logo'] = '/kouprey/public/uploads/' . $fileName;
+    // 2. Handle image/file deletions
+    foreach (['en', 'km'] as $lang) {
+        if (isset($_POST['delete_hero_image_' . $lang])) {
+            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'hero_background_image' AND language = ?");
+            $stmt->execute([$lang]);
+            $currentImage = $stmt->fetchColumn();
+            
+            if ($currentImage) {
+                $filePath = '../public/uploads/' . basename($currentImage);
+                if (file_exists($filePath)) unlink($filePath);
             }
+            $_POST['hero_background_image_' . $lang] = '';
         }
-    }
 
-
-
-
-
-
-
-    // Handle hero image deletion
-    if (isset($_POST['delete_hero_image'])) {
-        // Get current hero background image
-        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'hero_background_image' AND language = ?");
-        $stmt->execute([$currentLanguage]);
-        $currentImage = $stmt->fetchColumn();
-        
-        if ($currentImage) {
-            // Delete the file from server
-            $filePath = '../public/uploads/' . basename($currentImage);
-            if (file_exists($filePath)) {
-                unlink($filePath);
+        if (isset($_POST['delete_company_logo_' . $lang])) {
+            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'company_logo' AND language = ?");
+            $stmt->execute([$lang]);
+            $currentLogo = $stmt->fetchColumn();
+            
+            if ($currentLogo) {
+                $filePath = '../public/uploads/' . basename($currentLogo);
+                if (file_exists($filePath)) unlink($filePath);
             }
+            $_POST['company_logo_' . $lang] = '';
         }
-        
-        $_POST['hero_background_image'] = '';
-    }
-
-    // Handle company logo deletion
-    if (isset($_POST['delete_company_logo'])) {
-        // Get current company logo
-        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'company_logo' AND language = ?");
-        $stmt->execute([$currentLanguage]);
-        $currentLogo = $stmt->fetchColumn();
-        
-        if ($currentLogo) {
-            // Delete the file from server
-            $filePath = '../public/uploads/' . basename($currentLogo);
-            if (file_exists($filePath)) {
-                unlink($filePath);
-            }
-        }
-        
-        $_POST['company_logo'] = '';
     }
 
     // Handle individual hero file deletion
     if (isset($_POST['delete_hero_file'])) {
         $fileToDelete = $_POST['delete_hero_file'];
         $filePath = '../public/uploads/' . $fileToDelete;
-        
         if (file_exists($filePath)) {
             unlink($filePath);
         }
-        
-        // Check if this was the current setting and clear it
-        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'hero_background_image' AND language = ?");
-        $stmt->execute([$currentLanguage]);
-        $currentSetting = $stmt->fetchColumn();
-        
-        if ($currentSetting === '/kouprey/public/uploads/' . $fileToDelete) {
-            $_POST['hero_background_image'] = '';
-        }
+        $stmt = $pdo->prepare("UPDATE settings SET setting_value = '' WHERE setting_key = 'hero_background_image' AND setting_value LIKE ?");
+        $stmt->execute(['%' . $fileToDelete]);
     }
 
     // Handle File Manager: Bulk Delete
@@ -162,7 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         foreach ($fileNames as $i => $name) {
              if ($fileErrors[$i] == 0) {
                   $ext = pathinfo($name, PATHINFO_EXTENSION);
-                  // Use original name to allow direct replacement/overwriting
                   $safeName = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($name));
                   if (empty($safeName) || $safeName === '.' || $safeName === '..') $safeName = uniqid() . '.' . $ext;
                   
@@ -183,10 +160,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['convert_webp_all'])) {
         $targetDir = '../public/assets/images/products/';
         $images = glob($targetDir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}', GLOB_BRACE);
-        
-        // Remove existing WebP from list to avoid re-converting
-        // Actually glob above doesn't include webp, so we are good.
-        
         $convertedCount = 0;
         $dbUpdates = 0;
         
@@ -195,84 +168,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $compressionSettings = getCompressionSettings('product');
             
             foreach ($images as $imagePath) {
-                // Double check it's a file
                 if (!is_file($imagePath)) continue;
                 
                 $pathInfo = pathinfo($imagePath);
                 $newFileName = $pathInfo['filename'] . '.webp';
                 $newFilePath = $targetDir . $newFileName;
                 
-                // Convert to WebP
-                // We pass the new file path ending in .webp, compressImage will detect this and save as WebP
                 if (compressImage($imagePath, $newFilePath, $compressionSettings['quality'], $compressionSettings['maxWidth'], $compressionSettings['maxHeight'])) {
                     $convertedCount++;
+                    $oldBasename = $pathInfo['basename'];
                     
-                    // Update Database References
-                    // We assume the DB stores the relative path or full path.
-                    // We will search for both just in case, or rely on what we see.
-                    // Based on product_detail.php, it likely uses paths like '/kouprey/public/assets/images/products/filename.jpg' or just 'filename.jpg' if prepended elsewhere.
-                    // The safer bet is to replace the exact filename string if it occurs in the image column.
-                    
-                    $oldBasename = $pathInfo['basename']; // e.g. image.jpg
-                    
-                    // Update exact matches and path matches
-                    // We only want to update the 'image' column in 'products' table, and potentially 'features' if images are there?
-                    // Let's stick to 'products' table 'image' column for now.
-                    
-                    // Check if product uses this image
-                    // We use REPLACE() to safe-swap the extension
-                    // Case 1: Full path match
-                    $sql = "UPDATE products SET image = REPLACE(image, ?, ?) WHERE image LIKE ?";
-                    // Match /kouprey/public/assets/images/products/image.jpg
-                    $searchPath = '/kouprey/public/assets/images/products/' . $oldBasename;
-                    $replacePath = '/kouprey/public/assets/images/products/' . $newFileName;
-                    $stmt = $pdo->prepare($sql);
-                    $stmt->execute([$oldBasename, $newFileName, "%$oldBasename"]); // This is risky if filename is 'image.jpg' and we have 'myimage.jpg'. 
-                    
-                    // Better approach:
-                    // Update where image ends with the filename
-                    // But we might have full URL.
-                    // Let's try to update standard paths we know of.
-                    
-                    // Pattern 1: '/kouprey/public/assets/images/products/old.jpg'
                     $p1_old = '/kouprey/public/assets/images/products/' . $oldBasename;
                     $p1_new = '/kouprey/public/assets/images/products/' . $newFileName;
-                    // Pattern 2: 'old.jpg' (if stored as filename)
-                    // We'll just do a precise update for Pattern 1 as that's what we saw in the code.
                     
                     $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
                     $stmt->execute([$p1_new, $p1_old]);
                     $dbUpdates += $stmt->rowCount();
                     
-                    // Also generic replace if we are confident (maybe backup first?)
-                    // Let's stick to safe path updates.
-                    
-                    // Support for 'image' being just filename? 
-                    // Let's check if any product has just the filename
                     $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
                     $stmt->execute([$newFileName, $oldBasename]);
                     $dbUpdates += $stmt->rowCount();
-                    
-                    // Optional: Delete original file
-                    // unlink($imagePath); 
                 }
             }
         }
         $message = "Success! Converted $convertedCount images to WebP. Updated $dbUpdates database records.";
     }
 
+    // Handle File manager replaces
     foreach ($_FILES as $key => $file) {
         if (strpos($key, 'file_manager_replace_') === 0 && $file['error'] == 0) {
-            $originalNameWithUnderscores = substr($key, 21); // Remove prefix
-            // We need to match this back to a real file on disk.
-            // Since dots are replaced by underscores in $_FILES keys, we have to look for the file.
-            // A simple heuristic is to look for the file in the directory.
-            
+            $originalNameWithUnderscores = substr($key, 21);
             $targetDir = '../public/assets/images/products/';
             $foundFile = null;
             
-            // Try to find the matching file. This is tricky because extension dot turned to underscore.
-            // We iterate files to find the match.
             $files = scandir($targetDir);
             foreach ($files as $f) {
                 if ($f === '.' || $f === '..') continue;
@@ -284,7 +212,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if ($foundFile) {
                 $targetFile = $targetDir . $foundFile;
-                // Move and overwrite
                 if (move_uploaded_file($file['tmp_name'], $targetFile)) {
                     require_once '../app/Config/image_utils.php';
                     $settings = getCompressionSettings('product');
@@ -299,57 +226,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $activeTab = $_POST['active_tab'];
     }
 
+    // Save inputs
     foreach ($_POST as $key => $value) {
-        if ($key !== 'update_settings' && $key !== 'language' && $key !== 'delete_hero_image' && $key !== 'delete_hero_file' && $key !== 'delete_company_logo' && $key !== 'active_tab' && $key !== 'delete_file_manager' && $key !== 'upload_file_manager' && $key !== 'convert_webp_all' && $key !== 'delete_file_manager_bulk' && strpos($key, 'file_manager_replace_') !== 0) {
-            // If value is an array (dynamic fields), JSON encode it
+        if (in_array($key, ['update_settings', 'language', 'active_tab', 'delete_file_manager', 'upload_file_manager', 'convert_webp_all', 'delete_file_manager_bulk', 'delete_hero_file']) || strpos($key, 'file_manager_replace_') === 0) {
+            continue;
+        }
+
+        // Check if language specific suffix _en or _km
+        if (preg_match('/^(.*)_(en|km)$/', $key, $matches)) {
+            $settingKey = $matches[1];
+            $lang = $matches[2];
+            
+            if (strpos($settingKey, 'delete_') === 0) continue;
+            
             $saveValue = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value;
             
-            // Update or insert setting for current language
             $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-            $stmt->execute([$key, $saveValue, $currentLanguage]);
+            $stmt->execute([$settingKey, $saveValue, $lang]);
+        } else {
+            // Global value - save for both languages
+            $saveValue = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value;
+            foreach (['en', 'km'] as $lang) {
+                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                $stmt->execute([$key, $saveValue, $lang]);
+            }
         }
     }
     $message = "Settings updated successfully!";
 }
 
-// If not English, ensure all settings from English exist for the current language
-if ($currentLanguage !== 'en') {
-    $stmt = $pdo->prepare("INSERT IGNORE INTO settings (setting_key, setting_value, setting_type, category, language, description)
-                           SELECT setting_key, setting_value, setting_type, category, ?, description FROM settings WHERE language = 'en'");
-    $stmt->execute([$currentLanguage]);
+// Fetch settings for both languages
+$stmt = $pdo->query("SELECT * FROM settings ORDER BY category, setting_key");
+$allSettingsRaw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Map settings by [category][setting_key]
+$groupedSettings = [];
+foreach ($allSettingsRaw as $s) {
+    $cat = $s['category'];
+    $key = $s['setting_key'];
+    $lang = $s['language'];
+    
+    if (!isset($groupedSettings[$cat][$key])) {
+        $groupedSettings[$cat][$key] = [
+            'setting_key' => $key,
+            'setting_type' => $s['setting_type'],
+            'category' => $cat,
+            'description' => $s['description'],
+            'values' => ['en' => '', 'km' => '']
+        ];
+    }
+    $groupedSettings[$cat][$key]['values'][$lang] = $s['setting_value'];
 }
 
-// Fetch settings for current language
-$stmt = $pdo->prepare("SELECT * FROM settings WHERE language = ? ORDER BY category, setting_key");
-$stmt->execute([$currentLanguage]);
-$settings = $stmt->fetchAll();
+// Populate missing language fallbacks
+foreach ($groupedSettings as $cat => &$keys) {
+    foreach ($keys as $key => &$details) {
+        if (empty($details['values']['km']) && !empty($details['values']['en'])) {
+            $details['values']['km'] = $details['values']['en'];
+        }
+        if (empty($details['values']['en']) && !empty($details['values']['km'])) {
+            $details['values']['en'] = $details['values']['km'];
+        }
+    }
+}
 
-// Fetch all categories for collections
-$stmt = $pdo->prepare("SELECT id, name, base_category_id FROM categories WHERE language = ?");
-$stmt->execute([$currentLanguage]);
+// Helper function to get setting values easily
+function getSettingVal($category, $key, $lang, $default = '') {
+    global $groupedSettings;
+    return $groupedSettings[$category][$key]['values'][$lang] ?? $default;
+}
+
+// Fetch all categories for collections (using English categories as reference)
+$stmt = $pdo->prepare("SELECT id, name, base_category_id FROM categories WHERE language = 'en'");
+$stmt->execute();
 $allCategories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Identify Syrup and Powder categories
 $syrupBaseId = null;
 $powderBaseId = null;
-$stmt = $pdo->prepare("SELECT base_category_id, name FROM categories WHERE language = 'en' AND (name LIKE '%Syrup%' OR name LIKE '%Powder%')");
-$stmt->execute();
-$enCats = $stmt->fetchAll();
-foreach ($enCats as $ec) {
+foreach ($allCategories as $ec) {
     if (stripos($ec['name'], 'Syrup') !== false) $syrupBaseId = $ec['base_category_id'];
     if (stripos($ec['name'], 'Powder') !== false) $powderBaseId = $ec['base_category_id'];
 }
 
 // Fetch all products
-$stmt = $pdo->prepare("SELECT id, name, base_product_id, category_id FROM products WHERE language = ?");
-$stmt->execute([$currentLanguage]);
+$stmt = $pdo->prepare("SELECT id, name, base_product_id, category_id FROM products WHERE language = 'en'");
+$stmt->execute();
 $allProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Group settings by category manually
-$groupedSettings = [];
-foreach ($settings as $setting) {
-    $groupedSettings[$setting['category']][] = $setting;
-}
 
 ob_start();
 ?>
@@ -493,51 +455,78 @@ ob_start();
 
                                 <?php if ($category === 'collections'): ?>
                                     <?php
-                                    // Fetch current collection settings
                                     $colSettings = [];
                                     $keys = [
                                         'syrup_collection_title', 'syrup_collection_description', 'syrup_collection_features', 'syrup_collection_products',
                                         'powder_selection_title', 'powder_selection_description', 'powder_selection_features', 'powder_selection_products'
                                     ];
                                     foreach ($keys as $k) {
-                                        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = ?");
-                                        $stmt->execute([$k, $currentLanguage]);
-                                        $val = $stmt->fetchColumn();
+                                        $colSettings[$k]['en'] = getSettingVal('collections', $k, 'en');
+                                        $colSettings[$k]['km'] = getSettingVal('collections', $k, 'km');
                                         
-                                        // If empty features, check for legacy feature_1, 2, 3
-                                        if (empty($val) && ($k === 'syrup_collection_features' || $k === 'powder_selection_features')) {
-                                            $prefix = ($k === 'syrup_collection_features') ? 'syrup_collection_feature_' : 'powder_selection_feature_';
-                                            $legacyFeatures = [];
-                                            for ($i = 1; $i <= 3; $i++) {
-                                                $s = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = ?");
-                                                $s->execute([$prefix . $i, $currentLanguage]);
-                                                $v = $s->fetchColumn();
-                                                if ($v) $legacyFeatures[] = $v;
+                                        if (($k === 'syrup_collection_features' || $k === 'powder_selection_features')) {
+                                            foreach (['en', 'km'] as $lang) {
+                                                if (empty($colSettings[$k][$lang])) {
+                                                    $prefix = ($k === 'syrup_collection_features') ? 'syrup_collection_feature_' : 'powder_selection_feature_';
+                                                    $legacyFeatures = [];
+                                                    for ($i = 1; $i <= 3; $i++) {
+                                                        $v = getSettingVal('collections', $prefix . $i, $lang);
+                                                        if ($v) $legacyFeatures[] = $v;
+                                                    }
+                                                    $colSettings[$k][$lang] = !empty($legacyFeatures) ? json_encode($legacyFeatures, JSON_UNESCAPED_UNICODE) : '[]';
+                                                }
                                             }
-                                            $val = !empty($legacyFeatures) ? json_encode($legacyFeatures) : '[]';
                                         }
-                                        
-                                        $colSettings[$k] = $val;
                                     }
                                     
-                                    $syrupFeatures = json_decode($colSettings['syrup_collection_features'] ?? '[]', true) ?: [];
-                                    $powderFeatures = json_decode($colSettings['powder_selection_features'] ?? '[]', true) ?: [];
+                                    $syrupFeaturesEn = json_decode($colSettings['syrup_collection_features']['en'] ?? '[]', true) ?: [];
+                                    $syrupFeaturesKm = json_decode($colSettings['syrup_collection_features']['km'] ?? '[]', true) ?: [];
+                                    $powderFeaturesEn = json_decode($colSettings['powder_selection_features']['en'] ?? '[]', true) ?: [];
+                                    $powderFeaturesKm = json_decode($colSettings['powder_selection_features']['km'] ?? '[]', true) ?: [];
                                     ?>
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="card h-100">
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100 border">
                                                 <div class="card-header bg-light fw-bold"><i class="bi bi-droplet me-2"></i>Syrup Collection</div>
                                                 <div class="card-body">
                                                     <div class="mb-3">
-                                                        <label class="form-label">Collection Title</label>
-                                                        <input type="text" name="syrup_collection_title" class="form-control" value="<?php echo htmlspecialchars($colSettings['syrup_collection_title'] ?? ''); ?>" placeholder="e.g. Syrup Collection">
+                                                        <label class="form-label fw-bold">Collection Title</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="syrup_collection_title_en" class="form-control" value="<?php echo htmlspecialchars($colSettings['syrup_collection_title']['en'] ?? ''); ?>" placeholder="Syrup Collection">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="syrup_collection_title_km" class="form-control" value="<?php echo htmlspecialchars($colSettings['syrup_collection_title']['km'] ?? ''); ?>" placeholder="ស៊ីរ៉ូ">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
+                                                    
                                                     <div class="mb-3">
-                                                        <label class="form-label">Description</label>
-                                                        <textarea name="syrup_collection_description" class="form-control" rows="4" placeholder="Description for Syrup Collection section..."><?php echo htmlspecialchars($colSettings['syrup_collection_description'] ?? ''); ?></textarea>
+                                                        <label class="form-label fw-bold">Description</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-secondary mb-1">English</span>
+                                                                    <textarea name="syrup_collection_description_en" class="form-control" rows="4" placeholder="Description in English..."><?php echo htmlspecialchars($colSettings['syrup_collection_description']['en'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-primary mb-1">Khmer</span>
+                                                                    <textarea name="syrup_collection_description_km" class="form-control" rows="4" placeholder="Description in Khmer..."><?php echo htmlspecialchars($colSettings['syrup_collection_description']['km'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
+
                                                     <div class="mb-3">
-                                                        <label class="form-label d-flex justify-content-between">
+                                                        <label class="form-label d-flex justify-content-between fw-bold">
                                                             Products to Display
                                                             <span class="badge bg-secondary">Total: <?php echo count(array_filter($allProducts, function($p) use ($allCategories, $syrupBaseId) {
                                                                 foreach ($allCategories as $c) if ($c['id'] == $p['category_id'] && $c['base_category_id'] == $syrupBaseId) return true;
@@ -546,7 +535,7 @@ ob_start();
                                                         </label>
                                                         <div class="border rounded p-3 bg-white" style="max-height: 200px; overflow-y: auto;">
                                                             <?php 
-                                                            $selectedProducts = json_decode($colSettings['syrup_collection_products'] ?? '[]', true) ?: [];
+                                                            $selectedProducts = json_decode($colSettings['syrup_collection_products']['en'] ?? '[]', true) ?: [];
                                                             $syrupProductFound = false;
                                                             foreach ($allProducts as $p): 
                                                                 $cat = null;
@@ -565,45 +554,86 @@ ob_start();
                                                                 <small class="text-muted">No products found in Syrup category.</small>
                                                             <?php endif; ?>
                                                         </div>
-                                                        <small class="text-muted mt-1 d-block italic">Selected products will appear in the collection carousel.</small>
                                                     </div>
+
                                                     <div class="mb-3">
-                                                        <label class="form-label d-flex justify-content-between">
-                                                            Key Features (Display with checkmarks)
-                                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFeature('syrup')"><i class="bi bi-plus"></i> Add</button>
-                                                        </label>
-                                                        <div id="syrup-features-container" class="feature-list">
-                                                            <?php foreach ($syrupFeatures as $feat): ?>
-                                                                <div class="input-group mb-2 feature-item">
-                                                                    <input type="text" name="syrup_collection_features[]" class="form-control" value="<?php echo htmlspecialchars($feat); ?>">
-                                                                    <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label d-flex justify-content-between fw-bold">
+                                                                    Features (EN)
+                                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0" onclick="addFeature('syrup', 'en')"><i class="bi bi-plus"></i></button>
+                                                                </label>
+                                                                <div id="syrup-features-container-en">
+                                                                    <?php foreach ($syrupFeaturesEn as $feat): ?>
+                                                                        <div class="input-group mb-2 feature-item">
+                                                                            <input type="text" name="syrup_collection_features_en[]" class="form-control" value="<?php echo htmlspecialchars($feat); ?>">
+                                                                            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
                                                                 </div>
-                                                            <?php endforeach; ?>
-                                                            <?php if (empty($syrupFeatures)): ?>
-                                                                <div class="input-group mb-2 feature-item">
-                                                                    <input type="text" name="syrup_collection_features[]" class="form-control" placeholder="e.g. Natural ingredients">
-                                                                    <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label d-flex justify-content-between fw-bold">
+                                                                    Features (KM)
+                                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0" onclick="addFeature('syrup', 'km')"><i class="bi bi-plus"></i></button>
+                                                                </label>
+                                                                <div id="syrup-features-container-km">
+                                                                    <?php foreach ($syrupFeaturesKm as $feat): ?>
+                                                                        <div class="input-group mb-2 feature-item">
+                                                                            <input type="text" name="syrup_collection_features_km[]" class="form-control" value="<?php echo htmlspecialchars($feat); ?>">
+                                                                            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
                                                                 </div>
-                                                            <?php endif; ?>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="card h-100">
+
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100 border">
                                                 <div class="card-header bg-light fw-bold"><i class="bi bi-snow me-2"></i>Powder Selection</div>
                                                 <div class="card-body">
                                                     <div class="mb-3">
-                                                        <label class="form-label">Selection Title</label>
-                                                        <input type="text" name="powder_selection_title" class="form-control" value="<?php echo htmlspecialchars($colSettings['powder_selection_title'] ?? ''); ?>" placeholder="e.g. Powder Selection">
+                                                        <label class="form-label fw-bold">Selection Title</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="powder_selection_title_en" class="form-control" value="<?php echo htmlspecialchars($colSettings['powder_selection_title']['en'] ?? ''); ?>" placeholder="Powder Selection">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="powder_selection_title_km" class="form-control" value="<?php echo htmlspecialchars($colSettings['powder_selection_title']['km'] ?? ''); ?>" placeholder="ម្សៅ">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
+                                                    
                                                     <div class="mb-3">
-                                                        <label class="form-label">Description</label>
-                                                        <textarea name="powder_selection_description" class="form-control" rows="4" placeholder="Description for Powder Selection section..."><?php echo htmlspecialchars($colSettings['powder_selection_description'] ?? ''); ?></textarea>
+                                                        <label class="form-label fw-bold">Description</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-secondary mb-1">English</span>
+                                                                    <textarea name="powder_selection_description_en" class="form-control" rows="4" placeholder="Description in English..."><?php echo htmlspecialchars($colSettings['powder_selection_description']['en'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-primary mb-1">Khmer</span>
+                                                                    <textarea name="powder_selection_description_km" class="form-control" rows="4" placeholder="Description in Khmer..."><?php echo htmlspecialchars($colSettings['powder_selection_description']['km'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
+
                                                     <div class="mb-3">
-                                                        <label class="form-label d-flex justify-content-between">
+                                                        <label class="form-label d-flex justify-content-between fw-bold">
                                                             Products to Display
                                                             <span class="badge bg-secondary">Total: <?php echo count(array_filter($allProducts, function($p) use ($allCategories, $powderBaseId) {
                                                                 foreach ($allCategories as $c) if ($c['id'] == $p['category_id'] && $c['base_category_id'] == $powderBaseId) return true;
@@ -612,7 +642,7 @@ ob_start();
                                                         </label>
                                                         <div class="border rounded p-3 bg-white" style="max-height: 200px; overflow-y: auto;">
                                                             <?php 
-                                                            $selectedProducts = json_decode($colSettings['powder_selection_products'] ?? '[]', true) ?: [];
+                                                            $selectedProducts = json_decode($colSettings['powder_selection_products']['en'] ?? '[]', true) ?: [];
                                                             $powderProductFound = false;
                                                             foreach ($allProducts as $p): 
                                                                 $cat = null;
@@ -631,26 +661,38 @@ ob_start();
                                                                 <small class="text-muted">No products found in Powder category.</small>
                                                             <?php endif; ?>
                                                         </div>
-                                                        <small class="text-muted mt-1 d-block italic">Selected products will appear in the selection carousel.</small>
                                                     </div>
+
                                                     <div class="mb-3">
-                                                        <label class="form-label d-flex justify-content-between">
-                                                            Key Features (Display with checkmarks)
-                                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFeature('powder')"><i class="bi bi-plus"></i> Add</button>
-                                                        </label>
-                                                        <div id="powder-features-container" class="feature-list">
-                                                            <?php foreach ($powderFeatures as $feat): ?>
-                                                                <div class="input-group mb-2 feature-item">
-                                                                    <input type="text" name="powder_selection_features[]" class="form-control" value="<?php echo htmlspecialchars($feat); ?>">
-                                                                    <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label d-flex justify-content-between fw-bold">
+                                                                    Features (EN)
+                                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0" onclick="addFeature('powder', 'en')"><i class="bi bi-plus"></i></button>
+                                                                </label>
+                                                                <div id="powder-features-container-en">
+                                                                    <?php foreach ($powderFeaturesEn as $feat): ?>
+                                                                        <div class="input-group mb-2 feature-item">
+                                                                            <input type="text" name="powder_selection_features_en[]" class="form-control" value="<?php echo htmlspecialchars($feat); ?>">
+                                                                            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
                                                                 </div>
-                                                            <?php endforeach; ?>
-                                                            <?php if (empty($powderFeatures)): ?>
-                                                                <div class="input-group mb-2 feature-item">
-                                                                    <input type="text" name="powder_selection_features[]" class="form-control" placeholder="e.g. Premium quality">
-                                                                    <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label d-flex justify-content-between fw-bold">
+                                                                    Features (KM)
+                                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0" onclick="addFeature('powder', 'km')"><i class="bi bi-plus"></i></button>
+                                                                </label>
+                                                                <div id="powder-features-container-km">
+                                                                    <?php foreach ($powderFeaturesKm as $feat): ?>
+                                                                        <div class="input-group mb-2 feature-item">
+                                                                            <input type="text" name="powder_selection_features_km[]" class="form-control" value="<?php echo htmlspecialchars($feat); ?>">
+                                                                            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
                                                                 </div>
-                                                            <?php endif; ?>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -659,12 +701,12 @@ ob_start();
                                     </div>
                                     
                                     <script>
-                                        function addFeature(type) {
-                                            const container = document.getElementById(type + '-features-container');
+                                        function addFeature(type, lang) {
+                                            const container = document.getElementById(type + '-features-container-' + lang);
                                             const div = document.createElement('div');
                                             div.className = 'input-group mb-2 feature-item';
                                             div.innerHTML = `
-                                                <input type="text" name="${type === 'syrup' ? 'syrup_collection_features' : 'powder_selection_features'}[]" class="form-control" placeholder="New feature...">
+                                                <input type="text" name="${type === 'syrup' ? 'syrup_collection_features' : 'powder_selection_features'}_${lang}[]" class="form-control" placeholder="New feature...">
                                                 <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
                                             `;
                                             container.appendChild(div);
@@ -674,7 +716,6 @@ ob_start();
 
                                 <?php elseif ($category === 'about'): ?>
                                     <?php
-                                    // Fetch current about settings
                                     $aboutSettings = [];
                                     $keys = [
                                         'about_title', 'about_content',
@@ -682,9 +723,8 @@ ob_start();
                                         'about_mission_title', 'about_mission_content'
                                     ];
                                     foreach ($keys as $k) {
-                                        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = ?");
-                                        $stmt->execute([$k, $currentLanguage]);
-                                        $aboutSettings[$k] = $stmt->fetchColumn();
+                                        $aboutSettings[$k]['en'] = getSettingVal('about', $k, 'en');
+                                        $aboutSettings[$k]['km'] = getSettingVal('about', $k, 'km');
                                     }
                                     ?>
                                     <div class="row">
@@ -694,46 +734,120 @@ ob_start();
                                                 <div class="card-body">
                                                     <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>About Intro</h5>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Page Title</label>
-                                                        <input type="text" name="about_title" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_title'] ?? ''); ?>" placeholder="e.g. About KouPrey Coffee">
+                                                        <label class="form-label fw-bold">Page Title</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="about_title_en" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_title']['en'] ?? ''); ?>" placeholder="e.g. About KouPrey Coffee">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="about_title_km" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_title']['km'] ?? ''); ?>" placeholder="e.g. អំពីកាហ្វេគោកព្រៃ">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Intro Content</label>
-                                                        <textarea name="about_content" class="form-control" rows="4" placeholder="Main introduction text..."><?php echo htmlspecialchars($aboutSettings['about_content'] ?? ''); ?></textarea>
+                                                        <label class="form-label fw-bold">Intro Content</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-white">
+                                                                    <span class="badge bg-secondary mb-1">English</span>
+                                                                    <textarea name="about_content_en" class="form-control" rows="4" placeholder="Main introduction text in English..."><?php echo htmlspecialchars($aboutSettings['about_content']['en'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-white">
+                                                                    <span class="badge bg-primary mb-1">Khmer</span>
+                                                                    <textarea name="about_content_km" class="form-control" rows="4" placeholder="Main introduction text in Khmer..."><?php echo htmlspecialchars($aboutSettings['about_content']['km'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
+ 
                                         <!-- Our Purpose Section -->
                                         <div class="col-md-6 mb-4">
                                             <div class="card h-100 border">
                                                 <div class="card-header bg-white fw-bold"><i class="bi bi-bullseye me-2"></i>Our Purpose</div>
                                                 <div class="card-body">
                                                     <div class="mb-3">
-                                                        <label class="form-label">Section Title</label>
-                                                        <input type="text" name="about_purpose_title" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_purpose_title'] ?? ''); ?>" placeholder="e.g. Our Purpose">
+                                                        <label class="form-label fw-bold">Section Title</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="about_purpose_title_en" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_purpose_title']['en'] ?? ''); ?>" placeholder="Our Purpose">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="about_purpose_title_km" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_purpose_title']['km'] ?? ''); ?>" placeholder="គោលបំណងរបស់យើង">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Purpose Content</label>
-                                                        <textarea name="about_purpose_content" class="form-control" rows="4" placeholder="Detail your purpose..."><?php echo htmlspecialchars($aboutSettings['about_purpose_content'] ?? ''); ?></textarea>
+                                                        <label class="form-label fw-bold">Purpose Content</label>
+                                                        <div class="row">
+                                                            <div class="col-md-12 mb-2">
+                                                                <div class="border rounded p-2 bg-light mb-2">
+                                                                    <span class="badge bg-secondary mb-1">English</span>
+                                                                    <textarea name="about_purpose_content_en" class="form-control" rows="4" placeholder="Purpose details in English..."><?php echo htmlspecialchars($aboutSettings['about_purpose_content']['en'] ?? ''); ?></textarea>
+                                                                </div>
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-primary mb-1">Khmer</span>
+                                                                    <textarea name="about_purpose_content_km" class="form-control" rows="4" placeholder="Purpose details in Khmer..."><?php echo htmlspecialchars($aboutSettings['about_purpose_content']['km'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
+ 
                                         <!-- Our Mission Section -->
                                         <div class="col-md-6 mb-4">
                                             <div class="card h-100 border">
                                                 <div class="card-header bg-white fw-bold"><i class="bi bi-flag me-2"></i>Our Mission</div>
                                                 <div class="card-body">
                                                     <div class="mb-3">
-                                                        <label class="form-label">Section Title</label>
-                                                        <input type="text" name="about_mission_title" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_mission_title'] ?? ''); ?>" placeholder="e.g. Our Mission">
+                                                        <label class="form-label fw-bold">Section Title</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="about_mission_title_en" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_mission_title']['en'] ?? ''); ?>" placeholder="Our Mission">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="about_mission_title_km" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_mission_title']['km'] ?? ''); ?>" placeholder="បេសកកម្មរបស់យើង">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Mission Content</label>
-                                                        <textarea name="about_mission_content" class="form-control" rows="4" placeholder="Detail your mission..."><?php echo htmlspecialchars($aboutSettings['about_mission_content'] ?? ''); ?></textarea>
+                                                        <label class="form-label fw-bold">Mission Content</label>
+                                                        <div class="row">
+                                                            <div class="col-md-12 mb-2">
+                                                                <div class="border rounded p-2 bg-light mb-2">
+                                                                    <span class="badge bg-secondary mb-1">English</span>
+                                                                    <textarea name="about_mission_content_en" class="form-control" rows="4" placeholder="Mission details in English..."><?php echo htmlspecialchars($aboutSettings['about_mission_content']['en'] ?? ''); ?></textarea>
+                                                                </div>
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-primary mb-1">Khmer</span>
+                                                                    <textarea name="about_mission_content_km" class="form-control" rows="4" placeholder="Mission details in Khmer..."><?php echo htmlspecialchars($aboutSettings['about_mission_content']['km'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -742,33 +856,92 @@ ob_start();
 
                                 <?php elseif ($category === 'contact'): ?>
                                     <?php
-                                    // Fetch current contact settings
                                     $contactSettings = [];
                                     $keys = [
                                         'company_address', 'company_phone', 'company_email', 'company_hours'
                                     ];
                                     foreach ($keys as $k) {
-                                        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = ?");
-                                        $stmt->execute([$k, $currentLanguage]);
-                                        $contactSettings[$k] = $stmt->fetchColumn();
+                                        $contactSettings[$k]['en'] = getSettingVal('contact', $k, 'en');
+                                        $contactSettings[$k]['km'] = getSettingVal('contact', $k, 'km');
                                     }
                                     ?>
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Company Address</label>
-                                            <textarea name="company_address" class="form-control" rows="3" placeholder="Enter company address..."><?php echo htmlspecialchars($contactSettings['company_address'] ?? ''); ?></textarea>
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100 border">
+                                                <div class="card-header bg-white fw-bold"><i class="bi bi-geo-alt me-2"></i>Address & Contact</div>
+                                                <div class="card-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Company Address</label>
+                                                        <div class="border rounded p-2 bg-light mb-2">
+                                                            <span class="badge bg-secondary mb-1">English</span>
+                                                            <textarea name="company_address_en" class="form-control" rows="3" placeholder="Enter address in English..."><?php echo htmlspecialchars($contactSettings['company_address']['en'] ?? ''); ?></textarea>
+                                                        </div>
+                                                        <div class="border rounded p-2 bg-light">
+                                                            <span class="badge bg-primary mb-1">Khmer</span>
+                                                            <textarea name="company_address_km" class="form-control" rows="3" placeholder="Enter address in Khmer..."><?php echo htmlspecialchars($contactSettings['company_address']['km'] ?? ''); ?></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Contact Phone</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="company_phone_en" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_phone']['en'] ?? ''); ?>" placeholder="+855 12 345 678">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="company_phone_km" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_phone']['km'] ?? ''); ?>" placeholder="+855 12 345 678">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Contact Phone</label>
-                                            <input type="text" name="company_phone" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_phone'] ?? ''); ?>" placeholder="e.g. +855 12 345 678">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Contact Email</label>
-                                            <input type="email" name="company_email" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_email'] ?? ''); ?>" placeholder="e.g. info@kouprey.com">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Business Hours</label>
-                                            <input type="text" name="company_hours" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_hours'] ?? ''); ?>" placeholder="e.g. Mon-Fri: 9AM-6PM, Sat-Sun: 10AM-4PM">
+
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100 border">
+                                                <div class="card-header bg-white fw-bold"><i class="bi bi-envelope me-2"></i>Email & Business Hours</div>
+                                                <div class="card-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Contact Email</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="email" name="company_email_en" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_email']['en'] ?? ''); ?>" placeholder="info@kouprey.com">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="email" name="company_email_km" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_email']['km'] ?? ''); ?>" placeholder="info@kouprey.com">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold">Business Hours</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" name="company_hours_en" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_hours']['en'] ?? ''); ?>" placeholder="e.g. Mon-Sun: 7:30AM-6:00PM">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" name="company_hours_km" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_hours']['km'] ?? ''); ?>" placeholder="e.g. ចន្ទ-អាទិត្យ: 7:30ព្រឹក-6:00ល្ងាច">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -855,11 +1028,6 @@ ob_start();
                                                         else:
                                                         ?>
                                                             <div class="col-12 text-center py-5 text-muted">
-                                                                <i class="bi bi-folder2-open display-1 text-secondary opacity-25"></i>
-                                                                <p class="mt-3 fs-5">No product images found.</p>
-                                                            </div>
-                                                        <?php endif; ?>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -868,14 +1036,13 @@ ob_start();
                                 <?php elseif ($category === 'social'): ?>
                                     <!-- Social Media with Preview -->
                                     <?php
-                                    $socialBannerText = '';
-                                    foreach ($groupedSettings['social'] as $s) {
-                                        if ($s['setting_key'] === 'social_banner_text') $socialBannerText = $s['setting_value'] ?? '';
-                                    }
-                                    $fbUrl = getSetting('social_facebook', '', $currentLanguage);
-                                    $igUrl = getSetting('social_instagram', '', $currentLanguage);
-                                    $ttUrl = getSetting('social_tiktok', '', $currentLanguage);
-                                    $tgUrl = getSetting('social_telegram', '', $currentLanguage);
+                                    $socialBannerTextEn = getSettingVal('social', 'social_banner_text', 'en');
+                                    $socialBannerTextKm = getSettingVal('social', 'social_banner_text', 'km');
+                                    
+                                    $fbUrl = getSettingVal('social', 'social_facebook', 'en');
+                                    $igUrl = getSettingVal('social', 'social_instagram', 'en');
+                                    $ttUrl = getSettingVal('social', 'social_tiktok', 'en');
+                                    $tgUrl = getSettingVal('social', 'social_telegram', 'en');
                                     ?>
                                     <div class="row">
                                         <div class="col-lg-8">
@@ -886,36 +1053,53 @@ ob_start();
                                                     <small class="text-muted">Social media banner text (supports rich formatting, icons, headings)</small>
                                                 </div>
                                                 <div class="card-body p-0">
-                                                    <div class="rte-toolbar" data-editor="social_banner_editor">
-                                                        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
-                                                        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
-                                                        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
-                                                        <span class="rte-sep"></span>
-                                                        <select data-cmd="formatBlock" title="Heading">
-                                                            <option value="p">Paragraph</option>
-                                                            <option value="h2">Heading 2</option>
-                                                            <option value="h3">Heading 3</option>
-                                                        </select>
-                                                        <span class="rte-sep"></span>
-                                                        <input type="color" data-cmd="foreColor" title="Text Color" value="#ffffff">
-                                                        <span class="rte-sep"></span>
-                                                        <button type="button" data-cmd="justifyLeft" title="Left">≡◁</button>
-                                                        <button type="button" data-cmd="justifyCenter" title="Center">≡◌</button>
-                                                        <button type="button" data-cmd="justifyRight" title="Right">▷≡</button>
-                                                        <span class="rte-sep"></span>
-                                                        <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
-                                                        <button type="button" data-cmd="removeFormat" title="Clear" style="color:#dc3545;">✕</button>
+                                                    <div class="row g-0 border-bottom">
+                                                        <!-- English Editor -->
+                                                        <div class="col-md-6 border-end">
+                                                            <div class="bg-light p-2 border-bottom fw-bold text-secondary small d-flex justify-content-between align-items-center">
+                                                                <span>English Banner</span>
+                                                                <div class="rte-toolbar d-inline-block p-0 border-0" data-editor="social_banner_editor_en">
+                                                                    <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+                                                                    <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+                                                                    <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                                    <span class="rte-sep"></span>
+                                                                    <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="rte-emoji-panel" data-editor="social_banner_editor_en">
+                                                                <?php
+                                                                $emojiList = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','•'];
+                                                                foreach ($emojiList as $emoji) {
+                                                                    echo '<span onclick="insertEmoji(\'social_banner_editor_en\', \'' . $emoji . '\')">' . $emoji . '</span>';
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                            <div id="social_banner_editor_en" class="rte-editor" contenteditable="true" data-textarea="social_banner_text_en"><?php echo $socialBannerTextEn; ?></div>
+                                                            <textarea name="social_banner_text_en" id="social_banner_text_en_textarea" style="display:none;"><?php echo htmlspecialchars($socialBannerTextEn); ?></textarea>
+                                                        </div>
+                                                        <!-- Khmer Editor -->
+                                                        <div class="col-md-6">
+                                                            <div class="bg-light p-2 border-bottom fw-bold text-primary small d-flex justify-content-between align-items-center">
+                                                                <span>Khmer Banner</span>
+                                                                <div class="rte-toolbar d-inline-block p-0 border-0" data-editor="social_banner_editor_km">
+                                                                    <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+                                                                    <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+                                                                    <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                                    <span class="rte-sep"></span>
+                                                                    <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="rte-emoji-panel" data-editor="social_banner_editor_km">
+                                                                <?php
+                                                                foreach ($emojiList as $emoji) {
+                                                                    echo '<span onclick="insertEmoji(\'social_banner_editor_km\', \'' . $emoji . '\')">' . $emoji . '</span>';
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                            <div id="social_banner_editor_km" class="rte-editor" contenteditable="true" data-textarea="social_banner_text_km"><?php echo $socialBannerTextKm; ?></div>
+                                                            <textarea name="social_banner_text_km" id="social_banner_text_km_textarea" style="display:none;"><?php echo htmlspecialchars($socialBannerTextKm); ?></textarea>
+                                                        </div>
                                                     </div>
-                                                    <div class="rte-emoji-panel" data-editor="social_banner_editor">
-                                                        <?php
-                                                        $emojiList = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','⬆️','⬇️','▶️','®','©','™','°','•'];
-                                                        foreach ($emojiList as $emoji) {
-                                                            echo '<span onclick="insertEmoji(\'social_banner_editor\', \'' . $emoji . '\')">' . $emoji . '</span>';
-                                                        }
-                                                        ?>
-                                                    </div>
-                                                    <div id="social_banner_editor" class="rte-editor" contenteditable="true" data-textarea="social_banner_text"><?php echo $socialBannerText; ?></div>
-                                                    <textarea name="social_banner_text" id="social_banner_text_textarea" style="display:none;"><?php echo htmlspecialchars($socialBannerText); ?></textarea>
                                                 </div>
                                             </div>
 
@@ -966,7 +1150,7 @@ ob_start();
                                                     <!-- Banner Preview -->
                                                     <div style="background: #111; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px;">
                                                         <div id="socialBannerPreview" style="color: #fff; font-family: Hanuman, serif; font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-                                                            <?php echo $socialBannerText ?: '<span style="opacity:0.5;">Banner text will appear here</span>'; ?>
+                                                            <?php echo $socialBannerTextEn ?: '<span style="opacity:0.5;">Banner text will appear here</span>'; ?>
                                                         </div>
                                                         <div style="display: flex; justify-content: center; gap: 12px;">
                                                             <span class="social-icon-preview fb"><i class="fab fa-facebook-f"></i></span>
@@ -984,7 +1168,7 @@ ob_start();
                                     <script>
                                     // Live update social banner preview
                                     (function() {
-                                        var bannerEditor = document.getElementById('social_banner_editor');
+                                        var bannerEditor = document.getElementById('social_banner_editor_en');
                                         var bannerPreview = document.getElementById('socialBannerPreview');
                                         if (bannerEditor && bannerPreview) {
                                             var updateBannerPreview = function() {
@@ -993,15 +1177,8 @@ ob_start();
                                             };
                                             bannerEditor.addEventListener('input', updateBannerPreview);
                                             bannerEditor.addEventListener('blur', updateBannerPreview);
-                                            // Also update on toolbar actions
-                                            bannerEditor.addEventListener('keyup', updateBannerPreview);
-                                        }
-                                    })();
-                                    </script>
-
-                                <?php elseif ($category === 'policies'): ?>
+                                 <?php elseif ($category === 'policies'): ?>
                                     <!-- Policies & Legal with Custom Rich Text Editor and Preview -->
-
                                     <div class="row">
                                         <div class="col-lg-7">
                                             <?php
@@ -1011,65 +1188,70 @@ ob_start();
                                                 ['key' => 'terms_of_service', 'label' => 'Terms of Service', 'badge' => 'bg-success', 'icon' => 'bi-file-earmark-text'],
                                             ];
                                             foreach ($policyFields as $pf):
-                                                $content = '';
-                                                foreach ($groupedSettings['policies'] as $s) {
-                                                    if ($s['setting_key'] === $pf['key']) $content = $s['setting_value'] ?? '';
-                                                }
+                                                $contentEn = getSettingVal('policies', $pf['key'], 'en');
+                                                $contentKm = getSettingVal('policies', $pf['key'], 'km');
                                             ?>
                                             <div class="card border mb-4">
                                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                                     <div>
                                                         <span class="badge <?php echo $pf['badge']; ?> me-2"><?php echo $pf['label']; ?></span>
-                                                        <small class="text-muted"><?php echo $pf['label']; ?> content</small>
+                                                        <small class="text-muted"><?php echo $pf['label']; ?> content (Side-by-side EN & KM)</small>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="<?php echo $pf['key']; ?>">
-                                                        <i class="bi bi-eye"></i> Preview
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-btn" data-target="<?php echo $pf['key']; ?>_en">
+                                                        <i class="bi bi-eye"></i> Preview (EN)
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary preview-btn ms-2" data-target="<?php echo $pf['key']; ?>_km">
+                                                        <i class="bi bi-eye"></i> Preview (KM)
                                                     </button>
                                                 </div>
                                                 <div class="card-body p-0">
-                                                    <!-- Toolbar -->
-                                                    <div class="rte-toolbar" data-editor="<?php echo $pf['key']; ?>_editor">
-                                                        <button type="button" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
-                                                        <button type="button" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
-                                                        <button type="button" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
-                                                        <button type="button" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
-                                                        <span class="rte-sep"></span>
-                                                        <select data-cmd="formatBlock" title="Heading / Paragraph">
-                                                            <option value="p">Paragraph</option>
-                                                            <option value="h1">Heading 1</option>
-                                                            <option value="h2">Heading 2</option>
-                                                            <option value="h3">Heading 3</option>
-                                                        </select>
-                                                        <span class="rte-sep"></span>
-                                                        <input type="color" data-cmd="foreColor" title="Text Color" value="#333333">
-                                                        <button type="button" data-cmd="hiliteColor" title="Highlight" style="background:#fff3cd;">🖌</button>
-                                                        <span class="rte-sep"></span>
-                                                        <button type="button" data-cmd="insertUnorderedList" title="Bullet List">•≡</button>
-                                                        <button type="button" data-cmd="insertOrderedList" title="Numbered List">1≡</button>
-                                                        <span class="rte-sep"></span>
-                                                        <button type="button" data-cmd="justifyLeft" title="Align Left">≡◁</button>
-                                                        <button type="button" data-cmd="justifyCenter" title="Align Center">≡◌</button>
-                                                        <button type="button" data-cmd="justifyRight" title="Align Right">▷≡</button>
-                                                        <span class="rte-sep"></span>
-                                                        <button type="button" data-cmd="createLink" title="Insert Link">🔗</button>
-                                                        <button type="button" data-cmd="unlink" title="Remove Link">✂</button>
-                                                        <span class="rte-sep"></span>
-                                                        <button type="button" class="rte-emoji-btn" title="Insert Icon / Emoji">😊</button>
-                                                        <button type="button" data-cmd="removeFormat" title="Clear Formatting" style="color:#dc3545;">✕</button>
+                                                    <div class="row g-0">
+                                                        <!-- English Editor -->
+                                                        <div class="col-md-6 border-end">
+                                                            <div class="bg-light p-2 border-bottom fw-bold text-secondary small d-flex justify-content-between align-items-center">
+                                                                <span>English Version</span>
+                                                                <div class="rte-toolbar d-inline-block p-0 border-0" data-editor="<?php echo $pf['key']; ?>_en_editor">
+                                                                    <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+                                                                    <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+                                                                    <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                                    <span class="rte-sep"></span>
+                                                                    <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="rte-emoji-panel" data-editor="<?php echo $pf['key']; ?>_en_editor">
+                                                                <?php
+                                                                $emojiList = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','•'];
+                                                                foreach ($emojiList as $emoji) {
+                                                                    echo '<span onclick="insertEmoji(\'' . $pf['key'] . '_en_editor\', \'' . $emoji . '\')">' . $emoji . '</span>';
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                            <div id="<?php echo $pf['key']; ?>_en_editor" class="rte-editor" contenteditable="true" data-textarea="<?php echo $pf['key']; ?>_en" style="min-height: 180px;"><?php echo $contentEn; ?></div>
+                                                            <textarea name="<?php echo $pf['key']; ?>_en" id="<?php echo $pf['key']; ?>_en_textarea" style="display:none;"><?php echo htmlspecialchars($contentEn); ?></textarea>
+                                                        </div>
+                                                        <!-- Khmer Editor -->
+                                                        <div class="col-md-6">
+                                                            <div class="bg-light p-2 border-bottom fw-bold text-primary small d-flex justify-content-between align-items-center">
+                                                                <span>Khmer Version</span>
+                                                                <div class="rte-toolbar d-inline-block p-0 border-0" data-editor="<?php echo $pf['key']; ?>_km_editor">
+                                                                    <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+                                                                    <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+                                                                    <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                                    <span class="rte-sep"></span>
+                                                                    <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="rte-emoji-panel" data-editor="<?php echo $pf['key']; ?>_km_editor">
+                                                                <?php
+                                                                foreach ($emojiList as $emoji) {
+                                                                    echo '<span onclick="insertEmoji(\'' . $pf['key'] . '_km_editor\', \'' . $emoji . '\')">' . $emoji . '</span>';
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                            <div id="<?php echo $pf['key']; ?>_km_editor" class="rte-editor" contenteditable="true" data-textarea="<?php echo $pf['key']; ?>_km" style="min-height: 180px;"><?php echo $contentKm; ?></div>
+                                                            <textarea name="<?php echo $pf['key']; ?>_km" id="<?php echo $pf['key']; ?>_km_textarea" style="display:none;"><?php echo htmlspecialchars($contentKm); ?></textarea>
+                                                        </div>
                                                     </div>
-                                                    <!-- Emoji Panel -->
-                                                    <div class="rte-emoji-panel" data-editor="<?php echo $pf['key']; ?>_editor">
-                                                        <?php
-                                                        $emojiList = ['📌','🔴','🟢','🔵','🟡','⭐','✅','❌','⚠️','ℹ️','💡','🔥','🎯','📝','📋','📎','🔒','🔑','💬','📧','📞','📍','🏠','🌐','💻','📱','🛒','📦','🚚','💰','💳','📊','📈','🏆','🎉','❤️','👍','👎','➡️','⬅️','⬆️','⬇️','▶️','⏸️','⏹️','🔄','➕','➖','✖️','➗','®','©','™','°','•','§','¶'];
-                                                        foreach ($emojiList as $emoji) {
-                                                            echo '<span onclick="insertEmoji(\'' . $pf['key'] . '_editor\', \'' . $emoji . '\')">' . $emoji . '</span>';
-                                                        }
-                                                        ?>
-                                                    </div>
-                                                    <!-- Editor -->
-                                                    <div id="<?php echo $pf['key']; ?>_editor" class="rte-editor" contenteditable="true" data-textarea="<?php echo $pf['key']; ?>"><?php echo $content; ?></div>
-                                                    <!-- Hidden textarea for form submission -->
-                                                    <textarea name="<?php echo $pf['key']; ?>" id="<?php echo $pf['key']; ?>_textarea" style="display:none;"><?php echo htmlspecialchars($content); ?></textarea>
                                                 </div>
                                             </div>
                                             <?php endforeach; ?>
@@ -1278,20 +1460,13 @@ ob_start();
                                             });
                                         });
 
-                                        // Initial sync
-                                        document.querySelectorAll('.rte-editor').forEach(function(editor) {
-                                            syncTextarea(editor.id);
-                                        });
-                                    });
-                                    </script>
-
-                                <?php else: ?>
+                                        // In                                <?php else: ?>
                                     <!-- Default handling for other categories -->
                                     <div class="row">
-                                        <?php foreach ($groupedSettings[$category] as $setting): ?>
-                                            <div class="col-md-6">
-                                                <div class="setting-item">
-                                                    <label class="setting-label">
+                                        <?php foreach ($groupedSettings[$category] as $settingKey => $setting): ?>
+                                            <div class="col-md-12 mb-4">
+                                                <div class="setting-item border rounded p-4 bg-white shadow-sm">
+                                                    <label class="setting-label fw-bold text-dark fs-6 mb-1">
                                                         <?php 
                                                         $label = ucfirst(str_replace('_', ' ', $setting['setting_key']));
                                                         $desc = isset($setting['description']) ? trim((string)$setting['description']) : '';
@@ -1299,77 +1474,152 @@ ob_start();
                                                         ?>
                                                     </label>
                                                     <?php if ($desc !== '' && strcasecmp($desc, $label) !== 0): ?>
-                                                        <div class="setting-description"><?php echo htmlspecialchars($desc); ?></div>
+                                                        <div class="setting-description text-muted small mb-3"><?php echo htmlspecialchars($desc); ?></div>
                                                     <?php endif; ?>
 
                                                     <?php if ($setting['setting_key'] === 'hero_background_image'): ?>
-                                                        <div class="mb-2">
-                                                            <input type="file" class="form-control" name="hero_background_image" accept="image/*">
-                                                            <?php
-                                                            // Get all hero background images from uploads folder
-                                                            $heroImages = glob('../public/uploads/hero-bg-*.*');
-                                                            if (!empty($heroImages)):
+                                                        <div class="row g-4">
+                                                            <?php foreach (['en' => 'English', 'km' => 'Khmer'] as $lang => $langLabel): 
+                                                                $val = $setting['values'][$lang] ?? '';
                                                             ?>
-                                                                <div class="mt-3">
-                                                                    <small class="text-muted">Existing hero images:</small>
-                                                                    <div class="row mt-2">
-                                                                        <?php foreach ($heroImages as $imagePath): 
-                                                                            $imageFile = basename($imagePath);
-                                                                            $imageUrl = '/kouprey/public/uploads/' . $imageFile;
-                                                                            $isCurrent = ($setting['setting_value'] === $imageUrl);
-                                                                        ?>
-                                                                            <div class="col-md-4 mb-3">
-                                                                                <div class="card">
-                                                                                    <div class="card-body p-2">
-                                                                                        <img src="<?php echo htmlspecialchars($imageUrl); ?>" alt="Hero image" class="img-fluid rounded" style="max-height: 100px; width: 100%; object-fit: cover;">
-                                                                                        <div class="mt-2 text-center">
-                                                                                            <?php if ($isCurrent): ?>
-                                                                                                <span class="badge bg-success">Current</span>
-                                                                                            <?php endif; ?>
-                                                                                            <button type="submit" name="delete_hero_file" value="<?php echo htmlspecialchars($imageFile); ?>" class="btn btn-outline-danger btn-sm mt-1" onclick="return confirm('Are you sure you want to delete this hero image?')">
-                                                                                                <i class="bi bi-trash"></i> Delete
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
+                                                                <div class="col-md-6 border-end">
+                                                                    <span class="badge bg-<?php echo $lang === 'en' ? 'secondary' : 'primary'; ?> mb-2"><?php echo $langLabel; ?> Hero Background</span>
+                                                                    <input type="file" class="form-control mb-2" name="hero_background_image_<?php echo $lang; ?>" accept="image/*">
+                                                                    
+                                                                    <?php if (!empty($val)): ?>
+                                                                        <div class="mt-2 card p-2 bg-light">
+                                                                            <small class="text-muted">Current <?php echo $langLabel; ?> Banner:</small>
+                                                                            <img src="<?php echo htmlspecialchars($val); ?>" class="img-fluid rounded mt-1" style="max-height: 120px; object-fit: cover; width: 100%;">
+                                                                            <div class="mt-2 text-end">
+                                                                                <button type="submit" name="delete_hero_image_<?php echo $lang; ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this hero image?')">
+                                                                                    <i class="bi bi-trash"></i> Remove Image
+                                                                                </button>
                                                                             </div>
-                                                                        <?php endforeach; ?>
-                                                                    </div>
+                                                                        </div>
+                                                                    <?php endif; ?>
                                                                 </div>
-                                                            <?php endif; ?>
+                                                            <?php endforeach; ?>
                                                         </div>
+
                                                     <?php elseif ($setting['setting_key'] === 'company_logo'): ?>
-                                                        <div class="mb-2">
-                                                            <input type="file" class="form-control" name="company_logo" accept="image/*">
-                                                            <?php if (!empty($setting['setting_value'])): ?>
-                                                                <div class="mt-2">
-                                                                    <small class="text-muted">Current logo:</small><br>
-                                                                    <img src="<?php echo htmlspecialchars($setting['setting_value']); ?>" alt="Company logo" style="max-width: 200px; max-height: 100px; border-radius: 8px; border: 2px solid #e5e7eb;">
-                                                                    <button type="submit" name="delete_company_logo" class="btn btn-outline-danger btn-sm mt-2" onclick="return confirm('Are you sure you want to delete the company logo?')">
-                                                                        <i class="bi bi-trash"></i> Delete Logo
-                                                                    </button>
+                                                        <div class="row g-4">
+                                                            <?php foreach (['en' => 'English', 'km' => 'Khmer'] as $lang => $langLabel): 
+                                                                $val = $setting['values'][$lang] ?? '';
+                                                            ?>
+                                                                <div class="col-md-6 border-end">
+                                                                    <span class="badge bg-<?php echo $lang === 'en' ? 'secondary' : 'primary'; ?> mb-2"><?php echo $langLabel; ?> Logo</span>
+                                                                    <input type="file" class="form-control mb-2" name="company_logo_<?php echo $lang; ?>" accept="image/*">
+                                                                    
+                                                                    <?php if (!empty($val)): ?>
+                                                                        <div class="mt-2 card p-2 bg-light">
+                                                                            <small class="text-muted">Current <?php echo $langLabel; ?> Logo:</small><br>
+                                                                            <img src="<?php echo htmlspecialchars($val); ?>" style="max-width: 150px; max-height: 60px; object-fit: contain;" class="rounded border p-1 bg-white">
+                                                                            <div class="mt-2 text-end">
+                                                                                <button type="submit" name="delete_company_logo_<?php echo $lang; ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this company logo?')">
+                                                                                    <i class="bi bi-trash"></i> Remove Logo
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php endif; ?>
                                                                 </div>
-                                                            <?php endif; ?>
-                                                            <div class="mt-2">
-                                                                <small class="text-muted">Recommended size: 600x200px (higher quality). Supported formats: JPG, PNG, GIF, WebP</small>
-                                                            </div>
+                                                            <?php endforeach; ?>
                                                         </div>
 
                                                     <?php elseif ($setting['setting_type'] === 'textarea'): ?>
-                                                        <textarea class="form-control" name="<?php echo $setting['setting_key']; ?>" rows="3"><?php echo htmlspecialchars($setting['setting_value'] ?? ''); ?></textarea>
-                                                    <?php elseif ($setting['setting_type'] === 'boolean'): ?>
-                                                        <div class="form-check form-switch">
-                                                            <input class="form-check-input" type="checkbox" name="<?php echo $setting['setting_key']; ?>" value="1" <?php echo ($setting['setting_value'] == '1') ? 'checked' : ''; ?>>
-                                                            <label class="form-check-label">Enable</label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-secondary mb-1">English</span>
+                                                                    <textarea class="form-control" name="<?php echo $setting['setting_key']; ?>_en" rows="4"><?php echo htmlspecialchars($setting['values']['en'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="border rounded p-2 bg-light">
+                                                                    <span class="badge bg-primary mb-1">Khmer</span>
+                                                                    <textarea class="form-control" name="<?php echo $setting['setting_key']; ?>_km" rows="4"><?php echo htmlspecialchars($setting['values']['km'] ?? ''); ?></textarea>
+                                                                </div>
+                                                            </div>
                                                         </div>
+
+                                                    <?php elseif ($setting['setting_type'] === 'boolean'): ?>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-check form-switch bg-light p-3 rounded border">
+                                                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="<?php echo $setting['setting_key']; ?>_en" value="1" <?php echo ($setting['values']['en'] == '1') ? 'checked' : ''; ?>>
+                                                                    <label class="form-check-label fw-bold text-secondary">English Enabled</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-check form-switch bg-light p-3 rounded border">
+                                                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="<?php echo $setting['setting_key']; ?>_km" value="1" <?php echo ($setting['values']['km'] == '1') ? 'checked' : ''; ?>>
+                                                                    <label class="form-check-label fw-bold text-primary">Khmer Enabled</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
                                                     <?php elseif ($setting['setting_type'] === 'number'): ?>
-                                                        <input type="number" class="form-control" name="<?php echo $setting['setting_key']; ?>" value="<?php echo htmlspecialchars($setting['setting_value'] ?? ''); ?>">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="number" class="form-control" name="<?php echo $setting['setting_key']; ?>_en" value="<?php echo htmlspecialchars($setting['values']['en'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="number" class="form-control" name="<?php echo $setting['setting_key']; ?>_km" value="<?php echo htmlspecialchars($setting['values']['km'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
                                                     <?php elseif ($setting['setting_type'] === 'email'): ?>
-                                                        <input type="email" class="form-control" name="<?php echo $setting['setting_key']; ?>" value="<?php echo htmlspecialchars($setting['setting_value'] ?? ''); ?>">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="email" class="form-control" name="<?php echo $setting['setting_key']; ?>_en" value="<?php echo htmlspecialchars($setting['values']['en'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="email" class="form-control" name="<?php echo $setting['setting_key']; ?>_km" value="<?php echo htmlspecialchars($setting['values']['km'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
                                                     <?php elseif ($setting['setting_type'] === 'url'): ?>
-                                                        <input type="url" class="form-control" name="<?php echo $setting['setting_key']; ?>" value="<?php echo htmlspecialchars($setting['setting_value'] ?? ''); ?>">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="url" class="form-control" name="<?php echo $setting['setting_key']; ?>_en" value="<?php echo htmlspecialchars($setting['values']['en'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="url" class="form-control" name="<?php echo $setting['setting_key']; ?>_km" value="<?php echo htmlspecialchars($setting['values']['km'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
                                                     <?php else: ?>
-                                                        <input type="text" class="form-control" name="<?php echo $setting['setting_key']; ?>" value="<?php echo htmlspecialchars($setting['setting_value'] ?? ''); ?>">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
+                                                                    <input type="text" class="form-control" name="<?php echo $setting['setting_key']; ?>_en" value="<?php echo htmlspecialchars($setting['values']['en'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
+                                                                    <input type="text" class="form-control" name="<?php echo $setting['setting_key']; ?>_km" value="<?php echo htmlspecialchars($setting['values']['km'] ?? ''); ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
