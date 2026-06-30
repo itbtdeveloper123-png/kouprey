@@ -36,6 +36,12 @@ try {
         'syrup_description' => 'collections',
         'powder_title' => 'collections',
         'powder_description' => 'collections',
+        'nav_home' => 'navigation',
+        'nav_product' => 'navigation',
+        'nav_products' => 'navigation',
+        'nav_features' => 'navigation',
+        'nav_reviews' => 'navigation',
+        'nav_about' => 'navigation',
     ];
 
     $stmt = $pdo->query("SELECT id, setting_key, setting_value, language, category FROM settings WHERE category IS NULL OR category = '' OR category = 'grid' OR category = 'general'");
