@@ -1471,8 +1471,7 @@ ob_start();
                                         });
                                     });
                                     </script>
-
-                                    <!-- Default handling for other categories -->
+                                <?php else: ?>
                                     <div class="row">
                                         <?php foreach ($groupedSettings[$category] as $settingKey => $setting): ?>
                                             <div class="col-md-12 mb-4">
