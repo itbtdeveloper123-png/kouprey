@@ -1390,19 +1390,25 @@ ob_start();
                                                 });
                                             });
 
-                                            toolbar.querySelector('select[data-cmd="formatBlock"]').addEventListener('change', function() {
-                                                var editor = document.getElementById(editorId);
-                                                editor.focus();
-                                                document.execCommand('formatBlock', false, '<' + this.value + '>');
-                                                syncTextarea(editorId);
-                                            });
+                                            var formatSelect = toolbar.querySelector('select[data-cmd="formatBlock"]');
+                                            if (formatSelect) {
+                                                formatSelect.addEventListener('change', function() {
+                                                    var editor = document.getElementById(editorId);
+                                                    editor.focus();
+                                                    document.execCommand('formatBlock', false, '<' + this.value + '>');
+                                                    syncTextarea(editorId);
+                                                });
+                                            }
 
-                                            toolbar.querySelector('input[type="color"]').addEventListener('input', function() {
-                                                var editor = document.getElementById(editorId);
-                                                editor.focus();
-                                                document.execCommand('foreColor', false, this.value);
-                                                syncTextarea(editorId);
-                                            });
+                                            var colorInput = toolbar.querySelector('input[type="color"]');
+                                            if (colorInput) {
+                                                colorInput.addEventListener('input', function() {
+                                                    var editor = document.getElementById(editorId);
+                                                    editor.focus();
+                                                    document.execCommand('foreColor', false, this.value);
+                                                    syncTextarea(editorId);
+                                                });
+                                            }
                                         });
 
                                         // ===== Emoji Button Toggle =====
