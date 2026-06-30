@@ -4,6 +4,27 @@ ini_set('display_errors', 1);
 
 echo "<h2>Kouprey Settings Syntax Check</h2>";
 
+// DB Dump check
+try {
+    require_once '../app/Config/database.php';
+    echo "<h3>Database Settings for 'contact_us':</h3>";
+    $stmt = $pdo->prepare("SELECT * FROM settings WHERE setting_key = 'contact_us'");
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo "<table border='1' cellpadding='5' style='border-collapse:collapse;'>";
+    echo "<tr><th>id</th><th>setting_key</th><th>setting_value</th><th>language</th><th>setting_type</th><th>category</th></tr>";
+    foreach ($rows as $r) {
+        echo "<tr>";
+        foreach ($r as $k => $v) {
+            echo "<td>" . htmlspecialchars($v ?? 'NULL') . "</td>";
+        }
+        echo "</tr>";
+    }
+    echo "</table>";
+} catch (Exception $e) {
+    echo "DB Error: " . $e->getMessage() . "<br>";
+}
+
 $filename = 'settings.php';
 if (!file_exists($filename)) {
     die("File $filename not found.");
