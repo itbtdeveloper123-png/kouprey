@@ -6,6 +6,93 @@ session_start();
 require_once '../app/Config/database.php';
 require_once '../app/Config/settings.php';
 
+// Helper function to download and localize external images inside rich text content
+if (!function_exists('localizeExternalImages')) {
+    function localizeExternalImages($html) {
+        if (empty($html) || !is_string($html)) return $html;
+        if (strpos($html, 'http') === false) return $html;
+        
+        $downloadedUrls = [];
+        
+        $downloadHelper = function($url) use (&$downloadedUrls) {
+            if (isset($downloadedUrls[$url])) {
+                return $downloadedUrls[$url];
+            }
+            
+            $currentDomain = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            if (strpos($url, $currentDomain) !== false || strpos($url, '/kouprey/') !== false) {
+                return $url;
+            }
+            
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            $data = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+            curl_close($ch);
+            
+            if ($httpCode === 200 && !empty($data)) {
+                $ext = 'png';
+                if (strpos($contentType, 'image/jpeg') !== false || strpos($contentType, 'image/jpg') !== false) {
+                    $ext = 'jpg';
+                } elseif (strpos($contentType, 'image/gif') !== false) {
+                    $ext = 'gif';
+                } elseif (strpos($contentType, 'image/webp') !== false) {
+                    $ext = 'webp';
+                } elseif (strpos($contentType, 'image/svg+xml') !== false || strpos($url, '.svg') !== false) {
+                    $ext = 'svg';
+                } else {
+                    $pathExt = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
+                    if (!empty($pathExt)) {
+                        $ext = strtolower($pathExt);
+                    }
+                }
+                
+                $safeName = 'downloaded-' . uniqid() . '.' . $ext;
+                $uploadDir = '../public/assets/images/products/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                
+                $targetPath = $uploadDir . $safeName;
+                if (file_put_contents($targetPath, $data) !== false) {
+                    if ($ext !== 'svg') {
+                        require_once '../app/Config/image_utils.php';
+                        $settings = getCompressionSettings('product');
+                        compressImage($targetPath, $targetPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                    }
+                    $localUrl = '/kouprey/public/assets/images/products/' . $safeName;
+                    $downloadedUrls[$url] = $localUrl;
+                    return $localUrl;
+                }
+            }
+            
+            return $url;
+        };
+        
+        // 1. Match src/data-src attributes
+        $pattern = '/(src|data-src)=["\'](https?:\/\/[^"\']+)["\']/i';
+        $html = preg_replace_callback($pattern, function($matches) use ($downloadHelper) {
+            $attr = $matches[1];
+            $url = $matches[2];
+            $localUrl = $downloadHelper($url);
+            return $attr . '="' . $localUrl . '"';
+        }, $html);
+        
+        // 2. Match url('...') inside style attributes
+        $stylePattern = '/url\([\'"]?(https?:\/\/[^\'")]+)[\'"]?\)/i';
+        $html = preg_replace_callback($stylePattern, function($matches) use ($downloadHelper) {
+            $url = $matches[1];
+            $localUrl = $downloadHelper($url);
+            return "url('" . $localUrl . "')";
+        }, $html);
+        
+        return $html;
+    }
+}
+
 // Database Self-Healing: Repair invalid setting categories and remove duplicates
 try {
     $keyCategoryMap = [
@@ -73,6 +160,18 @@ try {
                 $updateStmt = $pdo->prepare("UPDATE settings SET category = ? WHERE id = ?");
                 $updateStmt->execute([$correctCat, $row['id']]);
             }
+        }
+    }
+    
+    // 2. Localize any historic external image URLs in existing settings values
+    $stmt = $pdo->query("SELECT id, setting_value FROM settings WHERE setting_value LIKE '%http%'");
+    $rowsToLocalize = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rowsToLocalize as $row) {
+        $origValue = $row['setting_value'];
+        $newValue = localizeExternalImages($origValue);
+        if ($origValue !== $newValue) {
+            $updateStmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE id = ?");
+            $updateStmt->execute([$newValue, $row['id']]);
         }
     }
 } catch (Exception $e) {
@@ -336,6 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             $data = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
