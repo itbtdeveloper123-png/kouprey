@@ -1108,7 +1108,10 @@ ob_start();
                                                         ?>
                                                             <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                                                                 <div class="card h-100 shadow-sm border-2 product-image-card selectable-image" data-filename="<?php echo htmlspecialchars($basename); ?>" onclick="toggleImageSelection(event, this)">
-                                                                    <div class="position-relative ratio ratio-1x1 bg-white rounded-top overflow-hidden border-bottom">
+                                                                    <div class="position-relative ratio ratio-1x1 bg-white rounded-top overflow-hidden border-bottom copy-img-card" data-url="<?php echo htmlspecialchars($url); ?>">
+                                                                        <div class="copy-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.6); opacity: 0; transition: opacity 0.2s ease; cursor: pointer; z-index: 10;">
+                                                                            <span class="badge bg-primary px-3 py-2 rounded-pill shadow fw-bold"><i class="bi bi-clipboard me-1"></i> Copy URL</span>
+                                                                        </div>
                                                                         <img src="<?php echo htmlspecialchars($url); ?>" class="object-fit-contain w-100 h-100 p-2" alt="Product Image" loading="lazy">
                                                                         <div class="position-absolute top-0 start-0 m-2 selection-indicator d-none">
                                                                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 24px; height: 24px;">
@@ -2589,6 +2592,49 @@ ob_start();
             } else {
                 switchSettingsTab(null, activeTab);
             }
+
+            // File Manager image URL copy logic
+            document.querySelectorAll('.copy-overlay').forEach(function(overlay) {
+                overlay.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    var parent = this.closest('.copy-img-card');
+                    if (!parent) return;
+                    
+                    var url = parent.getAttribute('data-url');
+                    var absUrl = window.location.origin + url;
+                    
+                    navigator.clipboard.writeText(absUrl).then(function() {
+                        var toast = document.createElement('div');
+                        toast.style.position = 'fixed';
+                        toast.style.bottom = '20px';
+                        toast.style.right = '20px';
+                        toast.style.background = '#10b981';
+                        toast.style.color = '#fff';
+                        toast.style.padding = '12px 24px';
+                        toast.style.borderRadius = '30px';
+                        toast.style.zIndex = '99999';
+                        toast.style.fontWeight = 'bold';
+                        toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
+                        toast.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Copied URL to clipboard!';
+                        document.body.appendChild(toast);
+                        
+                        setTimeout(function() {
+                            toast.style.opacity = '0';
+                            toast.style.transition = 'opacity 0.5s ease';
+                            setTimeout(function() { toast.remove(); }, 500);
+                        }, 2000);
+                        
+                        var imgUrlInput = document.getElementById('imgUrl');
+                        if (imgUrlInput) {
+                            imgUrlInput.value = absUrl;
+                            imgUrlInput.style.borderColor = '#10b981';
+                            setTimeout(function() { imgUrlInput.style.borderColor = ''; }, 1000);
+                        }
+                    });
+                });
+            });
         });
     </script>
 
@@ -2609,6 +2655,9 @@ ob_start();
         }
         .selectable-image:hover img {
             transform: scale(1.05);
+        }
+        .copy-img-card:hover .copy-overlay {
+            opacity: 1 !important;
         }
     </style>
 

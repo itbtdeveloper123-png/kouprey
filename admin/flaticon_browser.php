@@ -81,6 +81,86 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'flaticon_browser.php?url=' + encodeURIComponent(actionUrl + '?' + params);
         }
     });
+
+    // ===== Hover to Copy Image Link Feature =====
+    var style = document.createElement('style');
+    style.innerHTML = `
+        .flaticon-copy-btn {
+            position: absolute !important;
+            z-index: 2147483647 !important;
+            background: #2563eb !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 6px 12px !important;
+            border-radius: 20px !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            display: none;
+            align-items: center !important;
+            gap: 4px !important;
+            transition: all 0.2s ease !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            pointer-events: auto !important;
+        }
+        .flaticon-copy-btn:hover {
+            transform: scale(1.05) !important;
+            background: #1d4ed8 !important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'flaticon-copy-btn';
+    copyBtn.innerHTML = '📋 Copy Link';
+    document.body.appendChild(copyBtn);
+
+    var currentImg = null;
+
+    document.addEventListener('mousemove', function(e) {
+        var img = e.target.closest('img');
+        if (img && img.src) {
+            currentImg = img;
+            var rect = img.getBoundingClientRect();
+            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+            copyBtn.style.top = (rect.top + scrollTop + 6) + 'px';
+            copyBtn.style.left = (rect.left + scrollLeft + rect.width - 95) + 'px';
+            copyBtn.style.display = 'flex';
+        } else if (e.target !== copyBtn) {
+            copyBtn.style.display = 'none';
+        }
+    });
+
+    copyBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (currentImg && currentImg.src) {
+            var url = currentImg.src;
+            
+            navigator.clipboard.writeText(url).then(function() {
+                copyBtn.innerHTML = '✅ Copied!';
+                copyBtn.style.background = '#10b981';
+                
+                if (window.parent) {
+                    var parentInput = window.parent.document.getElementById('imgUrl');
+                    if (parentInput) {
+                        parentInput.value = url;
+                        parentInput.style.borderColor = '#10b981';
+                        setTimeout(function() { parentInput.style.borderColor = ''; }, 1000);
+                    }
+                }
+
+                setTimeout(function() {
+                    copyBtn.innerHTML = '📋 Copy Link';
+                    copyBtn.style.background = '#2563eb';
+                    copyBtn.style.display = 'none';
+                }, 1500);
+            });
+        }
+    });
 });
 </script>
 ";
