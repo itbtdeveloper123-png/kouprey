@@ -1662,7 +1662,96 @@ ob_start();
                                     </div>
 
                                     <!-- Custom Rich Text Editor JavaScript -->
-                                    <script>
+                                    <!-- Custom Rich Text Editor Styles -->
+                                     <style>
+                                     /* Ruler Styles */
+                                     .rte-ruler-wrapper {
+                                         position: relative;
+                                         margin: 4px 0 0 0;
+                                         background: #f8f9fa;
+                                         border: 1px solid #dee2e6;
+                                         border-bottom: none;
+                                         border-radius: 4px 4px 0 0;
+                                         height: 28px;
+                                         user-select: none;
+                                         box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+                                         overflow: visible;
+                                     }
+                                     .rte-ruler-ticks {
+                                         position: absolute;
+                                         top: 0;
+                                         left: 40px; /* offset for left margin boundary */
+                                         right: 40px; /* offset for right margin boundary */
+                                         bottom: 0;
+                                         background-image: 
+                                             repeating-linear-gradient(90deg, #adb5bd 0, #adb5bd 1px, transparent 1px, transparent 10px),
+                                             repeating-linear-gradient(90deg, #495057 0, #495057 1px, transparent 1px, transparent 50px);
+                                         background-size: 100% 6px, 100% 12px;
+                                         background-repeat: no-repeat;
+                                         background-position: 0 bottom;
+                                         opacity: 0.6;
+                                     }
+                                     .rte-ruler-number {
+                                         position: absolute;
+                                         bottom: 12px;
+                                         font-size: 9px;
+                                         font-family: monospace, sans-serif;
+                                         color: #6c757d;
+                                         transform: translateX(-50%);
+                                         pointer-events: none;
+                                     }
+                                     .rte-ruler-marker {
+                                         position: absolute;
+                                         width: 12px;
+                                         height: 14px;
+                                         cursor: ew-resize;
+                                         z-index: 15;
+                                         transition: filter 0.1s;
+                                     }
+                                     .rte-ruler-marker:hover {
+                                         filter: brightness(1.2);
+                                     }
+                                     /* First Line Indent: Top triangle pointing down */
+                                     .rte-ruler-marker-firstline {
+                                         top: 0px;
+                                         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpolygon points='0,0 12,0 6,10' fill='%234f46e5'/%3E%3C/svg%3E");
+                                         background-size: contain;
+                                         background-repeat: no-repeat;
+                                         transform: translateX(-50%);
+                                     }
+                                     /* Left Indent: Bottom triangle pointing up + small square handle */
+                                     .rte-ruler-marker-left {
+                                         bottom: 0px;
+                                         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='14' viewBox='0 0 12 14'%3E%3Cpolygon points='6,0 0,10 12,10' fill='%2306b6d4'/%3E%3Crect x='2' y='10' width='8' height='4' fill='%2306b6d4'/%3E%3C/svg%3E");
+                                         background-size: contain;
+                                         background-repeat: no-repeat;
+                                         transform: translateX(-50%);
+                                     }
+                                     /* Right Indent: Bottom triangle pointing up on the right side */
+                                     .rte-ruler-marker-right {
+                                         bottom: 0px;
+                                         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='14' viewBox='0 0 12 14'%3E%3Cpolygon points='6,0 0,10 12,10' fill='%23f97316'/%3E%3Crect x='2' y='10' width='8' height='4' fill='%23f97316'/%3E%3C/svg%3E");
+                                         background-size: contain;
+                                         background-repeat: no-repeat;
+                                         transform: translateX(50%);
+                                     }
+                                     /* Guide vertical line that overlays the editor during dragging */
+                                     .rte-ruler-guide {
+                                         position: absolute;
+                                         top: 28px;
+                                         width: 1px;
+                                         border-left: 1px dashed #4f46e5;
+                                         pointer-events: none;
+                                         z-index: 1000;
+                                         display: none;
+                                     }
+                                     /* Adjust editor border radius so it connects smoothly to the ruler */
+                                     .rte-editor {
+                                         border-top-left-radius: 0 !important;
+                                         border-top-right-radius: 0 !important;
+                                     }
+                                     </style>
+                                     <script>
                                     document.addEventListener('DOMContentLoaded', function() {
                                         // ===== Selection Saving / Restoring =====
                                         var savedRange = null;
@@ -1815,7 +1904,244 @@ ob_start();
                                             modal.style.display = 'flex';
                                         };
 
-                                        // ===== Toolbar Button Handlers =====
+                                         // ===== Microsoft Word-style Ruler Logic =====
+                                         function getActiveBlock(editor) {
+                                             var sel = window.getSelection();
+                                             if (!sel.rangeCount) return null;
+                                             var node = sel.getRangeAt(0).startContainer;
+                                             
+                                             while (node && node !== editor) {
+                                                 if (node.nodeType === 1 && /^(P|DIV|LI|BLOCKQUOTE|H[1-6]|TD|TH)$/i.test(node.tagName)) {
+                                                     return node;
+                                                 }
+                                                 node = node.parentNode;
+                                             }
+                                             return null;
+                                         }
+
+                                         function updateActiveBlockStyle(editor, property, value) {
+                                             var block = getActiveBlock(editor);
+                                             if (!block) {
+                                                 var sel = window.getSelection();
+                                                 if (sel.rangeCount) {
+                                                     var range = sel.getRangeAt(0);
+                                                     var container = range.startContainer;
+                                                     if (container.nodeType === 3 && container.parentNode === editor) {
+                                                         var p = document.createElement('p');
+                                                         container.parentNode.insertBefore(p, container);
+                                                         p.appendChild(container);
+                                                         
+                                                         var newRange = document.createRange();
+                                                         newRange.selectNodeContents(p);
+                                                         newRange.collapse(false);
+                                                         sel.removeAllRanges();
+                                                         sel.addRange(newRange);
+                                                         
+                                                         block = p;
+                                                     } else if (container === editor) {
+                                                         var p = document.createElement('p');
+                                                         p.innerHTML = '<br>';
+                                                         editor.appendChild(p);
+                                                         block = p;
+                                                     }
+                                                 }
+                                             }
+                                             
+                                             if (block) {
+                                                 block.style[property] = value;
+                                             }
+                                         }
+
+                                         function updateRulerNumbers(wrapper) {
+                                             var ticks = wrapper.querySelector('.rte-ruler-ticks');
+                                             if (!ticks) return;
+                                             
+                                             wrapper.querySelectorAll('.rte-ruler-number').forEach(function(n) { n.remove(); });
+                                             
+                                             var ticksWidth = ticks.offsetWidth;
+                                             var step = 50; // Every 50px
+                                             var count = Math.floor(ticksWidth / step);
+                                             
+                                             for (var i = 1; i <= count; i++) {
+                                                 var num = document.createElement('div');
+                                                 num.className = 'rte-ruler-number';
+                                                 num.innerText = i;
+                                                 num.style.left = (40 + i * step) + 'px';
+                                                 wrapper.appendChild(num);
+                                             }
+                                         }
+
+                                         function syncRulerMarkers(editor) {
+                                             var wrapper = document.querySelector('.rte-ruler-wrapper[data-editor="' + editor.id + '"]');
+                                             if (!wrapper) return;
+                                             
+                                             var ticks = wrapper.querySelector('.rte-ruler-ticks');
+                                             var firstlineMarker = wrapper.querySelector('.rte-ruler-marker-firstline');
+                                             var leftMarker = wrapper.querySelector('.rte-ruler-marker-left');
+                                             var rightMarker = wrapper.querySelector('.rte-ruler-marker-right');
+                                             
+                                             if (!ticks || !firstlineMarker || !leftMarker || !rightMarker) return;
+                                             
+                                             var ticksLeft = ticks.offsetLeft;
+                                             var ticksWidth = ticks.offsetWidth;
+                                             
+                                             var block = getActiveBlock(editor);
+                                             var marginLeft = 0;
+                                             var textIndent = 0;
+                                             var marginRight = 0;
+                                             
+                                             if (block) {
+                                                 marginLeft = parseInt(window.getComputedStyle(block).marginLeft) || 0;
+                                                 textIndent = parseInt(window.getComputedStyle(block).textIndent) || 0;
+                                                 marginRight = parseInt(window.getComputedStyle(block).marginRight) || 0;
+                                             }
+                                             
+                                             // Left marker position
+                                             var leftPos = ticksLeft + marginLeft;
+                                             leftMarker.style.left = leftPos + 'px';
+                                             
+                                             // First-line marker (relative to left indent position)
+                                             var firstlinePos = leftPos + textIndent;
+                                             firstlineMarker.style.left = firstlinePos + 'px';
+                                             
+                                             // Right marker position
+                                             var rightPos = ticksLeft + ticksWidth - marginRight;
+                                             rightMarker.style.left = rightPos + 'px';
+                                         }
+
+                                         // Initialize Ruler UI for each editor
+                                         document.querySelectorAll('.rte-editor').forEach(function(editor) {
+                                             var editorId = editor.id;
+                                             var wrapper = document.createElement('div');
+                                             wrapper.className = 'rte-ruler-wrapper';
+                                             wrapper.setAttribute('data-editor', editorId);
+                                             
+                                             var guide = document.createElement('div');
+                                             guide.className = 'rte-ruler-guide';
+                                             wrapper.appendChild(guide);
+                                             
+                                             var ticks = document.createElement('div');
+                                             ticks.className = 'rte-ruler-ticks';
+                                             wrapper.appendChild(ticks);
+                                             
+                                             var firstlineMarker = document.createElement('div');
+                                             firstlineMarker.className = 'rte-ruler-marker rte-ruler-marker-firstline';
+                                             firstlineMarker.title = 'First Line Indent';
+                                             wrapper.appendChild(firstlineMarker);
+                                             
+                                             var leftMarker = document.createElement('div');
+                                             leftMarker.className = 'rte-ruler-marker rte-ruler-marker-left';
+                                             leftMarker.title = 'Left Indent';
+                                             wrapper.appendChild(leftMarker);
+                                             
+                                             var rightMarker = document.createElement('div');
+                                             rightMarker.className = 'rte-ruler-marker rte-ruler-marker-right';
+                                             rightMarker.title = 'Right Indent';
+                                             wrapper.appendChild(rightMarker);
+                                             
+                                             // Insert right before editor
+                                             editor.parentNode.insertBefore(wrapper, editor);
+                                             
+                                             // Update ticks numbers
+                                             setTimeout(function() {
+                                                 updateRulerNumbers(wrapper);
+                                                 syncRulerMarkers(editor);
+                                             }, 100);
+
+                                             // Bind cursor/selection triggers to sync ruler handles
+                                             editor.addEventListener('mouseup', function() { syncRulerMarkers(editor); });
+                                             editor.addEventListener('keyup', function() { syncRulerMarkers(editor); });
+                                             editor.addEventListener('focus', function() { syncRulerMarkers(editor); });
+                                         });
+
+                                         // Global Drag State
+                                         var activeDrag = null;
+                                         document.addEventListener('mousedown', function(e) {
+                                             if (e.target.classList.contains('rte-ruler-marker')) {
+                                                 e.preventDefault();
+                                                 var marker = e.target;
+                                                 var wrapper = marker.closest('.rte-ruler-wrapper');
+                                                 var editorId = wrapper.getAttribute('data-editor');
+                                                 var editor = document.getElementById(editorId);
+                                                 var ticks = wrapper.querySelector('.rte-ruler-ticks');
+                                                 var guide = wrapper.querySelector('.rte-ruler-guide');
+                                                 
+                                                 if (guide && editor) {
+                                                     guide.style.height = editor.offsetHeight + 'px';
+                                                     guide.style.display = 'block';
+                                                 }
+                                                 
+                                                 activeDrag = {
+                                                     marker: marker,
+                                                     wrapper: wrapper,
+                                                     editor: editor,
+                                                     ticks: ticks,
+                                                     guide: guide,
+                                                     type: marker.classList.contains('rte-ruler-marker-firstline') ? 'firstline' :
+                                                           marker.classList.contains('rte-ruler-marker-left') ? 'left' : 'right',
+                                                     startX: e.clientX,
+                                                     startLeft: marker.offsetLeft,
+                                                     ticksLeft: ticks.offsetLeft,
+                                                     ticksWidth: ticks.offsetWidth
+                                                 };
+                                             }
+                                         });
+
+                                         document.addEventListener('mousemove', function(e) {
+                                             if (!activeDrag) return;
+                                             
+                                             var d = activeDrag;
+                                             var deltaX = e.clientX - d.startX;
+                                             var newLeft = d.startLeft + deltaX;
+                                             
+                                             var minX = d.ticksLeft;
+                                             var maxX = d.ticksLeft + d.ticksWidth;
+                                             
+                                             if (d.type === 'right') {
+                                                 newLeft = Math.max(d.ticksLeft + d.ticksWidth / 2, Math.min(newLeft, maxX));
+                                                 d.marker.style.left = newLeft + 'px';
+                                                 if (d.guide) d.guide.style.left = newLeft + 'px';
+                                                 
+                                                 var rightVal = maxX - newLeft;
+                                                 updateActiveBlockStyle(d.editor, 'margin-right', rightVal + 'px');
+                                             } else {
+                                                 newLeft = Math.max(minX, Math.min(newLeft, d.ticksLeft + d.ticksWidth / 2));
+                                                 d.marker.style.left = newLeft + 'px';
+                                                 if (d.guide) d.guide.style.left = newLeft + 'px';
+                                                 
+                                                 if (d.type === 'left') {
+                                                     var leftVal = newLeft - d.ticksLeft;
+                                                     updateActiveBlockStyle(d.editor, 'margin-left', leftVal + 'px');
+                                                 } else if (d.type === 'firstline') {
+                                                     var leftMarker = d.wrapper.querySelector('.rte-ruler-marker-left');
+                                                     var firstLineVal = newLeft - leftMarker.offsetLeft;
+                                                     updateActiveBlockStyle(d.editor, 'text-indent', firstLineVal + 'px');
+                                                 }
+                                             }
+                                         });
+
+                                         document.addEventListener('mouseup', function() {
+                                             if (activeDrag) {
+                                                 if (activeDrag.guide) {
+                                                     activeDrag.guide.style.display = 'none';
+                                                 }
+                                                 syncTextarea(activeDrag.editor.id);
+                                                 activeDrag = null;
+                                             }
+                                         });
+
+                                         window.addEventListener('resize', function() {
+                                             document.querySelectorAll('.rte-ruler-wrapper').forEach(function(wrapper) {
+                                                 updateRulerNumbers(wrapper);
+                                                 var editorId = wrapper.getAttribute('data-editor');
+                                                 var editor = document.getElementById(editorId);
+                                                 if (editor) {
+                                                     syncRulerMarkers(editor);
+                                                 }
+                                             });
+                                         });
+
+                                         // ===== Toolbar Button Handlers =====
                                         document.querySelectorAll('.rte-toolbar').forEach(function(toolbar) {
                                             var editorId = toolbar.getAttribute('data-editor');
 
