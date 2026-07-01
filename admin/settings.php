@@ -2748,19 +2748,21 @@ ob_start();
         var modal = document.getElementById('rteModal');
         if (modal && modal.style.display === 'flex') {
             var imgUrlInput = document.getElementById('imgUrl');
-            if (imgUrlInput && (!imgUrlInput.value || imgUrlInput.value === 'https://')) {
+            if (imgUrlInput) {
                 navigator.clipboard.readText().then(function(text) {
                     text = text.trim();
                     // Validate if copied content is a URL and is an image or flaticon cdn link
                     if (text.indexOf('http') === 0 && (text.indexOf('cdn-icons') !== -1 || text.match(/\.(png|jpe?g|gif|svg|webp)/i))) {
-                        imgUrlInput.value = text;
-                        // Flash visual feedback (green)
-                        imgUrlInput.style.borderColor = '#10b981';
-                        imgUrlInput.style.backgroundColor = '#ecfdf5';
-                        setTimeout(function() {
-                            imgUrlInput.style.borderColor = '';
-                            imgUrlInput.style.backgroundColor = '';
-                        }, 1200);
+                        if (imgUrlInput.value !== text) {
+                            imgUrlInput.value = text;
+                            // Flash visual feedback (green)
+                            imgUrlInput.style.borderColor = '#10b981';
+                            imgUrlInput.style.backgroundColor = '#ecfdf5';
+                            setTimeout(function() {
+                                imgUrlInput.style.borderColor = '';
+                                imgUrlInput.style.backgroundColor = '';
+                            }, 1200);
+                        }
                     }
                 }).catch(function(e) {
                     // Ignore clipboard reading errors if permission is denied
