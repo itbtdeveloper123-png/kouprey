@@ -1937,7 +1937,7 @@ ob_start();
                                     var availableIcons = <?php 
                                           $pImages = glob('../public/assets/images/products/*.{jpg,jpeg,png,gif,webp,svg,JPG,JPEG,PNG,GIF,WEBP,SVG}', GLOB_BRACE) ?: [];
                                           $pImages = array_filter($pImages, function($img) {
-                                              return @filesize($img) < 100 * 1024;
+                                              $filename = basename($img); return strpos($filename, 'downloaded-') === 0 || strpos($filename, 'icon-') === 0 || @filesize($img) < 30 * 1024;
                                           });
                                           $urls = array_map(function($img) {
                                               return '/kouprey/public/assets/images/products/' . basename($img);
