@@ -2743,8 +2743,8 @@ ob_start();
         document.getElementById('flaticonBrowserModal').style.display = 'none';
     }
 
-    // Auto clipboard-detector when window regains focus
-    window.addEventListener('focus', function() {
+    // Auto clipboard-detector helper
+    function checkAndPasteClipboard() {
         var modal = document.getElementById('rteModal');
         if (modal && modal.style.display === 'flex') {
             var imgUrlInput = document.getElementById('imgUrl');
@@ -2765,11 +2765,14 @@ ob_start();
                         }
                     }
                 }).catch(function(e) {
-                    // Ignore clipboard reading errors if permission is denied
+                    // Ignore clipboard reading errors
                 });
             }
         }
-    });
+    }
+    // Trigger on both window focus and any click/mousedown on the window to bypass browser user gesture restrictions
+    window.addEventListener('focus', checkAndPasteClipboard);
+    window.addEventListener('click', checkAndPasteClipboard);
     </script>
 
     <style>
