@@ -1681,12 +1681,48 @@ ob_start();
                                                 savedRange = null;
                                             }
                                         }
-                                        function restoreSelection() {
-                                            if (savedRange) {
-                                                var sel = window.getSelection();
-                                                sel.removeAllRanges();
-                                                sel.addRange(savedRange);
+                                        function getDefaultLinkUrl(selectedText) {
+                                            if (!selectedText) return 'https://';
+                                            // Check if email
+                                            if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selectedText)) {
+                                                return 'mailto:' + selectedText;
                                             }
+                                            // Check if phone number
+                                            if (/^\+?[0-9\s\-]{8,20}$/.test(selectedText)) {
+                                                return 'tel:' + selectedText.replace(/[\s\-]/g, '');
+                                            }
+                                            // Check if valid URL or domain
+                                            if (/^https?:\/\//i.test(selectedText)) {
+                                                return selectedText;
+                                            }
+                                            if (/^www\./i.test(selectedText)) {
+                                                return 'https://' + selectedText;
+                                            }
+                                            if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(selectedText)) {
+                                                return 'https://' + selectedText;
+                                            }
+                                            return 'https://';
+                                        }
+                                        function formatRteLinkUrl(url) {
+                                            url = url.trim();
+                                            if (!url) return '';
+                                            // If it's already mailto:, tel:, http:, or https:, leave it
+                                            if (/^(mailto:|tel:|https?:\/\/)/i.test(url)) {
+                                                return url;
+                                            }
+                                            // Check if email
+                                            if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) {
+                                                return 'mailto:' + url;
+                                            }
+                                            // Check if phone number
+                                            if (/^\+?[0-9\s\-]{8,20}$/.test(url)) {
+                                                return 'tel:' + url.replace(/[\s\-]/g, '');
+                                            }
+                                            // Default to adding https:// if it looks like a domain or www
+                                            if (/^www\./i.test(url)) {
+                                                return 'https://' + url;
+                                            }
+                                            return url;
                                         }
 
                                         function applyCustomFontSize(editor, size) {
@@ -1791,11 +1827,13 @@ ob_start();
                                                     editor.focus();
 
                                                     if (cmd === 'createLink') {
+                                                         var selectedText = window.getSelection().toString().trim();
+                                                         var defaultUrl = getDefaultLinkUrl(selectedText);
                                                         saveSelection(editorId);
                                                         showRteModal('Insert Link', [
-                                                            { id: 'linkUrl', label: 'Link URL', value: 'https://', placeholder: 'e.g. https://example.com' }
+                                                            { id: 'linkUrl', label: 'Link URL', value: defaultUrl, placeholder: 'e.g. https://example.com' }
                                                         ], function(values) {
-                                                            var url = values.linkUrl;
+                                                            var url = formatRteLinkUrl(values.linkUrl);
                                                             if (url) {
                                                                 restoreSelection();
                                                                 document.execCommand('createLink', false, url);
@@ -1967,7 +2005,27 @@ ob_start();
  
                                              // Double click on image to resize and style
                                              var editor = document.getElementById(editorId);
-                                             if (editor) {
+                                              if (editor) {
+                                                  // Keyboard shortcut for link (Ctrl+K)
+                                                  editor.addEventListener('keydown', function(e) {
+                                                      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                                                          e.preventDefault();
+                                                          var selectedText = window.getSelection().toString().trim();
+                                                          var defaultUrl = getDefaultLinkUrl(selectedText);
+                                                          saveSelection(editorId);
+                                                          showRteModal('Insert Link', [
+                                                              { id: 'linkUrl', label: 'Link URL', value: defaultUrl, placeholder: 'e.g. https://example.com' }
+                                                          ], function(values) {
+                                                              var url = formatRteLinkUrl(values.linkUrl);
+                                                              if (url) {
+                                                                  restoreSelection();
+                                                                  document.execCommand('createLink', false, url);
+                                                                  syncTextarea(editorId);
+                                                              }
+                                                          });
+                                                      }
+                                                  });
+
                                                  editor.addEventListener('dblclick', function(e) {
                                                      if (e.target && e.target.tagName === 'IMG') {
                                                          e.preventDefault();
