@@ -314,10 +314,98 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // fallback
     }
 
+    // Helper function to download and localize external images inside rich text content
+    function localizeExternalImages($html) {
+        if (empty($html) || !is_string($html)) return $html;
+        if (strpos($html, 'http') === false) return $html;
+        
+        $downloadedUrls = [];
+        
+        $downloadHelper = function($url) use (&$downloadedUrls) {
+            if (isset($downloadedUrls[$url])) {
+                return $downloadedUrls[$url];
+            }
+            
+            $currentDomain = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            if (strpos($url, $currentDomain) !== false || strpos($url, '/kouprey/') !== false) {
+                return $url;
+            }
+            
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            $data = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+            curl_close($ch);
+            
+            if ($httpCode === 200 && !empty($data)) {
+                $ext = 'png';
+                if (strpos($contentType, 'image/jpeg') !== false || strpos($contentType, 'image/jpg') !== false) {
+                    $ext = 'jpg';
+                } elseif (strpos($contentType, 'image/gif') !== false) {
+                    $ext = 'gif';
+                } elseif (strpos($contentType, 'image/webp') !== false) {
+                    $ext = 'webp';
+                } elseif (strpos($contentType, 'image/svg+xml') !== false || strpos($url, '.svg') !== false) {
+                    $ext = 'svg';
+                } else {
+                    $pathExt = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
+                    if (!empty($pathExt)) {
+                        $ext = strtolower($pathExt);
+                    }
+                }
+                
+                $safeName = 'downloaded-' . uniqid() . '.' . $ext;
+                $uploadDir = '../public/assets/images/products/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                
+                $targetPath = $uploadDir . $safeName;
+                if (file_put_contents($targetPath, $data) !== false) {
+                    if ($ext !== 'svg') {
+                        require_once '../app/Config/image_utils.php';
+                        $settings = getCompressionSettings('product');
+                        compressImage($targetPath, $targetPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                    }
+                    $localUrl = '/kouprey/public/assets/images/products/' . $safeName;
+                    $downloadedUrls[$url] = $localUrl;
+                    return $localUrl;
+                }
+            }
+            
+            return $url;
+        };
+        
+        // 1. Match src/data-src attributes
+        $pattern = '/(src|data-src)=["\'](https?:\/\/[^"\']+)["\']/i';
+        $html = preg_replace_callback($pattern, function($matches) use ($downloadHelper) {
+            $attr = $matches[1];
+            $url = $matches[2];
+            $localUrl = $downloadHelper($url);
+            return $attr . '="' . $localUrl . '"';
+        }, $html);
+        
+        // 2. Match url('...') inside style attributes
+        $stylePattern = '/url\([\'"]?(https?:\/\/[^\'")]+)[\'"]?\)/i';
+        $html = preg_replace_callback($stylePattern, function($matches) use ($downloadHelper) {
+            $url = $matches[1];
+            $localUrl = $downloadHelper($url);
+            return "url('" . $localUrl . "')";
+        }, $html);
+        
+        return $html;
+    }
+
     // Save inputs
     foreach ($_POST as $key => $value) {
         if (in_array($key, ['update_settings', 'language', 'active_tab', 'delete_file_manager', 'upload_file_manager', 'convert_webp_all', 'delete_file_manager_bulk', 'delete_hero_file']) || strpos($key, 'file_manager_replace_') === 0) {
             continue;
+        }
+        
+        if (is_string($value)) {
+            $value = localizeExternalImages($value);
         }
 
         // Check if language specific suffix _en or _km
@@ -1847,11 +1935,14 @@ ob_start();
                                       </style>
                                      <script>
                                     var availableIcons = <?php 
-                                          $pImages = glob('../public/assets/images/products/*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}', GLOB_BRACE) ?: [];
+                                          $pImages = glob('../public/assets/images/products/*.{jpg,jpeg,png,gif,webp,svg,JPG,JPEG,PNG,GIF,WEBP,SVG}', GLOB_BRACE) ?: [];
+                                          $pImages = array_filter($pImages, function($img) {
+                                              return @filesize($img) < 100 * 1024;
+                                          });
                                           $urls = array_map(function($img) {
                                               return '/kouprey/public/assets/images/products/' . basename($img);
                                           }, $pImages);
-                                          echo json_encode($urls);
+                                          echo json_encode(array_values($urls));
                                       ?>;
                                      document.addEventListener('DOMContentLoaded', function() {
                                         // ===== Selection Saving / Restoring =====
