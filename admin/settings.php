@@ -1162,35 +1162,35 @@ ob_start();
                                     <div class="row g-4">
                                         <div class="col-lg-5">
                                             <div class="card border-0 shadow-sm p-4 h-100" style="background: #f8fafc; border-radius: 20px;">
-                                                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-primary me-2"></i>How to browse Flaticon</h5>
-                                                <p class="text-secondary small mb-4">Flaticon has strict security filters (Cloudflare WAF) that may block embedded browsing and show a 403 error. If the embedded clone window is blocked, please use these simple steps instead:</p>
+                                                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-primary me-2"></i>របៀបស្វែងរក និងទាញយក Icon</h5>
+                                                <p class="text-secondary small mb-4">គេហទំព័រ Flaticon មានប្រព័ន្ធការពារសុវត្ថិភាពខ្ពស់ (Cloudflare) ដែលមិនអនុញ្ញាតឱ្យបើកបញ្ជូលក្នុងផ្ទាំង (Embedded iframe) ឡើយ ហេតុនេះវាបង្ហាញកូដ 403។ សូមអនុវត្តតាមជំហានងាយៗខាងក្រោម៖</p>
                                                 
                                                 <div class="d-flex flex-column gap-3 mb-4">
                                                     <div class="d-flex gap-3 align-items-start">
                                                         <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px;">1</span>
                                                         <div>
-                                                            <h6 class="fw-bold mb-1 text-dark">Open Website</h6>
-                                                            <p class="text-muted small mb-0">Click the button below to open Flaticon in a separate secure browser tab.</p>
+                                                            <h6 class="fw-bold mb-1 text-dark">បើកគេហទំព័រ Flaticon</h6>
+                                                            <p class="text-muted small mb-0">ចុចលើប៊ូតុងពណ៌ខៀវខាងក្រោម ដើម្បីបើក Flaticon ក្នុងផ្ទាំងថ្មីមួយដោយសុវត្ថិភាព។</p>
                                                         </div>
                                                     </div>
                                                     <div class="d-flex gap-3 align-items-start">
                                                         <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px;">2</span>
                                                         <div>
-                                                            <h6 class="fw-bold mb-1 text-dark">Right-Click & Copy</h6>
-                                                            <p class="text-muted small mb-0">Search icons, right-click on the icon you like, and select <strong>"Copy image address"</strong> (or "Copy image link").</p>
+                                                            <h6 class="fw-bold mb-1 text-dark">ស្វែងរក និងចម្លង Link (Copy)</h6>
+                                                            <p class="text-muted small mb-0">ស្វែងរក Icon ដែលចង់បាន រួចចុចស្តាំ (Right-Click) លើរូបនោះ ហើយជ្រើសរើស <strong>"Copy image address"</strong> (ឬ Copy image link)។</p>
                                                         </div>
                                                     </div>
                                                     <div class="d-flex gap-3 align-items-start">
                                                         <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px;">3</span>
                                                         <div>
-                                                            <h6 class="fw-bold mb-1 text-dark">Paste URL in Editor</h6>
-                                                            <p class="text-muted small mb-0">Come back here, click the insert image icon in the editor, and paste your link into the Image URL field!</p>
+                                                            <h6 class="fw-bold mb-1 text-dark">យកមកប្រើប្រាស់</h6>
+                                                            <p class="text-muted small mb-0">បិទទំព័រនោះវិញ រួចយក Link មក Paste ចូលក្នុងប្រអប់ Image URL នៃកម្មវិធីនិពន្ធ រួចចុច Apply ជាការស្រេច!</p>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <button type="button" class="btn btn-primary w-100 py-2.5 rounded-pill fw-bold shadow-sm" onclick="window.open('https://www.flaticon.com', 'FlaticonWindow', 'width=1200,height=800,scrollbars=yes')">
-                                                    <i class="bi bi-box-arrow-up-right me-2"></i> Open Flaticon Website
+                                                    <i class="bi bi-box-arrow-up-right me-2"></i> បើកគេហទំព័រ Flaticon
                                                 </button>
                                             </div>
                                         </div>
@@ -2700,27 +2700,27 @@ ob_start();
                 <!-- Left panel: Guide & Direct Link Button -->
                 <div style="width:320px; min-width:320px; background:#f8fafc; border-right:1px solid #e2e8f0; padding:24px; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto;">
                     <div>
-                        <h6 style="margin:0 0 12px 0; font-weight:700; color:#0f172a; font-family:'Inter',sans-serif;"><i class="bi bi-info-circle text-primary me-2"></i>Copy Icon Guide</h6>
-                        <p style="margin:0 0 20px 0; font-size:0.8rem; color:#64748b; line-height:1.4;">If the embedded clone window displays a 403 error due to security filters, click below to open Flaticon securely in a separate tab:</p>
+                        <h6 style="margin:0 0 12px 0; font-weight:700; color:#0f172a; font-family:'Inter',sans-serif;"><i class="bi bi-info-circle text-primary me-2"></i>ណែនាំពីការចម្លង Icon</h6>
+                        <p style="margin:0 0 20px 0; font-size:0.8rem; color:#64748b; line-height:1.4;">ដោយសារ Cloudflare Block ផ្ទាំងបញ្ជូនខាងស្តាំ (403 error) សូមចុចប៊ូតុងខាងក្រោមដើម្បីបើកស្វែងរកដោយផ្ទាល់៖</p>
                         
                         <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
                             <div style="display:flex; gap:10px;">
                                 <span style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:bold; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">1</span>
-                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">Open Flaticon website in a new window.</span>
+                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">ចុចបើកវេបសាយ Flaticon ក្នុងផ្ទាំងថ្មី។</span>
                             </div>
                             <div style="display:flex; gap:10px;">
                                 <span style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:bold; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">2</span>
-                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">Right-click the icon you want and select <strong>"Copy image address"</strong>.</span>
+                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">ចុចស្តាំលើរូប Icon ដែលចង់បាន រួចយក <strong>"Copy image address"</strong>។</span>
                             </div>
                             <div style="display:flex; gap:10px;">
                                 <span style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:bold; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">3</span>
-                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">Close this browser window and paste the link into the Image URL field.</span>
+                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">បិទទំព័រនោះ រួចយក Link មក Paste ក្នុងប្រអប់បញ្ចូលរូបភាព។</span>
                             </div>
                         </div>
                     </div>
                     
                     <button type="button" class="btn btn-primary btn-sm w-100 py-2.5 rounded-pill fw-bold" style="background:#2563eb; border-color:#2563eb; color:#fff;" onclick="window.open('https://www.flaticon.com', 'FlaticonWindow', 'width=1200,height=800,scrollbars=yes')">
-                        <i class="bi bi-box-arrow-up-right me-2"></i> Open in New Window
+                        <i class="bi bi-box-arrow-up-right me-2"></i> បើកក្នុងផ្ទាំងថ្មី (New Window)
                     </button>
                 </div>
                 <!-- Right panel: Embedded Iframe -->
@@ -2742,6 +2742,32 @@ ob_start();
     function closeFlaticonBrowser() {
         document.getElementById('flaticonBrowserModal').style.display = 'none';
     }
+
+    // Auto clipboard-detector when window regains focus
+    window.addEventListener('focus', function() {
+        var modal = document.getElementById('rteModal');
+        if (modal && modal.style.display === 'flex') {
+            var imgUrlInput = document.getElementById('imgUrl');
+            if (imgUrlInput && (!imgUrlInput.value || imgUrlInput.value === 'https://')) {
+                navigator.clipboard.readText().then(function(text) {
+                    text = text.trim();
+                    // Validate if copied content is a URL and is an image or flaticon cdn link
+                    if (text.indexOf('http') === 0 && (text.indexOf('cdn-icons') !== -1 || text.match(/\.(png|jpe?g|gif|svg|webp)/i))) {
+                        imgUrlInput.value = text;
+                        // Flash visual feedback (green)
+                        imgUrlInput.style.borderColor = '#10b981';
+                        imgUrlInput.style.backgroundColor = '#ecfdf5';
+                        setTimeout(function() {
+                            imgUrlInput.style.borderColor = '';
+                            imgUrlInput.style.backgroundColor = '';
+                        }, 1200);
+                    }
+                }).catch(function(e) {
+                    // Ignore clipboard reading errors if permission is denied
+                });
+            }
+        }
+    });
     </script>
 
     <style>
