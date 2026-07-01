@@ -200,6 +200,14 @@ $termsContent = getSetting('terms_of_service', '');
         .prose li { margin-top: 0.1em !important; margin-bottom: 0.1em !important; }
         .prose p { margin-top: 0.4em !important; margin-bottom: 0.4em !important; }
         .prose ul, .prose ol { margin-top: 0.4em !important; margin-bottom: 0.4em !important; }
+        /* Fix: RTE wraps list items in <p> tags — collapse them */
+        .content-section li p,
+        .content-section li div { margin: 0 !important; padding: 0 !important; display: inline; }
+        .content-section li > p:only-child { display: block; margin: 0 !important; }
+        /* Fix: empty <p>/<br> gaps between blocks */
+        .content-section p:empty,
+        .content-section br { line-height: 1; }
+        .content-section div { margin-bottom: 0.3rem; }
 
         .highlight-box {
             background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
