@@ -137,6 +137,15 @@ $termsContent = getSetting('terms_of_service', '');
         .terms-section:hover {
             border-left-color: #059669;
         }
+        .dynamic-terms-section {
+            border-left: 4px solid #10B981;
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s ease;
+        }
+        .dynamic-terms-section:hover {
+            border-left-color: #059669;
+        }
         .terms-section h2 {
             color: #064E3B;
             font-size: 1.5rem;
@@ -290,7 +299,7 @@ $termsContent = getSetting('terms_of_service', '');
 
         <?php if (!empty($termsContent)): ?>
             <!-- Dynamic content from admin settings -->
-            <div class="max-w-none content-section">
+            <div class="max-w-none dynamic-terms-section content-section">
                 <?php echo $termsContent; ?>
             </div>
         <?php else: ?>

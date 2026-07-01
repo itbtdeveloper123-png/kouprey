@@ -137,6 +137,15 @@ $privacyContent = getSetting('privacy_policy', '');
         .policy-section:hover {
             border-left-color: #8B5CF6;
         }
+        .dynamic-policy-section {
+            border-left: 4px solid #3B82F6;
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s ease;
+        }
+        .dynamic-policy-section:hover {
+            border-left-color: #8B5CF6;
+        }
         .policy-section h2 {
             color: #1E3A5F;
             font-size: 1.5rem;
@@ -286,7 +295,7 @@ $privacyContent = getSetting('privacy_policy', '');
 
         <?php if (!empty($privacyContent)): ?>
             <!-- Dynamic content from admin settings -->
-            <div class="max-w-none content-section">
+            <div class="max-w-none dynamic-policy-section content-section">
                 <?php echo $privacyContent; ?>
             </div>
         <?php else: ?>
