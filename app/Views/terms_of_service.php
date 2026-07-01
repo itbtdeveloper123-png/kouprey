@@ -184,31 +184,11 @@ $termsContent = getSetting('terms_of_service', '');
         .content-section h2 { font-size: 1.5rem; color: #064E3B; margin: 1.5rem 0 0.8rem; font-weight: 700; }
         .content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
         .content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
-        .content-section p { color: #4B5563; line-height: 1.65; margin-bottom: 0.5rem; }
-        .content-section ul, .content-section ol { margin: 0.25rem 0 0.5rem 1.5rem; }
-        .content-section li { padding: 0.05rem 0; margin-top: 0 !important; margin-bottom: 0 !important; color: #4B5563; line-height: 1.65; }
-        .content-section img { max-width: 100%; height: auto; border-radius: 8px; margin: 0.75rem 0; }
-        .content-section table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-        .content-section table td, .content-section table th { border: 1px solid #D1D5DB; padding: 8px 12px; }
-        .content-section table th { background: #F3F4F6; font-weight: 600; }
-        .content-section blockquote { border-left: 4px solid #10B981; padding-left: 1rem; margin: 0.75rem 0; color: #6B7280; font-style: italic; }
         .content-section a { color: #10B981; text-decoration: underline; }
-        .content-section strong { font-weight: 700; }
-        .content-section em { font-style: italic; }
-        .content-section .fa, .content-section .fas, .content-section .far, .content-section .fab { margin-right: 0.3rem; }
-        /* Override Tailwind prose large spacing */
-        .prose li { margin-top: 0.1em !important; margin-bottom: 0.1em !important; }
-        .prose p { margin-top: 0.4em !important; margin-bottom: 0.4em !important; }
-        .prose ul, .prose ol { margin-top: 0.4em !important; margin-bottom: 0.4em !important; }
-        /* Fix: RTE wraps list items in <p> tags — collapse them */
-        .content-section li p,
-        .content-section li div { margin: 0 !important; padding: 0 !important; display: inline; }
-        .content-section li > p:only-child { display: block; margin: 0 !important; }
-        /* Fix: empty <p>/<br> gaps between blocks */
-        .content-section p:empty,
-        .content-section br { line-height: 1; }
-        .content-section div { margin-bottom: 0.3rem; }
-
+        .content-section blockquote { border-left: 4px solid #10B981; padding-left: 1rem; margin: 0.75rem 0; color: #6B7280; font-style: italic; }
+    </style>
+    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css">
+    <style>
         .highlight-box {
             background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
             border: 1px solid #A7F3D0;

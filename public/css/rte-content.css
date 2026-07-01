@@ -1,0 +1,82 @@
+/* ============================================================
+   RTE Content Section — Global Shared Styles
+   Used across: features, about, privacy_policy, terms_of_service
+   ============================================================ */
+
+/* Headings */
+.content-section h1 { font-size: 1.8rem; color: #1E3A5F; margin: 1.5rem 0 1rem; font-weight: 700; }
+.content-section h2 { font-size: 1.5rem; color: #1E3A5F; margin: 1.5rem 0 0.8rem; font-weight: 700; }
+.content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
+.content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
+
+/* Paragraphs — compact spacing */
+.content-section p { color: #4B5563; line-height: 1.65; margin-bottom: 0.5rem; }
+
+/* Lists — tight spacing */
+.content-section ul, .content-section ol { margin: 0.25rem 0 0.5rem 1.5rem; }
+.content-section li {
+    padding: 0.05rem 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    color: #4B5563;
+    line-height: 1.65;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
+
+/* Images — stay inline inside list items (icon use case) */
+.content-section li img,
+.content-section li p img {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin: 0 2px !important;
+    border-radius: 2px !important;
+    max-width: none !important;
+}
+
+/* Standalone images (not in li) */
+.content-section img { max-width: 100%; height: auto; border-radius: 8px; margin: 0.75rem 0; }
+.content-section li img { max-width: unset; height: auto; border-radius: 2px; margin: 0; }
+
+/* Tables */
+.content-section table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+.content-section table td, .content-section table th { border: 1px solid #D1D5DB; padding: 8px 12px; }
+.content-section table th { background: #F3F4F6; font-weight: 600; }
+
+/* Blockquote */
+.content-section blockquote { border-left: 4px solid #3B82F6; padding-left: 1rem; margin: 0.75rem 0; color: #6B7280; font-style: italic; }
+
+/* Links & text */
+.content-section a { color: #3B82F6; text-decoration: underline; }
+.content-section strong { font-weight: 700; }
+.content-section em { font-style: italic; }
+.content-section .fa, .content-section .fas, .content-section .far, .content-section .fab { margin-right: 0.3rem; }
+
+/* Fix: p/div inside li — collapse RTE-generated wrappers */
+.content-section li p,
+.content-section li div { margin: 0 !important; padding: 0 !important; display: inline; }
+.content-section li > p:only-child { display: inline; margin: 0 !important; }
+
+/* Fix: empty paragraphs / br gaps */
+.content-section p:empty { display: none; }
+.content-section br { line-height: 1; }
+.content-section > div { margin-bottom: 0.3rem; }
+
+/* ============================================================
+   Override Tailwind prose defaults (large margins)
+   ============================================================ */
+.prose li { margin-top: 0.1em !important; margin-bottom: 0.1em !important; }
+.prose p  { margin-top: 0.4em !important; margin-bottom: 0.4em !important; }
+.prose ul, .prose ol { margin-top: 0.4em !important; margin-bottom: 0.4em !important; }
+/* prose makes img display:block — revert for inline icons */
+.prose :where(img) { display: inline-block !important; }
+.prose :where(li) {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin-top: 0.15em !important;
+    margin-bottom: 0.15em !important;
+}

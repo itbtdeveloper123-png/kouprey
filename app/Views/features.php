@@ -455,19 +455,8 @@ foreach ($rawAssignments as $featureId => $productIds) {
 	.content-section h2 { font-size: 1.5rem; color: #1E3A5F; margin: 1.5rem 0 0.8rem; font-weight: 700; }
 	.content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
 	.content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
-	.content-section p { color: #4B5563; line-height: 1.9; margin-bottom: 1rem; }
-	.content-section ul, .content-section ol { margin: 0.5rem 0 1rem 1.5rem; }
-	.content-section li { padding: 0.25rem 0; color: #4B5563; line-height: 1.8; }
-	.content-section img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
-	.content-section table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-	.content-section table td, .content-section table th { border: 1px solid #D1D5DB; padding: 8px 12px; }
-	.content-section table th { background: #F3F4F6; font-weight: 600; }
-	.content-section blockquote { border-left: 4px solid #3B82F6; padding-left: 1rem; margin: 1rem 0; color: #6B7280; font-style: italic; }
-	.content-section a { color: #3B82F6; text-decoration: underline; }
-	.content-section strong { font-weight: 700; }
-	.content-section em { font-style: italic; }
-	.content-section .fa, .content-section .fas, .content-section .far, .content-section .fab { margin-right: 0.3rem; }
 	</style>
+	<link rel="stylesheet" href="/kouprey/public/css/rte-content.css">
 	<script>
 		function changeLanguage(lang) {
 			// Send POST request to set language
