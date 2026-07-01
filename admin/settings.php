@@ -1601,7 +1601,7 @@ ob_start();
                                                 });
                                             }
 
-                                            // Double click on image to resize
+                                            // Double click on image to resize and style
                                             var editor = document.getElementById(editorId);
                                             if (editor) {
                                                 editor.addEventListener('dblclick', function(e) {
@@ -1612,8 +1612,23 @@ ob_start();
                                                         if (newWidth) {
                                                             e.target.style.width = newWidth;
                                                             e.target.style.height = 'auto';
-                                                            syncTextarea(editorId);
                                                         }
+                                                        
+                                                        var currentFilter = e.target.style.filter || 'none';
+                                                        var filterChoice = prompt('Choose Icon Style/Color:\n0 = Original Color\n1 = White Color\n2 = Black Color\nOr enter custom CSS filter (e.g., invert(1) sepia(1)):', currentFilter === 'brightness(0) invert(1)' ? '1' : (currentFilter === 'brightness(0)' ? '2' : (currentFilter === 'none' ? '0' : currentFilter)));
+                                                        
+                                                        if (filterChoice !== null) {
+                                                            if (filterChoice === '0') {
+                                                                e.target.style.filter = 'none';
+                                                            } else if (filterChoice === '1') {
+                                                                e.target.style.filter = 'brightness(0) invert(1)';
+                                                            } else if (filterChoice === '2') {
+                                                                e.target.style.filter = 'brightness(0)';
+                                                            } else {
+                                                                e.target.style.filter = filterChoice;
+                                                            }
+                                                        }
+                                                        syncTextarea(editorId);
                                                     }
                                                 });
                                             }
