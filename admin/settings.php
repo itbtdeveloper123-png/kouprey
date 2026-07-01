@@ -58,7 +58,8 @@ if (!function_exists('localizeExternalImages')) {
                 
                 $targetPath = $uploadDir . $safeName;
                 if (file_put_contents($targetPath, $data) !== false) {
-                    if ($ext !== 'svg') {
+                    // Only compress if the file is NOT an SVG and is larger than 150KB
+                    if ($ext !== 'svg' && strlen($data) > 150 * 1024) {
                         require_once '../app/Config/image_utils.php';
                         $settings = getCompressionSettings('product');
                         compressImage($targetPath, $targetPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
@@ -319,9 +320,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   $targetFile = $uploadDir . $safeName;
                   
                   if (move_uploaded_file($fileTmps[$i], $targetFile)) {
-                      require_once '../app/Config/image_utils.php';
-                      $settings = getCompressionSettings('product');
-                      compressImage($targetFile, $targetFile, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                      // Only compress if the file is NOT an SVG and is larger than 150KB
+                      if (strtolower($ext) !== 'svg' && filesize($targetFile) > 150 * 1024) {
+                          require_once '../app/Config/image_utils.php';
+                          $settings = getCompressionSettings('product');
+                          compressImage($targetFile, $targetFile, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
+                      }
                       $successCount++;
                   }
              }
