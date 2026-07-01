@@ -12,17 +12,6 @@ require_once __DIR__ . '/database.php';
 function getSetting($key, $default = '', $language = null) {
     global $pdo;
 
-    // Temporary debug dump
-    try {
-        $stmt = $pdo->query("SELECT * FROM settings");
-        $all = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $out = "";
-        foreach ($all as $r) {
-            $out .= "{$r['setting_key']} | {$r['language']} | {$r['setting_value']}\n";
-        }
-        file_put_contents(__DIR__ . '/../../public/settings_dump.txt', $out);
-    } catch (Exception $e) {}
-
     if ($language === null) {
         $language = getCurrentLanguage();
     }
@@ -33,7 +22,13 @@ function getSetting($key, $default = '', $language = null) {
         $result = $stmt->fetch();
 
         if ($result) {
-            return $result['setting_value'];
+            $val = $result['setting_value'];
+            // If requested language is English, but the database value contains Khmer characters,
+            // we treat it as an incorrect translation/fallback and use the default English value.
+            if ($language === 'en' && preg_match('/[\x{1780}-\x{17FF}]/u', $val)) {
+                return $default;
+            }
+            return $val;
         }
 
         // Fallback to English if not found
@@ -41,7 +36,11 @@ function getSetting($key, $default = '', $language = null) {
             $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = 'en'");
             $stmt->execute([$key]);
             $result = $stmt->fetch();
-            return $result ? $result['setting_value'] : $default;
+            if ($result) {
+                $val = $result['setting_value'];
+                return $val;
+            }
+            return $default;
         }
 
         return $default;
