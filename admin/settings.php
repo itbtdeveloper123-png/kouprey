@@ -2663,24 +2663,6 @@ ob_start();
                                                          if (currentHexColor.indexOf('rgb') === 0) {
                                                              var rgbParts = currentHexColor.match(/\d+/g);
                                                              if (rgbParts && rgbParts.length >= 3) {
-                                                                 var r = parseInt(rgbParts[0]).toString(16).padStart(2, '0');
-                                                                 var g = parseInt(rgbParts[1]).toString(16).padStart(2, '0');
-                                                                 var b = parseInt(rgbParts[2]).toString(16).padStart(2, '0');
-                                                                     currentHexColor = '#' + r + g + b;
-                                                             }
-                                                         }
- 
-                                                         showRteModal('Edit Image Icon', [
-                                                             { id: 'editUrl', label: 'Image URL / Link', value: currentUrl, placeholder: 'e.g. https://domain.com/icon.png' },
-                                                             { id: 'editWidth', label: 'Width (e.g. 24px, 50px, 100%)', value: currentWidth },
-                                                             { id: 'editStyle', label: 'Style Preset', type: 'select', value: currentStyleType, options: [
-                                                                 { value: 'original', text: 'Original Color' },
-                                                                 { value: 'custom', text: 'Custom Color (choose below)' }
-                                                             ]},
-                                                             { id: 'editColor', label: 'Custom Color Picker', type: 'color', value: currentHexColor }
-                                                         ], function(values) {
-                                                             var updatedUrl = values.editUrl || '';
-                                                             var editWidth = values.editWidth || '24px';
                                                              var styleChoice = values.editStyle;
                                                                   targetImg.style.webkitMaskRepeat = "no-repeat";
                                                                  targetImg.style.maskRepeat = "no-repeat";
