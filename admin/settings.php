@@ -1499,6 +1499,91 @@ ob_start();
                                     <!-- Custom Rich Text Editor JavaScript -->
                                     <script>
                                     document.addEventListener('DOMContentLoaded', function() {
+                                        // ===== Selection Saving / Restoring =====
+                                        var savedRange = null;
+                                        function saveSelection(editorId) {
+                                            var sel = window.getSelection();
+                                            if (sel.rangeCount > 0) {
+                                                var range = sel.getRangeAt(0);
+                                                var container = range.commonAncestorContainer;
+                                                if (container.nodeType === 3) container = container.parentNode;
+                                                if (container.closest('#' + editorId)) {
+                                                    savedRange = range.cloneRange();
+                                                } else {
+                                                    savedRange = null;
+                                                }
+                                            } else {
+                                                savedRange = null;
+                                            }
+                                        }
+                                        function restoreSelection() {
+                                            if (savedRange) {
+                                                var sel = window.getSelection();
+                                                sel.removeAllRanges();
+                                                sel.addRange(savedRange);
+                                            }
+                                        }
+
+                                        // ===== Custom Modal Dialog Logic =====
+                                        window.closeRteModal = function() {
+                                            document.getElementById('rteModal').style.display = 'none';
+                                        };
+                                        
+                                        window.showRteModal = function(title, fields, onSubmit) {
+                                            var modal = document.getElementById('rteModal');
+                                            var modalTitle = document.getElementById('rteModalTitle');
+                                            var modalBody = document.getElementById('rteModalBody');
+                                            var submitBtn = document.getElementById('rteModalSubmit');
+                                            
+                                            modalTitle.textContent = title;
+                                            modalBody.innerHTML = '';
+                                            
+                                            fields.forEach(function(field) {
+                                                var group = document.createElement('div');
+                                                group.className = 'rte-form-group';
+                                                
+                                                var label = document.createElement('label');
+                                                label.textContent = field.label;
+                                                group.appendChild(label);
+                                                
+                                                if (field.type === 'select') {
+                                                    var select = document.createElement('select');
+                                                    select.className = 'rte-form-control';
+                                                    select.id = field.id;
+                                                    field.options.forEach(function(opt) {
+                                                        var option = document.createElement('option');
+                                                        option.value = opt.value;
+                                                        option.textContent = opt.text;
+                                                        if (opt.value === field.value) option.selected = true;
+                                                        select.appendChild(option);
+                                                    });
+                                                    group.appendChild(select);
+                                                } else {
+                                                    var input = document.createElement('input');
+                                                    input.type = field.type || 'text';
+                                                    input.className = 'rte-form-control';
+                                                    input.id = field.id;
+                                                    input.value = field.value || '';
+                                                    if (field.placeholder) input.placeholder = field.placeholder;
+                                                    group.appendChild(input);
+                                                }
+                                                
+                                                modalBody.appendChild(group);
+                                            });
+                                            
+                                            submitBtn.onclick = function(e) {
+                                                e.preventDefault();
+                                                var values = {};
+                                                fields.forEach(function(field) {
+                                                    values[field.id] = document.getElementById(field.id).value;
+                                                });
+                                                onSubmit(values);
+                                                closeRteModal();
+                                            };
+                                            
+                                            modal.style.display = 'flex';
+                                        };
+
                                         // ===== Toolbar Button Handlers =====
                                         document.querySelectorAll('.rte-toolbar').forEach(function(toolbar) {
                                             var editorId = toolbar.getAttribute('data-editor');
@@ -1511,57 +1596,79 @@ ob_start();
                                                     editor.focus();
 
                                                     if (cmd === 'createLink') {
-                                                        var url = prompt('Enter URL:', 'https://');
-                                                        if (url) document.execCommand('createLink', false, url);
+                                                        saveSelection(editorId);
+                                                        showRteModal('Insert Link', [
+                                                            { id: 'linkUrl', label: 'Link URL', value: 'https://', placeholder: 'e.g. https://example.com' }
+                                                        ], function(values) {
+                                                            var url = values.linkUrl;
+                                                            if (url) {
+                                                                restoreSelection();
+                                                                document.execCommand('createLink', false, url);
+                                                                syncTextarea(editorId);
+                                                            }
+                                                        });
                                                     } else if (cmd === 'hiliteColor') {
                                                         document.execCommand('hiliteColor', false, '#FFF3CD');
                                                     } else if (cmd === 'insertIcon') {
-                                                        var iconClass = prompt('Enter Font Awesome class (e.g. fas fa-coffee):', 'fas fa-');
-                                                        if (iconClass && iconClass !== 'fas fa-') {
-                                                            var sel = window.getSelection();
-                                                            if (sel.rangeCount) {
-                                                                var range = sel.getRangeAt(0);
-                                                                range.deleteContents();
-                                                                var el = document.createElement('i');
-                                                                el.className = iconClass;
-                                                                el.innerHTML = ' ';
-                                                                range.insertNode(el);
-                                                                var space = document.createTextNode(' ');
-                                                                range.insertNode(space);
-                                                                range.setStartAfter(space);
-                                                                range.collapse(true);
-                                                                sel.removeAllRanges();
-                                                                sel.addRange(range);
+                                                        saveSelection(editorId);
+                                                        showRteModal('Insert Font Awesome Icon', [
+                                                            { id: 'iconClass', label: 'Font Awesome Icon Class', value: 'fas fa-coffee', placeholder: 'e.g. fas fa-coffee, fab fa-facebook' }
+                                                        ], function(values) {
+                                                            var iconClass = values.iconClass;
+                                                            if (iconClass) {
+                                                                restoreSelection();
+                                                                var sel = window.getSelection();
+                                                                if (sel.rangeCount) {
+                                                                    var range = sel.getRangeAt(0);
+                                                                    range.deleteContents();
+                                                                    var el = document.createElement('i');
+                                                                    el.className = iconClass;
+                                                                    el.innerHTML = ' ';
+                                                                    range.insertNode(el);
+                                                                    var space = document.createTextNode(' ');
+                                                                    range.insertNode(space);
+                                                                    range.setStartAfter(space);
+                                                                    range.collapse(true);
+                                                                    sel.removeAllRanges();
+                                                                    sel.addRange(range);
+                                                                }
+                                                                syncTextarea(editorId);
                                                             }
-                                                        }
+                                                        });
                                                     } else if (cmd === 'insertImageLink') {
-                                                         var url = prompt('Enter Image URL:', 'https://');
-                                                         if (url) {
-                                                             var width = prompt('Enter Image Width (e.g. 24px, 48px, 100%):', '24px');
-                                                             if (width) {
-                                                                 var sel = window.getSelection();
-                                                                 if (sel.rangeCount) {
-                                                                     var range = sel.getRangeAt(0);
-                                                                     range.deleteContents();
-                                                                     
-                                                                     var el = document.createElement('img');
-                                                                     el.src = url;
-                                                                     el.style.width = width;
-                                                                     el.style.height = 'auto';
-                                                                     el.style.verticalAlign = 'middle';
-                                                                     el.className = 'rte-inserted-img';
-                                                                     range.insertNode(el);
-                                                                     
-                                                                     var space = document.createTextNode(' ');
-                                                                     range.insertNode(space);
-                                                                     
-                                                                     range.setStartAfter(space);
-                                                                     range.collapse(true);
-                                                                     sel.removeAllRanges();
-                                                                     sel.addRange(range);
-                                                                 }
-                                                             }
-                                                         }
+                                                        saveSelection(editorId);
+                                                        showRteModal('Insert Image from URL', [
+                                                            { id: 'imgUrl', label: 'Image URL', value: 'https://', placeholder: 'e.g., https://domain.com/icon.png' },
+                                                            { id: 'imgWidth', label: 'Image Width', value: '24px', placeholder: 'e.g., 24px, 50px, 100%' }
+                                                        ], function(values) {
+                                                            var url = values.imgUrl;
+                                                            var width = values.imgWidth || '24px';
+                                                            if (url) {
+                                                                restoreSelection();
+                                                                var sel = window.getSelection();
+                                                                if (sel.rangeCount) {
+                                                                    var range = sel.getRangeAt(0);
+                                                                    range.deleteContents();
+                                                                    
+                                                                    var el = document.createElement('img');
+                                                                    el.src = url;
+                                                                    el.style.width = width;
+                                                                    el.style.height = 'auto';
+                                                                    el.style.verticalAlign = 'middle';
+                                                                    el.className = 'rte-inserted-img';
+                                                                    range.insertNode(el);
+                                                                    
+                                                                    var space = document.createTextNode(' ');
+                                                                    range.insertNode(space);
+                                                                    
+                                                                    range.setStartAfter(space);
+                                                                    range.collapse(true);
+                                                                    sel.removeAllRanges();
+                                                                    sel.addRange(range);
+                                                                }
+                                                                syncTextarea(editorId);
+                                                            }
+                                                        });
                                                     } else {
                                                         document.execCommand(cmd, false, null);
                                                     }
@@ -1607,28 +1714,38 @@ ob_start();
                                                 editor.addEventListener('dblclick', function(e) {
                                                     if (e.target && e.target.tagName === 'IMG') {
                                                         e.preventDefault();
-                                                        var currentWidth = e.target.style.width || e.target.width || '24px';
-                                                        var newWidth = prompt('Enter new width (e.g., 24px, 50px, 100%):', currentWidth);
-                                                        if (newWidth) {
-                                                            e.target.style.width = newWidth;
-                                                            e.target.style.height = 'auto';
-                                                        }
-                                                        
-                                                        var currentFilter = e.target.style.filter || 'none';
-                                                        var filterChoice = prompt('Choose Icon Style/Color:\n0 = Original Color\n1 = White Color\n2 = Black Color\nOr enter custom CSS filter (e.g., invert(1) sepia(1)):', currentFilter === 'brightness(0) invert(1)' ? '1' : (currentFilter === 'brightness(0)' ? '2' : (currentFilter === 'none' ? '0' : currentFilter)));
-                                                        
-                                                        if (filterChoice !== null) {
-                                                            if (filterChoice === '0') {
-                                                                e.target.style.filter = 'none';
-                                                            } else if (filterChoice === '1') {
-                                                                e.target.style.filter = 'brightness(0) invert(1)';
-                                                            } else if (filterChoice === '2') {
-                                                                e.target.style.filter = 'brightness(0)';
-                                                            } else {
-                                                                e.target.style.filter = filterChoice;
+                                                        var targetImg = e.target;
+                                                        var currentWidth = targetImg.style.width || targetImg.width || '24px';
+                                                        var currentFilter = targetImg.style.filter || 'none';
+                                                        var filterChoiceVal = '0';
+                                                        if (currentFilter === 'brightness(0) invert(1)') filterChoiceVal = '1';
+                                                        else if (currentFilter === 'brightness(0)') filterChoiceVal = '2';
+                                                        else if (currentFilter !== 'none') filterChoiceVal = currentFilter;
+
+                                                        showRteModal('Edit Image Icon', [
+                                                            { id: 'editWidth', label: 'Width (e.g. 24px, 50px, 100%)', value: currentWidth },
+                                                            { id: 'editStyle', label: 'Style / Color Preset', type: 'select', value: filterChoiceVal, options: [
+                                                                { value: '0', text: 'Original Color' },
+                                                                { value: '1', text: 'White Color' },
+                                                                { value: '2', text: 'Black Color' }
+                                                            ]}
+                                                        ], function(values) {
+                                                            if (values.editWidth) {
+                                                                targetImg.style.width = values.editWidth;
+                                                                targetImg.style.height = 'auto';
                                                             }
-                                                        }
-                                                        syncTextarea(editorId);
+                                                            var styleChoice = values.editStyle;
+                                                            if (styleChoice === '0') {
+                                                                targetImg.style.filter = 'none';
+                                                            } else if (styleChoice === '1') {
+                                                                targetImg.style.filter = 'brightness(0) invert(1)';
+                                                            } else if (styleChoice === '2') {
+                                                                targetImg.style.filter = 'brightness(0)';
+                                                            } else {
+                                                                targetImg.style.filter = styleChoice;
+                                                            }
+                                                            syncTextarea(editorId);
+                                                        });
                                                     }
                                                 });
                                             }
@@ -2132,6 +2249,37 @@ ob_start();
         .selectable-image:hover img {
             transform: scale(1.05);
         }
+    </style>
+
+    <!-- Rich Text Editor Custom Modal Overlay -->
+    <div id="rteModal" class="rte-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(15, 23, 42, 0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div class="rte-modal-content" style="background-color:#fff; border-radius:16px; width:90%; max-width:420px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); border:1px solid #e2e8f0; overflow:hidden; animation: rteSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div class="rte-modal-header" style="padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; background-color:#f8fafc;">
+                <h5 id="rteModalTitle" style="margin:0; font-size:1rem; font-weight:700; color:#0f172a; font-family: 'Inter', sans-serif;">Modal Title</h5>
+                <button type="button" onclick="closeRteModal()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#64748b; transition:color 0.15s; padding:0; display:flex; align-items:center; justify-content:center;"><i class="bi bi-x-lg" style="font-size:1.1rem;"></i></button>
+            </div>
+            <!-- Body -->
+            <div id="rteModalBody" style="padding:20px 20px 12px 20px;">
+                <!-- Form fields go here dynamically -->
+            </div>
+            <!-- Footer -->
+            <div class="rte-modal-footer" style="padding:12px 20px; background-color:#f8fafc; border-top:1px solid #f1f5f9; display:flex; justify-content:end; gap:8px;">
+                <button type="button" class="btn btn-light btn-sm px-3 rounded-pill fw-bold" style="border:1px solid #cbd5e1; background-color:#fff; color:#475569;" onclick="closeRteModal()">Cancel</button>
+                <button type="button" id="rteModalSubmit" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" style="background-color:#2563eb; border-color:#2563eb; color:#fff;">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes rteSlideIn {
+        from { transform: scale(0.95) translateY(-10px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .rte-form-group { margin-bottom: 14px; }
+    .rte-form-group label { display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Inter', sans-serif; }
+    .rte-form-control { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; color: #0f172a; outline: none; transition: all 0.15s; background-color:#fff; }
+    .rte-form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
     </style>
 
 <?php
