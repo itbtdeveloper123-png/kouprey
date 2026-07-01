@@ -2666,7 +2666,7 @@ ob_start();
                                                                  var r = parseInt(rgbParts[0]).toString(16).padStart(2, '0');
                                                                  var g = parseInt(rgbParts[1]).toString(16).padStart(2, '0');
                                                                  var b = parseInt(rgbParts[2]).toString(16).padStart(2, '0');
-                                                                 currentHexColor = '#' + r + g + b;
+                                                                     currentHexColor = '#' + r + g + b;
                                                              }
                                                          }
  
@@ -2680,31 +2680,8 @@ ob_start();
                                                              { id: 'editColor', label: 'Custom Color Picker', type: 'color', value: currentHexColor }
                                                          ], function(values) {
                                                              var updatedUrl = values.editUrl || '';
-                                                             
-                                                             if (values.editWidth) {
-                                                                 targetImg.style.width = values.editWidth;
-                                                                 targetImg.style.height = 'auto';
-                                                             }
-                                                             
+                                                             var editWidth = values.editWidth || '24px';
                                                              var styleChoice = values.editStyle;
-                                                             if (styleChoice === 'original') {
-                                                                 targetImg.src = updatedUrl;
-                                                                 targetImg.setAttribute('data-src', updatedUrl);
-                                                                 targetImg.style.backgroundColor = '';
-                                                                 targetImg.style.webkitMaskImage = '';
-                                                                 targetImg.style.maskImage = '';
-                                                                 targetImg.style.webkitMaskSize = '';
-                                                                 targetImg.style.maskSize = '';
-                                                                 targetImg.style.webkitMaskRepeat = '';
-                                                                 targetImg.style.maskRepeat = '';
-                                                              } else {
-                                                                 targetImg.setAttribute('data-src', updatedUrl);
-                                                                  targetImg.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
-                                                                  targetImg.style.backgroundColor = values.editColor || '#ffffff';
-                                                                  targetImg.style.webkitMaskImage = "url('" + updatedUrl + "')";
-                                                                  targetImg.style.maskImage = "url('" + updatedUrl + "')";
-                                                                  targetImg.style.webkitMaskSize = "contain";
-                                                                  targetImg.style.maskSize = "contain";
                                                                   targetImg.style.webkitMaskRepeat = "no-repeat";
                                                                  targetImg.style.maskRepeat = "no-repeat";
                                                                  targetImg.style.display = "inline-block";
