@@ -2663,12 +2663,93 @@ ob_start();
                                                          if (currentHexColor.indexOf('rgb') === 0) {
                                                              var rgbParts = currentHexColor.match(/\d+/g);
                                                              if (rgbParts && rgbParts.length >= 3) {
-                                                             var styleChoice = values.editStyle;
-                                                                  targetImg.style.webkitMaskRepeat = "no-repeat";
-                                                                 targetImg.style.maskRepeat = "no-repeat";
-                                                                 targetImg.style.display = "inline-block";
-                                                                 targetImg.style.verticalAlign = "middle";
+                                                                 var r = parseInt(rgbParts[0]).toString(16).padStart(2, '0');
+                                                                 var g = parseInt(rgbParts[1]).toString(16).padStart(2, '0');
+                                                                 var b = parseInt(rgbParts[2]).toString(16).padStart(2, '0');
+                                                                 currentHexColor = '#' + r + g + b;
                                                              }
+                                                         }
+ 
+                                                         showRteModal('Edit Image Icon', [
+                                                             { id: 'editUrl', label: 'Image URL / Link', value: currentUrl, placeholder: 'e.g. https://domain.com/icon.png' },
+                                                             { id: 'editWidth', label: 'Width (e.g. 24px, 50px, 100%)', value: currentWidth },
+                                                             { id: 'editStyle', label: 'Style Preset', type: 'select', value: currentStyleType, options: [
+                                                                 { value: 'original', text: 'Original Color' },
+                                                                 { value: 'custom', text: 'Custom Color (choose below)' }
+                                                             ]},
+                                                             { id: 'editColor', label: 'Custom Color Picker', type: 'color', value: currentHexColor }
+                                                         ], function(values) {
+                                                             var updatedUrl = values.editUrl || '';
+                                                             var editWidth = values.editWidth || '24px';
+                                                             var styleChoice = values.editStyle;
+                                                             var editColor = values.editColor || '#ffffff';
+                                                             
+                                                             function applyImageUpdates(img) {
+                                                                 if (editWidth) {
+                                                                     img.style.width = editWidth;
+                                                                     img.style.height = 'auto';
+                                                                 }
+                                                                 if (styleChoice === 'original') {
+                                                                     img.src = updatedUrl;
+                                                                     img.setAttribute('data-src', updatedUrl);
+                                                                     img.style.backgroundColor = '';
+                                                                     img.style.webkitMaskImage = '';
+                                                                     img.style.maskImage = '';
+                                                                     img.style.webkitMaskSize = '';
+                                                                     img.style.maskSize = '';
+                                                                     img.style.webkitMaskRepeat = '';
+                                                                     img.style.maskRepeat = '';
+                                                                 } else {
+                                                                     img.setAttribute('data-src', updatedUrl);
+                                                                     img.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
+                                                                     img.style.backgroundColor = editColor;
+                                                                     img.style.webkitMaskImage = "url('" + updatedUrl + "')";
+                                                                     img.style.maskImage = "url('" + updatedUrl + "')";
+                                                                     img.style.webkitMaskSize = "contain";
+                                                                     img.style.maskSize = "contain";
+                                                                     img.style.webkitMaskRepeat = "no-repeat";
+                                                                     img.style.maskRepeat = "no-repeat";
+                                                                     img.style.display = "inline-block";
+                                                                     img.style.verticalAlign = "middle";
+                                                                 }
+                                                             }
+                                                             
+                                                             // Apply to target
+                                                             applyImageUpdates(targetImg);
+                                                             
+                                                             // Sync with twin editor (EN <-> KM)
+                                                             var twinEditorId = null;
+                                                             if (editorId.endsWith('_en_editor')) {
+                                                                 twinEditorId = editorId.replace('_en_editor', '_km_editor');
+                                                             } else if (editorId.endsWith('_km_editor')) {
+                                                                 twinEditorId = editorId.replace('_km_editor', '_en_editor');
+                                                             } else if (editorId.endsWith('_editor_en')) {
+                                                                 twinEditorId = editorId.replace('_editor_en', '_editor_km');
+                                                             } else if (editorId.endsWith('_editor_km')) {
+                                                                 twinEditorId = editorId.replace('_editor_km', '_editor_en');
+                                                             } else if (editorId.endsWith('_en')) {
+                                                                 twinEditorId = editorId.replace('_en', '_km');
+                                                             } else if (editorId.endsWith('_km')) {
+                                                                 twinEditorId = editorId.replace('_km', '_en');
+                                                             }
+                                                             
+                                                             if (twinEditorId) {
+                                                                 var twinEditor = document.getElementById(twinEditorId);
+                                                                 if (twinEditor) {
+                                                                     var twinImgs = twinEditor.getElementsByTagName('img');
+                                                                     for (var i = 0; i < twinImgs.length; i++) {
+                                                                         var tImg = twinImgs[i];
+                                                                         var tUrl = tImg.getAttribute('data-src') || tImg.src || '';
+                                                                         var clean1 = tUrl.replace(/^(https?:\/\/[^\/]+)?/, '');
+                                                                         var clean2 = currentUrl.replace(/^(https?:\/\/[^\/]+)?/, '');
+                                                                         if (clean1 === clean2 && clean2 !== '') {
+                                                                             applyImageUpdates(tImg);
+                                                                         }
+                                                                     }
+                                                                     syncTextarea(twinEditorId);
+                                                                 }
+                                                             }
+                                                             
                                                              syncTextarea(editorId);
                                                          });
                                                       } else {
