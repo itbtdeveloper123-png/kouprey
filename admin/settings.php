@@ -1752,9 +1752,108 @@ ob_start();
                                          border-top-left-radius: 0 !important;
                                          border-top-right-radius: 0 !important;
                                      }
-                                     </style>
+                                      /* Quick Icon Inserter Styles */
+                                      .rte-floating-trigger {
+                                          position: absolute;
+                                          width: 24px;
+                                          height: 24px;
+                                          background: #4f46e5;
+                                          color: #fff;
+                                          border-radius: 50%;
+                                          display: none;
+                                          align-items: center;
+                                          justify-content: center;
+                                          font-size: 11px;
+                                          cursor: pointer;
+                                          z-index: 9999;
+                                          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+                                          transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                                      }
+                                      .rte-floating-trigger:hover {
+                                          transform: scale(1.2) rotate(15deg);
+                                          background: #4338ca;
+                                      }
+                                      .rte-quick-icon-popover {
+                                          position: absolute;
+                                          width: 260px;
+                                          background: rgba(255, 255, 255, 0.95);
+                                          backdrop-filter: blur(15px);
+                                          -webkit-backdrop-filter: blur(15px);
+                                          border: 1px solid rgba(0, 0, 0, 0.08);
+                                          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+                                          border-radius: 12px;
+                                          z-index: 10000;
+                                          display: none;
+                                          flex-direction: column;
+                                          padding: 10px;
+                                          font-family: 'Inter', sans-serif;
+                                      }
+                                      .rte-quick-icon-header {
+                                          font-size: 11px;
+                                          font-weight: 700;
+                                          text-transform: uppercase;
+                                          color: #6b7280;
+                                          margin-bottom: 8px;
+                                          display: flex;
+                                          justify-content: space-between;
+                                          align-items: center;
+                                      }
+                                      .rte-quick-icon-search {
+                                          width: 100%;
+                                          height: 28px;
+                                          padding: 4px 8px;
+                                          font-size: 11px;
+                                          border: 1px solid #dee2e6;
+                                          border-radius: 6px;
+                                          margin-bottom: 8px;
+                                          outline: none;
+                                          background: #fff;
+                                      }
+                                      .rte-quick-icon-search:focus {
+                                          border-color: #4f46e5;
+                                          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+                                      }
+                                      .rte-quick-icon-grid {
+                                          display: grid;
+                                          grid-template-columns: repeat(5, 1fr);
+                                          gap: 6px;
+                                          max-height: 140px;
+                                          overflow-y: auto;
+                                          padding-right: 4px;
+                                      }
+                                      .rte-quick-icon-item {
+                                          width: 38px;
+                                          height: 38px;
+                                          display: flex;
+                                          align-items: center;
+                                          justify-content: center;
+                                          border-radius: 8px;
+                                          border: 1px solid #f1f3f5;
+                                          background: #fff;
+                                          cursor: pointer;
+                                          transition: all 0.2s;
+                                      }
+                                      .rte-quick-icon-item:hover {
+                                          transform: scale(1.15);
+                                          border-color: #4f46e5;
+                                          background: #eff6ff;
+                                          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                                      }
+                                      .rte-quick-icon-item img {
+                                          width: 24px;
+                                          height: 24px;
+                                          object-fit: contain;
+                                      }
+                                      </style>
                                      <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
+                                    var availableIcons = <?php 
+                                          $pImages = glob('../public/assets/images/products/*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}', GLOB_BRACE) ?: [];
+                                          $urls = array_map(function($img) {
+                                              return '/kouprey/public/assets/images/products/' . basename($img);
+                                          }, $pImages);
+                                          echo json_encode($urls);
+                                      ?>;
+                                     document.addEventListener('DOMContentLoaded', function() {
                                         // ===== Selection Saving / Restoring =====
                                         var savedRange = null;
                                         function saveSelection(editorId) {
@@ -2431,6 +2530,7 @@ ob_start();
                                                          e.preventDefault();
                                                          var targetImg = e.target;
                                                          var currentWidth = targetImg.style.width || targetImg.width || '24px';
+                                                         var currentUrl = targetImg.getAttribute('data-src') || targetImg.src || '';
                                                          
                                                          // Check if masked
                                                          var isMasked = targetImg.style.maskImage || targetImg.style.webkitMaskImage;
@@ -2448,6 +2548,7 @@ ob_start();
                                                          }
  
                                                          showRteModal('Edit Image Icon', [
+                                                             { id: 'editUrl', label: 'Image URL / Link', value: currentUrl, placeholder: 'e.g. https://domain.com/icon.png' },
                                                              { id: 'editWidth', label: 'Width (e.g. 24px, 50px, 100%)', value: currentWidth },
                                                              { id: 'editStyle', label: 'Style Preset', type: 'select', value: currentStyleType, options: [
                                                                  { value: 'original', text: 'Original Color' },
@@ -2455,6 +2556,8 @@ ob_start();
                                                              ]},
                                                              { id: 'editColor', label: 'Custom Color Picker', type: 'color', value: currentHexColor }
                                                          ], function(values) {
+                                                             var updatedUrl = values.editUrl || '';
+                                                             
                                                              if (values.editWidth) {
                                                                  targetImg.style.width = values.editWidth;
                                                                  targetImg.style.height = 'auto';
@@ -2462,10 +2565,8 @@ ob_start();
                                                              
                                                              var styleChoice = values.editStyle;
                                                              if (styleChoice === 'original') {
-                                                                 var originalSrc = targetImg.getAttribute('data-src');
-                                                                 if (originalSrc) {
-                                                                     targetImg.src = originalSrc;
-                                                                 }
+                                                                 targetImg.src = updatedUrl;
+                                                                 targetImg.setAttribute('data-src', updatedUrl);
                                                                  targetImg.style.backgroundColor = '';
                                                                  targetImg.style.webkitMaskImage = '';
                                                                  targetImg.style.maskImage = '';
@@ -2474,20 +2575,14 @@ ob_start();
                                                                  targetImg.style.webkitMaskRepeat = '';
                                                                  targetImg.style.maskRepeat = '';
                                                               } else {
-                                                                  var currentSrc = targetImg.getAttribute('data-src') || targetImg.src;
-                                                                  if (currentSrc && currentSrc.indexOf('data:image') !== 0) {
-                                                                      targetImg.setAttribute('data-src', currentSrc);
-                                                                  }
-                                                                 
-                                                                 var originalSrc = targetImg.getAttribute('data-src');
-                                                                 
-                                                                 targetImg.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
-                                                                 targetImg.style.backgroundColor = values.editColor || '#ffffff';
-                                                                 targetImg.style.webkitMaskImage = "url('" + originalSrc + "')";
-                                                                 targetImg.style.maskImage = "url('" + originalSrc + "')";
-                                                                 targetImg.style.webkitMaskSize = "contain";
-                                                                 targetImg.style.maskSize = "contain";
-                                                                 targetImg.style.webkitMaskRepeat = "no-repeat";
+                                                                 targetImg.setAttribute('data-src', updatedUrl);
+                                                                  targetImg.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
+                                                                  targetImg.style.backgroundColor = values.editColor || '#ffffff';
+                                                                  targetImg.style.webkitMaskImage = "url('" + updatedUrl + "')";
+                                                                  targetImg.style.maskImage = "url('" + updatedUrl + "')";
+                                                                  targetImg.style.webkitMaskSize = "contain";
+                                                                  targetImg.style.maskSize = "contain";
+                                                                  targetImg.style.webkitMaskRepeat = "no-repeat";
                                                                  targetImg.style.maskRepeat = "no-repeat";
                                                                  targetImg.style.display = "inline-block";
                                                                  targetImg.style.verticalAlign = "middle";
@@ -2813,6 +2908,185 @@ ob_start();
 
                                             previewFrame.srcdoc = previewHTML;
                                         }
+
+                                         // ===== Floating Quick Icon Inserter Popover =====
+                                         var activeEditor = null;
+                                         var floatingTrigger = document.createElement('div');
+                                         floatingTrigger.id = 'rteFloatingTrigger';
+                                         floatingTrigger.className = 'rte-floating-trigger';
+                                         floatingTrigger.title = 'Quick Icon Inserter';
+                                         floatingTrigger.innerHTML = '<i class="fas fa-image"></i>';
+                                         document.body.appendChild(floatingTrigger);
+
+                                         var quickIconPopover = document.createElement('div');
+                                         quickIconPopover.id = 'rteQuickIconPopover';
+                                         quickIconPopover.className = 'rte-quick-icon-popover';
+                                         quickIconPopover.innerHTML = 
+                                             '<div class="rte-quick-icon-header">' +
+                                             '    <span>Quick Icons</span>' +
+                                             '    <i class="fas fa-times" style="cursor:pointer;" onclick="document.getElementById(\'rteQuickIconPopover\').style.display=\'none\'"></i>' +
+                                             '</div>' +
+                                             '<input type="text" class="rte-quick-icon-search" placeholder="Search icons...">' +
+                                             '<div class="rte-quick-icon-grid"></div>';
+                                         document.body.appendChild(quickIconPopover);
+
+                                         var searchInput = quickIconPopover.querySelector('.rte-quick-icon-search');
+                                         var iconGrid = quickIconPopover.querySelector('.rte-quick-icon-grid');
+
+                                         function renderGrid(filterText) {
+                                             iconGrid.innerHTML = '';
+                                             var icons = availableIcons || [];
+                                             var count = 0;
+                                             icons.forEach(function(url) {
+                                                 var filename = url.substring(url.lastIndexOf('/') + 1).toLowerCase();
+                                                 if (!filterText || filename.indexOf(filterText.toLowerCase()) !== -1) {
+                                                     var item = document.createElement('div');
+                                                     item.className = 'rte-quick-icon-item';
+                                                     item.title = filename;
+                                                     item.innerHTML = '<img src="' + url + '">';
+                                                     item.addEventListener('click', function(e) {
+                                                         e.preventDefault();
+                                                         e.stopPropagation();
+                                                         insertQuickIcon(url);
+                                                     });
+                                                     iconGrid.appendChild(item);
+                                                     count++;
+                                                 }
+                                             });
+                                             if (count === 0) {
+                                                 iconGrid.innerHTML = '<div style="grid-column: span 5; font-size:10px; color:#9ca3af; text-align:center; padding:10px;">No icons</div>';
+                                             }
+                                         }
+
+                                         searchInput.addEventListener('input', function() {
+                                             renderGrid(this.value);
+                                         });
+
+                                         function insertQuickIcon(url) {
+                                             if (!activeEditor) return;
+                                             restoreSelection();
+                                             var sel = window.getSelection();
+                                             if (sel.rangeCount) {
+                                                 var range = sel.getRangeAt(0);
+                                                 range.deleteContents();
+                                                 
+                                                 var img = document.createElement('img');
+                                                 img.src = url;
+                                                 img.style.width = '24px';
+                                                 img.style.height = 'auto';
+                                                 img.style.verticalAlign = 'middle';
+                                                 img.style.display = 'inline-block';
+                                                 img.className = 'rte-inserted-img';
+                                                 
+                                                 range.insertNode(img);
+                                                 
+                                                 var space = document.createTextNode(' ');
+                                                 img.parentNode.insertBefore(space, img.nextSibling);
+                                                 
+                                                 var newRange = document.createRange();
+                                                 newRange.setStartAfter(space);
+                                                 newRange.collapse(true);
+                                                 sel.removeAllRanges();
+                                                 sel.addRange(newRange);
+                                             }
+                                             syncTextarea(activeEditor.id);
+                                             quickIconPopover.style.display = 'none';
+                                             floatingTrigger.style.display = 'none';
+                                         }
+
+                                         floatingTrigger.addEventListener('click', function(e) {
+                                             e.preventDefault();
+                                             e.stopPropagation();
+                                             
+                                             var rect = floatingTrigger.getBoundingClientRect();
+                                             var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                             var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                             
+                                             quickIconPopover.style.top = (rect.bottom + scrollTop + 4) + 'px';
+                                             quickIconPopover.style.left = (rect.left + scrollLeft - 120) + 'px';
+                                             quickIconPopover.style.display = 'flex';
+                                             
+                                             searchInput.value = '';
+                                             renderGrid('');
+                                             searchInput.focus();
+                                         });
+
+                                         function handleSelectionChange() {
+                                             var sel = window.getSelection();
+                                             if (!sel.rangeCount) {
+                                                 hideTrigger();
+                                                 return;
+                                             }
+                                             
+                                             var node = sel.anchorNode;
+                                             var editor = null;
+                                             while (node) {
+                                                 if (node.nodeType === 1 && node.classList.contains('rte-editor')) {
+                                                     editor = node;
+                                                     break;
+                                                 }
+                                                 node = node.parentNode;
+                                             }
+                                             
+                                             if (!editor) {
+                                                 hideTrigger();
+                                                 return;
+                                             }
+                                             
+                                             activeEditor = editor;
+                                             saveSelection(editor.id);
+                                             
+                                             var range = sel.getRangeAt(0);
+                                             var rects = range.getClientRects();
+                                             var rect = rects.length > 0 ? rects[0] : null;
+                                             
+                                             if (!rect) {
+                                                 var parent = range.startContainer;
+                                                 if (parent.nodeType === 3) parent = parent.parentNode;
+                                                 if (parent && parent !== editor) {
+                                                     rect = parent.getBoundingClientRect();
+                                                 }
+                                             }
+                                             
+                                             if (rect && rect.top > 0) {
+                                                 var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                                 var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                                 
+                                                 floatingTrigger.style.top = (rect.top + scrollTop - 26) + 'px';
+                                                 floatingTrigger.style.left = (rect.left + scrollLeft + (rect.width / 2) - 12) + 'px';
+                                                 
+                                                 if (quickIconPopover.style.display !== 'flex') {
+                                                     floatingTrigger.style.display = 'flex';
+                                                 }
+                                             } else {
+                                                 hideTrigger();
+                                             }
+                                         }
+
+                                         function hideTrigger() {
+                                             setTimeout(function() {
+                                                 var activeEl = document.activeElement;
+                                                 if (activeEl === searchInput || quickIconPopover.style.display === 'flex') {
+                                                     return;
+                                                 }
+                                                 floatingTrigger.style.display = 'none';
+                                             }, 200);
+                                         }
+
+                                         document.addEventListener('selectionchange', function() {
+                                             handleSelectionChange();
+                                         });
+
+                                         document.addEventListener('mousedown', function(e) {
+                                             if (!quickIconPopover.contains(e.target) && e.target !== floatingTrigger && !floatingTrigger.contains(e.target)) {
+                                                 quickIconPopover.style.display = 'none';
+                                             }
+                                         });
+                                                
+                                                
+
+                                            
+                                        
 
                                         // Preview button handlers
                                         document.querySelectorAll('.preview-btn').forEach(function(btn) {
