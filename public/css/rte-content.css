@@ -117,3 +117,21 @@
     margin-top: 0.15em !important;
     margin-bottom: 0.15em !important;
 }
+
+/* ============================================================
+   Text Box Styles
+   ============================================================ */
+.content-section .rte-textbox,
+.rte-textbox {
+    box-sizing: border-box !important;
+    border-radius: 8px;
+}
+.content-section .rte-textbox p,
+.rte-textbox p {
+    margin-top: 0 !important;
+    margin-bottom: 0.4rem !important;
+}
+.content-section .rte-textbox p:last-child,
+.rte-textbox p:last-child {
+    margin-bottom: 0 !important;
+}

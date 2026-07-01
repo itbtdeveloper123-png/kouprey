@@ -1109,7 +1109,7 @@ ob_start();
                                                             usort($productImages, function($a, $b) {
                                                                 return filemtime($b) - filemtime($a);
                                                             });
-                                                            
+
                                                             foreach ($productImages as $img):
                                                                 $basename = basename($img);
                                                                 $url = '/kouprey/public/assets/images/products/' . $basename;
@@ -1507,6 +1507,7 @@ ob_start();
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
+                                                                    <button type="button" data-cmd="insertTextBox" title="Insert Text Box"><i class="fas fa-border-style"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
                                                                 </div>
@@ -1561,6 +1562,7 @@ ob_start();
                                                                     <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
+                                                                    <button type="button" data-cmd="insertTextBox" title="Insert Text Box"><i class="fas fa-border-style"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
                                                                 </div>
@@ -2256,6 +2258,71 @@ ob_start();
                                                                  syncTextarea(editorId);
                                                              }
                                                          });
+                                                     } else if (cmd === 'insertTextBox') {
+                                                         saveSelection(editorId);
+                                                         showRteModal('Insert Text Box', [
+                                                             { id: 'tbWidth', label: 'Width (e.g., 100%, 300px, 50%)', value: '100%' },
+                                                             { id: 'tbAlign', label: 'Alignment', type: 'select', value: 'full', options: [
+                                                                 { value: 'full', text: 'Full Width (100%)' },
+                                                                 { value: 'left', text: 'Float Left' },
+                                                                 { value: 'center', text: 'Center' },
+                                                                 { value: 'right', text: 'Float Right' }
+                                                             ]},
+                                                             { id: 'tbBorderStyle', label: 'Border Style', type: 'select', value: 'solid', options: [
+                                                                 { value: 'solid', text: 'Solid' },
+                                                                 { value: 'dashed', text: 'Dashed' },
+                                                                 { value: 'dotted', text: 'Dotted' },
+                                                                 { value: 'double', text: 'Double' },
+                                                                 { value: 'none', text: 'None' }
+                                                             ]},
+                                                             { id: 'tbBorderWidth', label: 'Border Width', value: '2px' },
+                                                             { id: 'tbBorderColor', label: 'Border Color', type: 'color', value: '#3b82f6' },
+                                                             { id: 'tbBgColor', label: 'Background Color', type: 'color', value: '#f8fafc' },
+                                                             { id: 'tbPadding', label: 'Padding', value: '12px' }
+                                                         ], function(values) {
+                                                             restoreSelection();
+                                                             var sel = window.getSelection();
+                                                             if (sel.rangeCount) {
+                                                                 var range = sel.getRangeAt(0);
+                                                                 range.deleteContents();
+                                                                 
+                                                                 var tb = document.createElement('div');
+                                                                 tb.className = 'rte-textbox';
+                                                                 
+                                                                 var align = values.tbAlign;
+                                                                 var width = values.tbWidth || '100%';
+                                                                 var styleStr = 'border: ' + values.tbBorderWidth + ' ' + values.tbBorderStyle + ' ' + values.tbBorderColor + '; ';
+                                                                 styleStr += 'background-color: ' + values.tbBgColor + '; ';
+                                                                 styleStr += 'padding: ' + values.tbPadding + '; ';
+                                                                 styleStr += 'border-radius: 8px; ';
+                                                                 
+                                                                 if (align === 'full') {
+                                                                     styleStr += 'width: 100%; display: block; clear: both; margin: 12px 0;';
+                                                                 } else if (align === 'left') {
+                                                                     styleStr += 'width: ' + (width === '100%' ? '300px' : width) + '; float: left; margin: 8px 16px 8px 0; clear: left;';
+                                                                 } else if (align === 'center') {
+                                                                     styleStr += 'width: ' + (width === '100%' ? '350px' : width) + '; margin: 12px auto; display: block;';
+                                                                 } else if (align === 'right') {
+                                                                     styleStr += 'width: ' + (width === '100%' ? '300px' : width) + '; float: right; margin: 8px 0 8px 16px; clear: right;';
+                                                                 }
+                                                                 
+                                                                 tb.setAttribute('style', styleStr);
+                                                                 tb.innerHTML = '<p>Type text box content here...</p>';
+                                                                 
+                                                                 range.insertNode(tb);
+                                                                 
+                                                                 if (align !== 'full') {
+                                                                     var emptyP = document.createElement('p');
+                                                                     emptyP.innerHTML = '<br>';
+                                                                     tb.parentNode.insertBefore(emptyP, tb.nextSibling);
+                                                                 }
+                                                                 
+                                                                 syncTextarea(editorId);
+                                                                 if (typeof syncRulerMarkers === 'function') {
+                                                                     syncRulerMarkers(editor);
+                                                                 }
+                                                             }
+                                                         });
                                                      } else {
                                                          document.execCommand(cmd, false, null);
                                                      }
@@ -2406,12 +2473,12 @@ ob_start();
                                                                  targetImg.style.maskSize = '';
                                                                  targetImg.style.webkitMaskRepeat = '';
                                                                  targetImg.style.maskRepeat = '';
-                                                             } else {
-                                                                 var currentSrc = targetImg.getAttribute('data-src') || targetImg.src;
-                                                                 // Do not save the blank SVG data URL as original src
-                                                                 if (currentSrc && currentSrc.indexOf('data:image') !== 0) {
-                                                                     targetImg.setAttribute('data-src', currentSrc);
-                                                                 }
+                                                              } else {
+                                                                  var currentSrc = targetImg.getAttribute('data-src') || targetImg.src;
+                                                                  if (currentSrc && currentSrc.indexOf('data:image') !== 0) {
+                                                                      targetImg.setAttribute('data-src', currentSrc);
+                                                                  }
+                                                                 
                                                                  var originalSrc = targetImg.getAttribute('data-src');
                                                                  
                                                                  targetImg.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
@@ -2427,6 +2494,85 @@ ob_start();
                                                              }
                                                              syncTextarea(editorId);
                                                          });
+                                                      } else {
+                                                          var targetTb = e.target.closest('.rte-textbox');
+                                                          if (targetTb) {
+                                                              e.preventDefault();
+                                                              
+                                                              var computedStyle = window.getComputedStyle(targetTb);
+                                                              var currentBorderColor = targetTb.style.borderColor || computedStyle.borderColor || '#3b82f6';
+                                                              var currentBgColor = targetTb.style.backgroundColor || computedStyle.backgroundColor || '#f8fafc';
+                                                              var currentPadding = targetTb.style.padding || computedStyle.padding || '12px';
+                                                              var currentWidth = targetTb.style.width || computedStyle.width || '100%';
+                                                              var currentBorderWidth = targetTb.style.borderWidth || computedStyle.borderWidth || '2px';
+                                                              var currentBorderStyle = targetTb.style.borderStyle || computedStyle.borderStyle || 'solid';
+                                                              
+                                                              function rgbToHex(rgb) {
+                                                                  if (!rgb || rgb.indexOf('rgb') !== 0) return rgb;
+                                                                  var parts = rgb.match(/\d+/g);
+                                                                  if (parts && parts.length >= 3) {
+                                                                      var r = parseInt(parts[0]).toString(16).padStart(2, '0');
+                                                                      var g = parseInt(parts[1]).toString(16).padStart(2, '0');
+                                                                      var b = parseInt(parts[2]).toString(16).padStart(2, '0');
+                                                                      return '#' + r + g + b;
+                                                                  }
+                                                                  return rgb;
+                                                              }
+                                                              
+                                                              currentBorderColor = rgbToHex(currentBorderColor);
+                                                              currentBgColor = rgbToHex(currentBgColor);
+                                                              
+                                                              var currentAlign = 'full';
+                                                              var styleAttr = targetTb.getAttribute('style') || '';
+                                                              if (styleAttr.indexOf('float: left') !== -1 || styleAttr.indexOf('float:left') !== -1) {
+                                                                  currentAlign = 'left';
+                                                              } else if (styleAttr.indexOf('margin: 12px auto') !== -1 || styleAttr.indexOf('margin:12px auto') !== -1) {
+                                                                  currentAlign = 'center';
+                                                              } else if (styleAttr.indexOf('float: right') !== -1 || styleAttr.indexOf('float:right') !== -1) {
+                                                                  currentAlign = 'right';
+                                                              }
+                                                              
+                                                              showRteModal('Edit Text Box', [
+                                                                  { id: 'editTbWidth', label: 'Width (e.g., 100%, 300px, 50%)', value: currentWidth },
+                                                                  { id: 'editTbAlign', label: 'Alignment', type: 'select', value: currentAlign, options: [
+                                                                      { value: 'full', text: 'Full Width (100%)' },
+                                                                      { value: 'left', text: 'Float Left' },
+                                                                      { value: 'center', text: 'Center' },
+                                                                      { value: 'right', text: 'Float Right' }
+                                                                  ]},
+                                                                  { id: 'editTbBorderStyle', label: 'Border Style', type: 'select', value: currentBorderStyle, options: [
+                                                                      { value: 'solid', text: 'Solid' },
+                                                                      { value: 'dashed', text: 'Dashed' },
+                                                                      { value: 'dotted', text: 'Dotted' },
+                                                                      { value: 'double', text: 'Double' },
+                                                                      { value: 'none', text: 'None' }
+                                                                  ]},
+                                                                  { id: 'editTbBorderWidth', label: 'Border Width', value: currentBorderWidth },
+                                                                  { id: 'editTbBorderColor', label: 'Border Color', type: 'color', value: currentBorderColor },
+                                                                  { id: 'editTbBgColor', label: 'Background Color', type: 'color', value: currentBgColor },
+                                                                  { id: 'editTbPadding', label: 'Padding', value: currentPadding }
+                                                              ], function(values) {
+                                                                  var align = values.editTbAlign;
+                                                                  var width = values.editTbWidth || '100%';
+                                                                  var styleStr = 'border: ' + values.editTbBorderWidth + ' ' + values.editTbBorderStyle + ' ' + values.editTbBorderColor + '; ';
+                                                                  styleStr += 'background-color: ' + values.editTbBgColor + '; ';
+                                                                  styleStr += 'padding: ' + values.editTbPadding + '; ';
+                                                                  styleStr += 'border-radius: 8px; ';
+                                                                  
+                                                                  if (align === 'full') {
+                                                                      styleStr += 'width: 100%; display: block; clear: both; margin: 12px 0;';
+                                                                  } else if (align === 'left') {
+                                                                      styleStr += 'width: ' + (width === '100%' ? '300px' : width) + '; float: left; margin: 8px 16px 8px 0; clear: left;';
+                                                                  } else if (align === 'center') {
+                                                                      styleStr += 'width: ' + (width === '100%' ? '350px' : width) + '; margin: 12px auto; display: block;';
+                                                                  } else if (align === 'right') {
+                                                                      styleStr += 'width: ' + (width === '100%' ? '300px' : width) + '; float: right; margin: 8px 0 8px 16px; clear: right;';
+                                                                  }
+                                                                  
+                                                                  targetTb.setAttribute('style', styleStr);
+                                                                  syncTextarea(editorId);
+                                                              });
+                                                          }
                                                      }
                                                  });
                                              }
