@@ -1864,8 +1864,11 @@ ob_start();
                                         }
 
                                         function adjustEditorBackground(editor) {
-                                            // Skip if it's the social banner editor (which is styled dark by design)
+                                            // For the social media banner, it is always dark by design
                                             if (editor.id === 'social_banner_editor_en' || editor.id === 'social_banner_editor_km') {
+                                                editor.style.setProperty('background-color', '#111827', 'important');
+                                                editor.style.setProperty('background', '#111827', 'important');
+                                                editor.style.setProperty('color', '#ffffff', 'important');
                                                 return;
                                             }
                                             
@@ -1906,11 +1909,13 @@ ob_start();
                                             }
                                             
                                             if (hasLightColor) {
-                                                editor.style.backgroundColor = '#111827';
-                                                editor.style.color = '#ffffff';
+                                                editor.style.setProperty('background-color', '#111827', 'important');
+                                                editor.style.setProperty('background', '#111827', 'important');
+                                                editor.style.setProperty('color', '#ffffff', 'important');
                                             } else {
-                                                editor.style.backgroundColor = '#ffffff';
-                                                editor.style.color = '#333333';
+                                                editor.style.setProperty('background-color', '#ffffff', 'important');
+                                                editor.style.setProperty('background', '#ffffff', 'important');
+                                                editor.style.setProperty('color', '#333333', 'important');
                                             }
                                         }
 
