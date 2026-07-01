@@ -496,7 +496,7 @@ $termsContent = getSetting('terms_of_service', '');
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold mb-4 text-white"><?php echo htmlspecialchars(getSetting('footer_connect_with_us', 'Connect With Us')); ?></h3>
+                    <h3 class="text-lg font-semibold mb-4 text-white"><?php echo getSetting('social_banner_text', 'Connect With Us'); ?></h3>
                     <div class="flex space-x-4 mb-6">
                         <?php if (getSetting('enable_social_links', '1') === '1'): ?>
                             <?php if (getSetting('social_facebook')): ?><a href="<?php echo htmlspecialchars(getSetting('social_facebook')); ?>" target="_blank" class="text-gray-300 hover:text-blue-400 transition-colors"><i class="fab fa-facebook-f text-xl"></i></a><?php endif; ?>
