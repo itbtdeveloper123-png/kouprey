@@ -1155,20 +1155,58 @@ ob_start();
                                     </div>
 
                                 <?php elseif ($category === 'flaticon'): ?>
-                                    <!-- Flaticon Web Browser Clone -->
-                                    <div style="height: 650px; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; background: #fff; display: flex; flex-direction: column;">
-                                        <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="badge bg-primary"><i class="bi bi-globe"></i> Web Browser Clone</span>
-                                                <small class="text-muted">Enter any link or browse Flaticon.com below</small>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2" style="width: 60%;">
-                                                <input type="text" id="browserUrlInput" class="form-control form-control-sm" value="https://www.flaticon.com/" placeholder="Enter URL e.g. https://www.flaticon.com/">
-                                                <button type="button" class="btn btn-primary btn-sm px-3" onclick="navigateBrowser()"><i class="bi bi-arrow-right"></i> Go</button>
+                                    <!-- Flaticon Web Browser Clone with Fallback -->
+                                    <div class="row g-4">
+                                        <div class="col-lg-5">
+                                            <div class="card border-0 shadow-sm p-4 h-100" style="background: #f8fafc; border-radius: 20px;">
+                                                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-primary me-2"></i>How to browse Flaticon</h5>
+                                                <p class="text-secondary small mb-4">Flaticon has strict security filters (Cloudflare WAF) that may block embedded browsing and show a 403 error. If the embedded clone window is blocked, please use these simple steps instead:</p>
+                                                
+                                                <div class="d-flex flex-column gap-3 mb-4">
+                                                    <div class="d-flex gap-3 align-items-start">
+                                                        <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px;">1</span>
+                                                        <div>
+                                                            <h6 class="fw-bold mb-1 text-dark">Open Website</h6>
+                                                            <p class="text-muted small mb-0">Click the button below to open Flaticon in a separate secure browser tab.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-3 align-items-start">
+                                                        <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px;">2</span>
+                                                        <div>
+                                                            <h6 class="fw-bold mb-1 text-dark">Right-Click & Copy</h6>
+                                                            <p class="text-muted small mb-0">Search icons, right-click on the icon you like, and select <strong>"Copy image address"</strong> (or "Copy image link").</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-3 align-items-start">
+                                                        <span class="badge bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; min-width: 24px;">3</span>
+                                                        <div>
+                                                            <h6 class="fw-bold mb-1 text-dark">Paste URL in Editor</h6>
+                                                            <p class="text-muted small mb-0">Come back here, click the insert image icon in the editor, and paste your link into the Image URL field!</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <button type="button" class="btn btn-primary w-100 py-2.5 rounded-pill fw-bold shadow-sm" onclick="window.open('https://www.flaticon.com', 'FlaticonWindow', 'width=1200,height=800,scrollbars=yes')">
+                                                    <i class="bi bi-box-arrow-up-right me-2"></i> Open Flaticon Website
+                                                </button>
                                             </div>
                                         </div>
-                                        <div style="flex: 1; position: relative; background: #fff;">
-                                            <iframe id="settingsBrowserFrame" src="flaticon_browser.php?url=https%3A%2F%2Fwww.flaticon.com%2F" style="width: 100%; height: 100%; border: none;"></iframe>
+                                        
+                                        <div class="col-lg-7">
+                                            <div style="height: 550px; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; background: #fff; display: flex; flex-direction: column;">
+                                                <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-primary"><i class="bi bi-globe"></i> Embedded Clone</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-2" style="width: 65%;">
+                                                        <input type="text" id="browserUrlInput" class="form-control form-control-sm" value="https://www.flaticon.com/" placeholder="Enter URL...">
+                                                        <button type="button" class="btn btn-primary btn-sm px-3" onclick="navigateBrowser()"><i class="bi bi-arrow-right"></i> Go</button>
+                                                    </div>
+                                                </div>
+                                                <div style="flex: 1; position: relative; background: #fff;">
+                                                    <iframe id="settingsBrowserFrame" src="flaticon_browser.php?url=https%3A%2F%2Fwww.flaticon.com%2F" style="width: 100%; height: 100%; border: none;"></iframe>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <script>
@@ -2608,9 +2646,38 @@ ob_start();
                     <button type="button" onclick="closeFlaticonBrowser()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#64748b; transition:color 0.15s; padding:0; display:flex; align-items:center; justify-content:center;"><i class="bi bi-x-lg" style="font-size:1.2rem;"></i></button>
                 </div>
             </div>
-            <!-- Body (Iframe) -->
-            <div style="flex:1; position:relative; background:#fff;">
-                <iframe id="modalBrowserIframe" src="" style="width:100%; height:100%; border:none;"></iframe>
+            <!-- Body (Split Screen / Fallback Guide) -->
+            <div style="flex:1; display:flex; background:#fff; height:calc(100% - 60px);">
+                <!-- Left panel: Guide & Direct Link Button -->
+                <div style="width:320px; min-width:320px; background:#f8fafc; border-right:1px solid #e2e8f0; padding:24px; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto;">
+                    <div>
+                        <h6 style="margin:0 0 12px 0; font-weight:700; color:#0f172a; font-family:'Inter',sans-serif;"><i class="bi bi-info-circle text-primary me-2"></i>Copy Icon Guide</h6>
+                        <p style="margin:0 0 20px 0; font-size:0.8rem; color:#64748b; line-height:1.4;">If the embedded clone window displays a 403 error due to security filters, click below to open Flaticon securely in a separate tab:</p>
+                        
+                        <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
+                            <div style="display:flex; gap:10px;">
+                                <span style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:bold; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">1</span>
+                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">Open Flaticon website in a new window.</span>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <span style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:bold; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">2</span>
+                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">Right-click the icon you want and select <strong>"Copy image address"</strong>.</span>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <span style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:bold; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">3</span>
+                                <span style="font-size:0.8rem; color:#334155; line-height:1.4;">Close this browser window and paste the link into the Image URL field.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-sm w-100 py-2.5 rounded-pill fw-bold" style="background:#2563eb; border-color:#2563eb; color:#fff;" onclick="window.open('https://www.flaticon.com', 'FlaticonWindow', 'width=1200,height=800,scrollbars=yes')">
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Open in New Window
+                    </button>
+                </div>
+                <!-- Right panel: Embedded Iframe -->
+                <div style="flex:1; position:relative;">
+                    <iframe id="modalBrowserIframe" src="" style="width:100%; height:100%; border:none;"></iframe>
+                </div>
             </div>
         </div>
     </div>
