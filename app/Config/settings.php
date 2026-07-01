@@ -51,22 +51,27 @@ function getSetting($key, $default = '', $language = null) {
     }
 
     // Post-processing overrides for Rich Text Editor elements on Front-end (CDN Tailwind bypass)
-    if ($key === 'social_banner_text' && strpos($val, '<img') !== false) {
-        $val = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
-            $attrs = $matches[1];
-            if (preg_match('/style\s*=\s*["\']([^"\']+)["\']/i', $attrs, $styleMatches)) {
-                $style = $styleMatches[1];
-                if (strpos($style, 'display') === false) {
-                    $style .= '; display: inline-block !important;';
+    if ($key === 'social_banner_text') {
+        // Strip block-level wrapper tags like <p> and <div> that cause layout breaks inside headings
+        $val = preg_replace('/<\/?(p|div)[^>]*>/i', '', $val);
+
+        if (strpos($val, '<img') !== false) {
+            $val = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
+                $attrs = $matches[1];
+                if (preg_match('/style\s*=\s*["\']([^"\']+)["\']/i', $attrs, $styleMatches)) {
+                    $style = $styleMatches[1];
+                    if (strpos($style, 'display') === false) {
+                        $style .= '; display: inline-block !important;';
+                    } else {
+                        $style = preg_replace('/display\s*:\s*[^;]+/i', 'display: inline-block !important', $style);
+                    }
+                    $attrs = str_replace($styleMatches[0], 'style="' . $style . '"', $attrs);
                 } else {
-                    $style = preg_replace('/display\s*:\s*[^;]+/i', 'display: inline-block !important', $style);
+                    $attrs .= ' style="display: inline-block !important; vertical-align: middle;"';
                 }
-                $attrs = str_replace($styleMatches[0], 'style="' . $style . '"', $attrs);
-            } else {
-                $attrs .= ' style="display: inline-block !important; vertical-align: middle;"';
-            }
-            return '<img' . $attrs . '>';
-        }, $val);
+                return '<img' . $attrs . '>';
+            }, $val);
+        }
     }
 
     return $val;

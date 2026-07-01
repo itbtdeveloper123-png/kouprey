@@ -410,6 +410,9 @@ $allProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ob_start();
 ?>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Kantumruy+Pro:wght@400;700&family=Moul&family=Siemreap&family=Freeman&display=swap" rel="stylesheet">
     <style>
     /* Workflow Grid Layout & Card Styles */
     .card-workflow-item {
@@ -1175,6 +1178,16 @@ ob_start();
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                                                                     <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
+                                                                        <option value="">Font</option>
+                                                                        <option value="'Inter', sans-serif">Inter (EN)</option>
+                                                                        <option value="'Outfit', sans-serif">Outfit (EN)</option>
+                                                                        <option value="'Freeman', sans-serif">Freeman (EN)</option>
+                                                                        <option value="'Hanuman', serif">Hanuman (KM)</option>
+                                                                        <option value="'Kantumruy Pro', sans-serif">Kantumruy (KM)</option>
+                                                                        <option value="'Moul', cursive">Moul (KM Heading)</option>
+                                                                        <option value="'Siemreap', sans-serif">Siemreap (KM)</option>
+                                                                    </select>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
                                                                         <option value="12px">12px</option>
@@ -1217,6 +1230,16 @@ ob_start();
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                                                                     <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
+                                                                        <option value="">Font</option>
+                                                                        <option value="'Inter', sans-serif">Inter (EN)</option>
+                                                                        <option value="'Outfit', sans-serif">Outfit (EN)</option>
+                                                                        <option value="'Freeman', sans-serif">Freeman (EN)</option>
+                                                                        <option value="'Hanuman', serif">Hanuman (KM)</option>
+                                                                        <option value="'Kantumruy Pro', sans-serif">Kantumruy (KM)</option>
+                                                                        <option value="'Moul', cursive">Moul (KM Heading)</option>
+                                                                        <option value="'Siemreap', sans-serif">Siemreap (KM)</option>
+                                                                    </select>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
                                                                         <option value="12px">12px</option>
@@ -1368,6 +1391,16 @@ ob_start();
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                                                                     <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
+                                                                        <option value="">Font</option>
+                                                                        <option value="'Inter', sans-serif">Inter (EN)</option>
+                                                                        <option value="'Outfit', sans-serif">Outfit (EN)</option>
+                                                                        <option value="'Freeman', sans-serif">Freeman (EN)</option>
+                                                                        <option value="'Hanuman', serif">Hanuman (KM)</option>
+                                                                        <option value="'Kantumruy Pro', sans-serif">Kantumruy (KM)</option>
+                                                                        <option value="'Moul', cursive">Moul (KM Heading)</option>
+                                                                        <option value="'Siemreap', sans-serif">Siemreap (KM)</option>
+                                                                    </select>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
                                                                         <option value="12px">12px</option>
@@ -1410,6 +1443,16 @@ ob_start();
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                                                                     <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
+                                                                        <option value="">Font</option>
+                                                                        <option value="'Inter', sans-serif">Inter (EN)</option>
+                                                                        <option value="'Outfit', sans-serif">Outfit (EN)</option>
+                                                                        <option value="'Freeman', sans-serif">Freeman (EN)</option>
+                                                                        <option value="'Hanuman', serif">Hanuman (KM)</option>
+                                                                        <option value="'Kantumruy Pro', sans-serif">Kantumruy (KM)</option>
+                                                                        <option value="'Moul', cursive">Moul (KM Heading)</option>
+                                                                        <option value="'Siemreap', sans-serif">Siemreap (KM)</option>
+                                                                    </select>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
                                                                         <option value="12px">12px</option>
@@ -1565,6 +1608,19 @@ ob_start();
                                                 if (fontTags[i].getAttribute('size') === '7') {
                                                     fontTags[i].removeAttribute('size');
                                                     fontTags[i].style.fontSize = size;
+                                                }
+                                            }
+                                        }
+
+                                        function applyCustomFontFamily(editor, fontFamily) {
+                                            var sel = window.getSelection();
+                                            if (!sel.rangeCount) return;
+                                            document.execCommand('fontName', false, 'temp-font');
+                                            var fontTags = editor.getElementsByTagName('font');
+                                            for (var i = fontTags.length - 1; i >= 0; i--) {
+                                                if (fontTags[i].getAttribute('face') === 'temp-font') {
+                                                    fontTags[i].removeAttribute('face');
+                                                    fontTags[i].style.fontFamily = fontFamily;
                                                 }
                                             }
                                         }
@@ -1765,6 +1821,20 @@ ob_start();
                                                          applyCustomFontSize(editor, val);
                                                      }
                                                      
+                                                     this.value = "";
+                                                     syncTextarea(editorId);
+                                                 });
+                                             }
+
+                                             var fontFamilySelect = toolbar.querySelector('select[data-cmd="fontFamily"]');
+                                             if (fontFamilySelect) {
+                                                 fontFamilySelect.addEventListener('change', function() {
+                                                     var editor = document.getElementById(editorId);
+                                                     editor.focus();
+                                                     var val = this.value;
+                                                     if (val) {
+                                                         applyCustomFontFamily(editor, val);
+                                                     }
                                                      this.value = "";
                                                      syncTextarea(editorId);
                                                  });
