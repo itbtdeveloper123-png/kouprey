@@ -414,6 +414,11 @@ ob_start();
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Kantumruy+Pro:wght@400;700&family=Moul&family=Siemreap&family=Freeman&display=swap" rel="stylesheet">
     <style>
+    @font-face {
+        font-family: 'Superspace Bold';
+        src: url('/kouprey/public/fonts/Superspace Bold ver 1.00.ttf') format('truetype'),
+             url('../public/fonts/Superspace Bold ver 1.00.ttf') format('truetype');
+    }
     /* Workflow Grid Layout & Card Styles */
     .card-workflow-item {
         cursor: pointer;
@@ -1180,6 +1185,7 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
                                                                         <option value="">Font</option>
+                                                                        <option value="'Superspace Bold', sans-serif">Superspace (Brand)</option>
                                                                         <option value="'Inter', sans-serif">Inter (EN)</option>
                                                                         <option value="'Outfit', sans-serif">Outfit (EN)</option>
                                                                         <option value="'Freeman', sans-serif">Freeman (EN)</option>
@@ -1232,6 +1238,7 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
                                                                         <option value="">Font</option>
+                                                                        <option value="'Superspace Bold', sans-serif">Superspace (Brand)</option>
                                                                         <option value="'Inter', sans-serif">Inter (EN)</option>
                                                                         <option value="'Outfit', sans-serif">Outfit (EN)</option>
                                                                         <option value="'Freeman', sans-serif">Freeman (EN)</option>
@@ -1393,6 +1400,7 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
                                                                         <option value="">Font</option>
+                                                                        <option value="'Superspace Bold', sans-serif">Superspace (Brand)</option>
                                                                         <option value="'Inter', sans-serif">Inter (EN)</option>
                                                                         <option value="'Outfit', sans-serif">Outfit (EN)</option>
                                                                         <option value="'Freeman', sans-serif">Freeman (EN)</option>
@@ -1445,6 +1453,7 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontFamily" class="rte-font-family-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Family">
                                                                         <option value="">Font</option>
+                                                                        <option value="'Superspace Bold', sans-serif">Superspace (Brand)</option>
                                                                         <option value="'Inter', sans-serif">Inter (EN)</option>
                                                                         <option value="'Outfit', sans-serif">Outfit (EN)</option>
                                                                         <option value="'Freeman', sans-serif">Freeman (EN)</option>
