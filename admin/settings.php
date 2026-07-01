@@ -1288,6 +1288,7 @@ ob_start();
                                                                         <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
@@ -1341,6 +1342,7 @@ ob_start();
                                                                         <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
@@ -1556,6 +1558,7 @@ ob_start();
                                                                         <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
@@ -1800,7 +1803,7 @@ ob_start();
                                                             }
                                                         });
                                                     } else if (cmd === 'hiliteColor') {
-                                                        document.execCommand('hiliteColor', false, '#FFF3CD');
+                                                        // handled via color input change, not button click
                                                     } else if (cmd === 'insertIcon') {
                                                         saveSelection(editorId);
                                                         showRteModal('Insert Font Awesome Icon', [
@@ -1941,12 +1944,23 @@ ob_start();
                                                  });
                                              }
  
-                                             var colorInput = toolbar.querySelector('input[type="color"]');
+                                             var colorInput = toolbar.querySelector('input.rte-color-picker');
                                              if (colorInput) {
                                                  colorInput.addEventListener('input', function() {
                                                      var editor = document.getElementById(editorId);
                                                      editor.focus();
                                                      document.execCommand('foreColor', false, this.value);
+                                                     syncTextarea(editorId);
+                                                 });
+                                             }
+
+                                             var highlightInput = toolbar.querySelector('input.rte-highlight-picker');
+                                             if (highlightInput) {
+                                                 highlightInput.addEventListener('input', function() {
+                                                     var editor = document.getElementById(editorId);
+                                                     editor.focus();
+                                                     document.execCommand('hiliteColor', false, this.value);
+                                                     this.style.borderColor = this.value;
                                                      syncTextarea(editorId);
                                                  });
                                              }
