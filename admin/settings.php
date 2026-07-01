@@ -1163,6 +1163,19 @@ ob_start();
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                                                                     <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
+                                                                        <option value="">Size</option>
+                                                                        <option value="1">1 (x-small)</option>
+                                                                        <option value="2">2 (small)</option>
+                                                                        <option value="3">3 (medium)</option>
+                                                                        <option value="4">4 (large)</option>
+                                                                        <option value="5">5 (x-large)</option>
+                                                                        <option value="6">6 (xx-large)</option>
+                                                                        <option value="7">7 (xxx-large)</option>
+                                                                    </select>
+                                                                    <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
+                                                                    <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
                                                                 </div>
                                                             </div>
@@ -1185,6 +1198,19 @@ ob_start();
                                                                     <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                                    <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
+                                                                        <option value="">Size</option>
+                                                                        <option value="1">1 (x-small)</option>
+                                                                        <option value="2">2 (small)</option>
+                                                                        <option value="3">3 (medium)</option>
+                                                                        <option value="4">4 (large)</option>
+                                                                        <option value="5">5 (x-large)</option>
+                                                                        <option value="6">6 (xx-large)</option>
+                                                                        <option value="7">7 (xxx-large)</option>
+                                                                    </select>
+                                                                    <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
                                                                 </div>
@@ -1318,6 +1344,19 @@ ob_start();
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                                                                     <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
+                                                                        <option value="">Size</option>
+                                                                        <option value="1">1 (x-small)</option>
+                                                                        <option value="2">2 (small)</option>
+                                                                        <option value="3">3 (medium)</option>
+                                                                        <option value="4">4 (large)</option>
+                                                                        <option value="5">5 (x-large)</option>
+                                                                        <option value="6">6 (xx-large)</option>
+                                                                        <option value="7">7 (xxx-large)</option>
+                                                                    </select>
+                                                                    <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
+                                                                    <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
                                                                 </div>
                                                             </div>
@@ -1340,6 +1379,19 @@ ob_start();
                                                                     <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
                                                                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                                                                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+                                                                    <span class="rte-sep"></span>
+                                                                    <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
+                                                                        <option value="">Size</option>
+                                                                        <option value="1">1 (x-small)</option>
+                                                                        <option value="2">2 (small)</option>
+                                                                        <option value="3">3 (medium)</option>
+                                                                        <option value="4">4 (large)</option>
+                                                                        <option value="5">5 (x-large)</option>
+                                                                        <option value="6">6 (xx-large)</option>
+                                                                        <option value="7">7 (xxx-large)</option>
+                                                                    </select>
+                                                                    <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
+                                                                    <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
                                                                 </div>
@@ -1459,12 +1511,43 @@ ob_start();
                                                         if (url) document.execCommand('createLink', false, url);
                                                     } else if (cmd === 'hiliteColor') {
                                                         document.execCommand('hiliteColor', false, '#FFF3CD');
+                                                    } else if (cmd === 'insertIcon') {
+                                                        var iconClass = prompt('Enter Font Awesome class (e.g. fas fa-coffee):', 'fas fa-');
+                                                        if (iconClass && iconClass !== 'fas fa-') {
+                                                            var sel = window.getSelection();
+                                                            if (sel.rangeCount) {
+                                                                var range = sel.getRangeAt(0);
+                                                                range.deleteContents();
+                                                                var el = document.createElement('i');
+                                                                el.className = iconClass;
+                                                                el.innerHTML = ' ';
+                                                                range.insertNode(el);
+                                                                var space = document.createTextNode(' ');
+                                                                range.insertNode(space);
+                                                                range.setStartAfter(space);
+                                                                range.collapse(true);
+                                                                sel.removeAllRanges();
+                                                                sel.addRange(range);
+                                                            }
+                                                        }
                                                     } else {
                                                         document.execCommand(cmd, false, null);
                                                     }
                                                     syncTextarea(editorId);
                                                 });
                                             });
+
+                                            var fontSizeSelect = toolbar.querySelector('select[data-cmd="fontSize"]');
+                                            if (fontSizeSelect) {
+                                                fontSizeSelect.addEventListener('change', function() {
+                                                    var editor = document.getElementById(editorId);
+                                                    editor.focus();
+                                                    if (this.value) {
+                                                        document.execCommand('fontSize', false, this.value);
+                                                    }
+                                                    syncTextarea(editorId);
+                                                });
+                                            }
 
                                             var formatSelect = toolbar.querySelector('select[data-cmd="formatBlock"]');
                                             if (formatSelect) {
