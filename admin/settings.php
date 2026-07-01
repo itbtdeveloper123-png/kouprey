@@ -1704,6 +1704,7 @@ ob_start();
                                                                      el.style.width = width;
                                                                      el.style.height = 'auto';
                                                                      el.style.verticalAlign = 'middle';
+                                                                     el.style.display = 'inline-block';
                                                                      el.className = 'rte-inserted-img';
                                                                      
                                                                      if (values.imgStyle === 'original') {

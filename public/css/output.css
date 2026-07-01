@@ -2707,3 +2707,9 @@
     }
   }
 }
+
+/* Ensure images inserted via Rich Text Editor in headings/paragraphs display inline */
+h3 img, p img, .rte-inserted-img {
+  display: inline-block !important;
+  vertical-align: middle;
+}
