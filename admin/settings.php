@@ -515,7 +515,8 @@ ob_start();
             'policies' => ['icon' => 'bi-file-earmark-text', 'title' => 'Policies & Legal', 'description' => 'Privacy Policy, Terms of Service, and Contact Us content'],
             'pagination' => ['icon' => 'bi-list', 'title' => 'Pagination', 'description' => 'Content display settings'],
             'navigation' => ['icon' => 'bi-compass', 'title' => 'Navigation', 'description' => 'Navigation menu labels'],
-            'file_manager' => ['icon' => 'bi-folder', 'title' => 'File Manager', 'description' => 'Manage uploaded product images']
+            'file_manager' => ['icon' => 'bi-folder', 'title' => 'File Manager', 'description' => 'Manage uploaded product images'],
+            'flaticon' => ['icon' => 'bi-search', 'title' => 'Flaticon Browser', 'description' => 'Clone view of Flaticon.com to copy icons']
         ];
         ?>
 
@@ -526,7 +527,7 @@ ob_start();
             <div id="settingsGrid" class="mb-5 <?php echo ($activeTab !== 'grid') ? 'd-none' : ''; ?>">
                 <div class="row g-4">
                     <?php foreach ($categories as $category => $categoryInfo): ?>
-                    <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social'])) continue; ?>
+                    <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social', 'flaticon'])) continue; ?>
                         <div class="col-xl-3 col-lg-4 col-md-6 animate-fade-in">
                             <div class="card h-100 border-0 card-workflow-item" onclick="switchSettingsTab(this, '<?php echo $category; ?>')">
                                 <div class="card-body p-4 d-flex flex-column justify-content-between">
@@ -551,7 +552,7 @@ ob_start();
             <!-- Tab content -->
             <div class="tab-content" id="settingsTabContent">
                 <?php foreach ($categories as $category => $categoryInfo): ?>
-                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social'])) continue; ?>
+                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social', 'flaticon'])) continue; ?>
                     <div class="tab-pane fade <?php echo ($category === $activeTab) ? 'show active' : ''; ?>" id="<?php echo $category; ?>" role="tabpanel">
                         <div class="card border-0 shadow-premium overflow-hidden" style="border-radius: 28px;">
                             <div class="card-header bg-white border-bottom p-4">
@@ -1153,6 +1154,33 @@ ob_start();
                                         </div>
                                     </div>
 
+                                <?php elseif ($category === 'flaticon'): ?>
+                                    <!-- Flaticon Web Browser Clone -->
+                                    <div style="height: 650px; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; background: #fff; display: flex; flex-direction: column;">
+                                        <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-primary"><i class="bi bi-globe"></i> Web Browser Clone</span>
+                                                <small class="text-muted">Enter any link or browse Flaticon.com below</small>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2" style="width: 60%;">
+                                                <input type="text" id="browserUrlInput" class="form-control form-control-sm" value="https://www.flaticon.com/" placeholder="Enter URL e.g. https://www.flaticon.com/">
+                                                <button type="button" class="btn btn-primary btn-sm px-3" onclick="navigateBrowser()"><i class="bi bi-arrow-right"></i> Go</button>
+                                            </div>
+                                        </div>
+                                        <div style="flex: 1; position: relative; background: #fff;">
+                                            <iframe id="settingsBrowserFrame" src="flaticon_browser.php?url=https%3A%2F%2Fwww.flaticon.com%2F" style="width: 100%; height: 100%; border: none;"></iframe>
+                                        </div>
+                                    </div>
+                                    <script>
+                                    function navigateBrowser() {
+                                        var url = document.getElementById('browserUrlInput').value.trim();
+                                        if (url) {
+                                            if (url.indexOf('http') !== 0) url = 'https://' + url;
+                                            document.getElementById('settingsBrowserFrame').src = 'flaticon_browser.php?url=' + encodeURIComponent(url);
+                                        }
+                                    }
+                                    </script>
+
                                 <?php elseif ($category === 'social'): ?>
                                     <!-- Social Media with Preview -->
                                     <?php
@@ -1645,7 +1673,11 @@ ob_start();
                                             var modalBody = document.getElementById('rteModalBody');
                                             var submitBtn = document.getElementById('rteModalSubmit');
                                             
-                                            modalTitle.textContent = title;
+                                            if (title === 'Insert Image from URL') {
+                                                modalTitle.innerHTML = title + ' <button type="button" class="btn btn-xs btn-outline-primary ms-2 py-0 px-2 fw-bold" style="font-size:10px; border-radius:12px; vertical-align:middle; line-height:1.2; position:relative; top:-1px;" onclick="openFlaticonBrowser()"><i class="bi bi-globe"></i> Search Flaticon</button>';
+                                            } else {
+                                                modalTitle.textContent = title;
+                                            }
                                             modalBody.innerHTML = '';
                                             
                                             fields.forEach(function(field) {
@@ -2561,6 +2593,40 @@ ob_start();
             </div>
         </div>
     </div>
+
+    <!-- Flaticon Web Browser Modal -->
+    <div id="flaticonBrowserModal" class="rte-modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(15, 23, 42, 0.5); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+        <div class="rte-modal-content" style="background-color:#fff; border-radius:20px; width:92%; max-width:1200px; height:85%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid #e2e8f0; overflow:hidden; display:flex; flex-direction:column; animation: rteSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div class="rte-modal-header" style="padding:16px 24px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; background-color:#f8fafc;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-soft text-primary p-2 fs-6" style="border-radius: 8px;"><i class="bi bi-globe"></i></span>
+                    <h5 style="margin:0; font-size:1.1rem; font-weight:800; color:#0f172a; font-family: 'Inter', sans-serif;">Flaticon Browser Clone</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <small class="text-secondary d-none d-md-inline-block">Search icons, right click to copy image address, then close and paste link</small>
+                    <button type="button" onclick="closeFlaticonBrowser()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#64748b; transition:color 0.15s; padding:0; display:flex; align-items:center; justify-content:center;"><i class="bi bi-x-lg" style="font-size:1.2rem;"></i></button>
+                </div>
+            </div>
+            <!-- Body (Iframe) -->
+            <div style="flex:1; position:relative; background:#fff;">
+                <iframe id="modalBrowserIframe" src="" style="width:100%; height:100%; border:none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openFlaticonBrowser() {
+        var iframe = document.getElementById('modalBrowserIframe');
+        if (!iframe.src || iframe.src.indexOf('flaticon_browser.php') === -1) {
+            iframe.src = 'flaticon_browser.php?url=https%3A%2F%2Fwww.flaticon.com%2F';
+        }
+        document.getElementById('flaticonBrowserModal').style.display = 'flex';
+    }
+    function closeFlaticonBrowser() {
+        document.getElementById('flaticonBrowserModal').style.display = 'none';
+    }
+    </script>
 
     <style>
     @keyframes rteSlideIn {
