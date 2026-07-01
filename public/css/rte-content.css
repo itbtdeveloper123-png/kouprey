@@ -78,6 +78,9 @@
 /* Blockquote */
 .content-section blockquote { border-left: 4px solid #3B82F6; padding-left: 1rem; margin: 0.75rem 0; color: #6B7280; font-style: italic; }
 
+/* Horizontal Rule */
+.content-section hr { border: 0; border-top: 1px solid #D1D5DB; margin: 1.5rem 0; display: block; height: 1px; }
+
 /* Links & text */
 .content-section a { color: #3B82F6; text-decoration: underline; }
 .content-section strong,

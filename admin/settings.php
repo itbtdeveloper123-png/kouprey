@@ -1400,6 +1400,7 @@ ob_start();
                                                                     <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
+                                                                    <button type="button" data-cmd="insertHorizontalRule" title="Insert Horizontal Line"><i class="fas fa-minus"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
                                                                 </div>
@@ -1454,6 +1455,7 @@ ob_start();
                                                                     <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
+                                                                    <button type="button" data-cmd="insertHorizontalRule" title="Insert Horizontal Line"><i class="fas fa-minus"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
                                                                 </div>
@@ -1616,6 +1618,7 @@ ob_start();
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
+                                                                    <button type="button" data-cmd="insertHorizontalRule" title="Insert Horizontal Line"><i class="fas fa-minus"></i></button>
                                                                     <button type="button" data-cmd="insertTextBox" title="Insert Text Box"><i class="fas fa-border-style"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
@@ -1671,6 +1674,7 @@ ob_start();
                                                                     <input type="color" data-cmd="hiliteColor" class="rte-highlight-picker" value="#FFFF00" style="width: 28px; height: 28px; border: 2px solid #f59e0b; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px; background: #fef08a;" title="Highlight Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
                                                                     <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
+                                                                    <button type="button" data-cmd="insertHorizontalRule" title="Insert Horizontal Line"><i class="fas fa-minus"></i></button>
                                                                     <button type="button" data-cmd="insertTextBox" title="Insert Text Box"><i class="fas fa-border-style"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
@@ -1953,7 +1957,14 @@ ob_start();
                                           height: 24px;
                                           object-fit: contain;
                                       }
-                                      </style>
+                                       .rte-editor hr {
+                                           border: 0;
+                                           border-top: 1px solid #dee2e6;
+                                           margin: 1rem 0;
+                                           display: block;
+                                           height: 1px;
+                                       }
+                                       </style>
                                      <script>
                                     var availableIcons = <?php 
                                           $pImages = glob('../public/assets/images/products/*.{jpg,jpeg,png,gif,webp,svg,JPG,JPEG,PNG,GIF,WEBP,SVG}', GLOB_BRACE) ?: [];
@@ -3016,6 +3027,7 @@ ob_start();
                                                 'img { max-width: 100%; height: auto; border-radius: 8px; }' +
                                                 'table { border-collapse: collapse; width: 100%; margin: 1rem 0; }' +
                                                 'table td, table th { border: 1px solid #ddd; padding: 8px 12px; }' +
+                                                'hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }' +
                                                 '</style></head><body><div class="content-section">' + content + '</div></body></html>';
 
                                             previewFrame.srcdoc = previewHTML;
