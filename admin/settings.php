@@ -419,6 +419,15 @@ ob_start();
         src: url('/kouprey/public/fonts/Superspace Bold ver 1.00.ttf') format('truetype'),
              url('../public/fonts/Superspace Bold ver 1.00.ttf') format('truetype');
     }
+    .rte-editor b, .rte-editor strong {
+        font-weight: bold !important;
+    }
+    .rte-editor i, .rte-editor em {
+        font-style: italic !important;
+    }
+    .rte-editor u {
+        text-decoration: underline !important;
+    }
     /* Workflow Grid Layout & Card Styles */
     .card-workflow-item {
         cursor: pointer;
