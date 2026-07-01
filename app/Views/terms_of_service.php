@@ -290,7 +290,7 @@ $termsContent = getSetting('terms_of_service', '');
 
         <?php if (!empty($termsContent)): ?>
             <!-- Dynamic content from admin settings -->
-            <div class="prose max-w-none terms-section content-section">
+            <div class="max-w-none terms-section content-section">
                 <?php echo $termsContent; ?>
             </div>
         <?php else: ?>

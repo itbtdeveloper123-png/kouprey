@@ -757,7 +757,7 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
 				<div class="space-y-6">
 					<?php $contactContent = getSetting('contact_us', ''); ?>
 					<?php if (!empty($contactContent)): ?>
-						<div class="prose max-w-none content-section">
+						<div class="max-w-none content-section">
 							<?php echo $contactContent; ?>
 						</div>
 					<?php else: ?>

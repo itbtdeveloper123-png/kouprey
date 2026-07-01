@@ -286,7 +286,7 @@ $privacyContent = getSetting('privacy_policy', '');
 
         <?php if (!empty($privacyContent)): ?>
             <!-- Dynamic content from admin settings -->
-            <div class="prose max-w-none policy-section content-section">
+            <div class="max-w-none policy-section content-section">
                 <?php echo $privacyContent; ?>
             </div>
         <?php else: ?>

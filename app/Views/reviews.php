@@ -123,6 +123,7 @@ function generateStars($rating) {
 	<link href="https://fonts.googleapis.com/css2?family=Freeman&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="stylesheet" href="/kouprey/public/css/rte-content.css">
 	<style>
 	/* Global fixes for mobile horizontal overflow */
 	html {
@@ -814,8 +815,8 @@ function generateStars($rating) {
 				<div class="space-y-6">
 					<?php $contactContent = getSetting('contact_us', ''); ?>
 					<?php if (!empty($contactContent)): ?>
-						<div class="prose max-w-none">
-							<?php echo nl2br(htmlspecialchars($contactContent)); ?>
+						<div class="max-w-none content-section">
+							<?php echo $contactContent; ?>
 						</div>
 					<?php else: ?>
 						<div class="flex items-center">
