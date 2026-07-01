@@ -90,7 +90,7 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
-    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css">
+    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css?v=1.1">
     <style>
         /* Global fixes for mobile horizontal overflow */
         html {

@@ -187,7 +187,7 @@ $termsContent = getSetting('terms_of_service', '');
         .content-section a { color: #10B981; text-decoration: underline; }
         .content-section blockquote { border-left: 4px solid #10B981; padding-left: 1rem; margin: 0.75rem 0; color: #6B7280; font-style: italic; }
     </style>
-    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css">
+    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css?v=1.1">
     <style>
         .highlight-box {
             background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
@@ -290,7 +290,7 @@ $termsContent = getSetting('terms_of_service', '');
 
         <?php if (!empty($termsContent)): ?>
             <!-- Dynamic content from admin settings -->
-            <div class="max-w-none terms-section content-section">
+            <div class="max-w-none content-section">
                 <?php echo $termsContent; ?>
             </div>
         <?php else: ?>

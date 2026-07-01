@@ -123,7 +123,7 @@ function generateStars($rating) {
 	<link href="https://fonts.googleapis.com/css2?family=Freeman&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-	<link rel="stylesheet" href="/kouprey/public/css/rte-content.css">
+	<link rel="stylesheet" href="/kouprey/public/css/rte-content.css?v=1.1">
 	<style>
 	/* Global fixes for mobile horizontal overflow */
 	html {

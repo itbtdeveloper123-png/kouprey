@@ -9,8 +9,14 @@
 .content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
 .content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
 
-/* Paragraphs — compact spacing */
-.content-section p { color: #4B5563; line-height: 1.65; margin-bottom: 0.5rem; }
+/* Paragraphs & divs — compact uniform spacing */
+.content-section p,
+.content-section div { 
+    color: #4B5563; 
+    line-height: 1.65; 
+    margin-top: 0 !important;
+    margin-bottom: 0.4rem !important; 
+}
 
 /* Lists — tight spacing */
 .content-section ul, .content-section ol { margin: 0.25rem 0 0.5rem 1.5rem; }
@@ -36,9 +42,20 @@
     max-width: none !important;
 }
 
-/* Standalone images (not in li) */
-.content-section img { max-width: 100%; height: auto; border-radius: 8px; margin: 0.75rem 0; }
+/* Standalone images (not in li, and not inserted inline icons) */
+.content-section img:not(.rte-inserted-img) { max-width: 100%; height: auto; border-radius: 8px; margin: 0.75rem 0; }
 .content-section li img { max-width: unset; height: auto; border-radius: 2px; margin: 0; }
+
+/* Inserted inline icons / images */
+.content-section img.rte-inserted-img,
+.rte-inserted-img {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin: 0 6px 0 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+}
 
 /* Tables */
 .content-section table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
