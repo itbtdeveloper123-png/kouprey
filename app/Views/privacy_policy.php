@@ -192,7 +192,7 @@ $privacyContent = getSetting('privacy_policy', '');
         .content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
         .content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
     </style>
-    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css?v=1.1">
+    <link rel="stylesheet" href="/kouprey/public/css/rte-content.css?v=1.2">
     <style>
         .highlight-box {
             background: linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%);

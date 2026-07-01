@@ -9,6 +9,19 @@
 .content-section h3 { font-size: 1.25rem; color: #374151; margin: 1.2rem 0 0.6rem; font-weight: 600; }
 .content-section h4 { font-size: 1.1rem; color: #374151; margin: 1rem 0 0.5rem; font-weight: 600; }
 
+/* Global Font Family Reset for RTE Content */
+.content-section,
+.content-section p,
+.content-section div,
+.content-section li,
+.content-section span,
+.content-section font,
+.content-section strong,
+.content-section b,
+.content-section a {
+    font-family: 'Inter', 'Hanuman', sans-serif !important;
+}
+
 /* Paragraphs & divs — compact uniform spacing */
 .content-section p,
 .content-section div { 
@@ -67,7 +80,14 @@
 
 /* Links & text */
 .content-section a { color: #3B82F6; text-decoration: underline; }
-.content-section strong { font-weight: 700; }
+.content-section strong,
+.content-section b,
+.content-section [style*="font-weight: bold"],
+.content-section [style*="font-weight:bold"],
+.content-section [style*="font-weight: 700"],
+.content-section [style*="font-weight:700"] {
+    font-weight: 700 !important;
+}
 .content-section em { font-style: italic; }
 .content-section .fa, .content-section .fas, .content-section .far, .content-section .fab { margin-right: 0.3rem; }
 
