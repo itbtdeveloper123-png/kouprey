@@ -77,8 +77,8 @@ function compressImage($sourcePath, $targetPath = null, $quality = 85, $maxWidth
         if ($newWidth != $width || $newHeight != $height) {
             $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
 
-            // Preserve transparency for PNG/GIF
-            if ($mime == 'image/png' || $mime == 'image/gif') {
+            // Preserve transparency for PNG/GIF/WebP
+            if ($mime == 'image/png' || $mime == 'image/gif' || $mime == 'image/webp') {
                 imagecolortransparent($resizedImage, imagecolorallocatealpha($resizedImage, 0, 0, 0, 127));
                 imagealphablending($resizedImage, false);
                 imagesavealpha($resizedImage, true);
@@ -122,14 +122,20 @@ function compressImage($sourcePath, $targetPath = null, $quality = 85, $maxWidth
             $success = imagejpeg($image, $targetPath, $quality);
             break;
         case 'image/png':
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
             // For PNG, quality is compression level (0-9)
             $pngQuality = 9 - min(9, floor($quality / 11.11)); // Convert 0-100 to 9-0
             $success = imagepng($image, $targetPath, $pngQuality);
             break;
         case 'image/gif':
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
             $success = imagegif($image, $targetPath);
             break;
         case 'image/webp':
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
             $success = imagewebp($image, $targetPath, $quality);
             break;
     }
