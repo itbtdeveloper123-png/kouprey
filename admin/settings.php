@@ -1175,6 +1175,7 @@ ob_start();
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
+                                                                    <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
                                                                 </div>
@@ -1187,7 +1188,7 @@ ob_start();
                                                                 }
                                                                 ?>
                                                             </div>
-                                                            <div id="social_banner_editor_en" class="rte-editor" contenteditable="true" data-textarea="social_banner_text_en"><?php echo $socialBannerTextEn; ?></div>
+                                                            <div id="social_banner_editor_en" class="rte-editor" contenteditable="true" data-textarea="social_banner_text_en" style="background: #111827; color: #ffffff;"><?php echo $socialBannerTextEn; ?></div>
                                                             <textarea name="social_banner_text_en" id="social_banner_text_en_textarea" style="display:none;"><?php echo htmlspecialchars($socialBannerTextEn); ?></textarea>
                                                         </div>
                                                         <!-- Khmer Editor -->
@@ -1211,6 +1212,7 @@ ob_start();
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
+                                                                    <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Insert Icon">😊</button>
                                                                 </div>
@@ -1222,7 +1224,7 @@ ob_start();
                                                                 }
                                                                 ?>
                                                             </div>
-                                                            <div id="social_banner_editor_km" class="rte-editor" contenteditable="true" data-textarea="social_banner_text_km"><?php echo $socialBannerTextKm; ?></div>
+                                                            <div id="social_banner_editor_km" class="rte-editor" contenteditable="true" data-textarea="social_banner_text_km" style="background: #111827; color: #ffffff;"><?php echo $socialBannerTextKm; ?></div>
                                                             <textarea name="social_banner_text_km" id="social_banner_text_km_textarea" style="display:none;"><?php echo htmlspecialchars($socialBannerTextKm); ?></textarea>
                                                         </div>
                                                     </div>
@@ -1356,6 +1358,7 @@ ob_start();
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
+                                                                    <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
                                                                 </div>
@@ -1392,6 +1395,7 @@ ob_start();
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
+                                                                    <button type="button" data-cmd="insertImageLink" title="Insert Image from URL"><i class="fas fa-image"></i></button>
                                                                     <span class="rte-sep"></span>
                                                                     <button type="button" class="rte-emoji-btn" title="Emoji">😊</button>
                                                                 </div>
@@ -1530,6 +1534,34 @@ ob_start();
                                                                 sel.addRange(range);
                                                             }
                                                         }
+                                                    } else if (cmd === 'insertImageLink') {
+                                                         var url = prompt('Enter Image URL:', 'https://');
+                                                         if (url) {
+                                                             var width = prompt('Enter Image Width (e.g. 24px, 48px, 100%):', '24px');
+                                                             if (width) {
+                                                                 var sel = window.getSelection();
+                                                                 if (sel.rangeCount) {
+                                                                     var range = sel.getRangeAt(0);
+                                                                     range.deleteContents();
+                                                                     
+                                                                     var el = document.createElement('img');
+                                                                     el.src = url;
+                                                                     el.style.width = width;
+                                                                     el.style.height = 'auto';
+                                                                     el.style.verticalAlign = 'middle';
+                                                                     el.className = 'rte-inserted-img';
+                                                                     range.insertNode(el);
+                                                                     
+                                                                     var space = document.createTextNode(' ');
+                                                                     range.insertNode(space);
+                                                                     
+                                                                     range.setStartAfter(space);
+                                                                     range.collapse(true);
+                                                                     sel.removeAllRanges();
+                                                                     sel.addRange(range);
+                                                                 }
+                                                             }
+                                                         }
                                                     } else {
                                                         document.execCommand(cmd, false, null);
                                                     }
@@ -1566,6 +1598,23 @@ ob_start();
                                                     editor.focus();
                                                     document.execCommand('foreColor', false, this.value);
                                                     syncTextarea(editorId);
+                                                });
+                                            }
+
+                                            // Double click on image to resize
+                                            var editor = document.getElementById(editorId);
+                                            if (editor) {
+                                                editor.addEventListener('dblclick', function(e) {
+                                                    if (e.target && e.target.tagName === 'IMG') {
+                                                        e.preventDefault();
+                                                        var currentWidth = e.target.style.width || e.target.width || '24px';
+                                                        var newWidth = prompt('Enter new width (e.g., 24px, 50px, 100%):', currentWidth);
+                                                        if (newWidth) {
+                                                            e.target.style.width = newWidth;
+                                                            e.target.style.height = 'auto';
+                                                            syncTextarea(editorId);
+                                                        }
+                                                    }
                                                 });
                                             }
                                         });
