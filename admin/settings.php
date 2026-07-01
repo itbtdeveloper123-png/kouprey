@@ -447,6 +447,18 @@ ob_start();
     #settingsTabContent>.tab-pane.show.active {
         display: block !important;
     }
+    
+    /* Settings layout spacing override for full-width view */
+    .hide-sidebar-layout .content-container {
+        padding: 1.5rem 1rem !important;
+    }
+    .hide-sidebar-layout .container-fluid {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    .hide-sidebar-layout .tab-content .card-body {
+        padding: 2rem 1.5rem !important;
+    }
     </style>
     <div class="container-fluid py-4">
         <?php if (isset($message)): ?>
@@ -1165,13 +1177,18 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
-                                                                        <option value="1">1 (x-small)</option>
-                                                                        <option value="2">2 (small)</option>
-                                                                        <option value="3">3 (medium)</option>
-                                                                        <option value="4">4 (large)</option>
-                                                                        <option value="5">5 (x-large)</option>
-                                                                        <option value="6">6 (xx-large)</option>
-                                                                        <option value="7">7 (xxx-large)</option>
+                                                                        <option value="12px">12px</option>
+                                                                        <option value="14px">14px</option>
+                                                                        <option value="16px">16px</option>
+                                                                        <option value="18px">18px</option>
+                                                                        <option value="20px">20px</option>
+                                                                        <option value="24px">24px</option>
+                                                                        <option value="28px">28px</option>
+                                                                        <option value="32px">32px</option>
+                                                                        <option value="36px">36px</option>
+                                                                        <option value="40px">40px</option>
+                                                                        <option value="48px">48px</option>
+                                                                        <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
@@ -1202,13 +1219,18 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
-                                                                        <option value="1">1 (x-small)</option>
-                                                                        <option value="2">2 (small)</option>
-                                                                        <option value="3">3 (medium)</option>
-                                                                        <option value="4">4 (large)</option>
-                                                                        <option value="5">5 (x-large)</option>
-                                                                        <option value="6">6 (xx-large)</option>
-                                                                        <option value="7">7 (xxx-large)</option>
+                                                                        <option value="12px">12px</option>
+                                                                        <option value="14px">14px</option>
+                                                                        <option value="16px">16px</option>
+                                                                        <option value="18px">18px</option>
+                                                                        <option value="20px">20px</option>
+                                                                        <option value="24px">24px</option>
+                                                                        <option value="28px">28px</option>
+                                                                        <option value="32px">32px</option>
+                                                                        <option value="36px">36px</option>
+                                                                        <option value="40px">40px</option>
+                                                                        <option value="48px">48px</option>
+                                                                        <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
@@ -1348,13 +1370,18 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
-                                                                        <option value="1">1 (x-small)</option>
-                                                                        <option value="2">2 (small)</option>
-                                                                        <option value="3">3 (medium)</option>
-                                                                        <option value="4">4 (large)</option>
-                                                                        <option value="5">5 (x-large)</option>
-                                                                        <option value="6">6 (xx-large)</option>
-                                                                        <option value="7">7 (xxx-large)</option>
+                                                                        <option value="12px">12px</option>
+                                                                        <option value="14px">14px</option>
+                                                                        <option value="16px">16px</option>
+                                                                        <option value="18px">18px</option>
+                                                                        <option value="20px">20px</option>
+                                                                        <option value="24px">24px</option>
+                                                                        <option value="28px">28px</option>
+                                                                        <option value="32px">32px</option>
+                                                                        <option value="36px">36px</option>
+                                                                        <option value="40px">40px</option>
+                                                                        <option value="48px">48px</option>
+                                                                        <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
@@ -1385,13 +1412,18 @@ ob_start();
                                                                     <span class="rte-sep"></span>
                                                                     <select data-cmd="fontSize" class="rte-font-size-select" style="width: auto; height: 28px; padding: 2px 6px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; vertical-align: middle; margin-right: 4px;" title="Font Size">
                                                                         <option value="">Size</option>
-                                                                        <option value="1">1 (x-small)</option>
-                                                                        <option value="2">2 (small)</option>
-                                                                        <option value="3">3 (medium)</option>
-                                                                        <option value="4">4 (large)</option>
-                                                                        <option value="5">5 (x-large)</option>
-                                                                        <option value="6">6 (xx-large)</option>
-                                                                        <option value="7">7 (xxx-large)</option>
+                                                                        <option value="12px">12px</option>
+                                                                        <option value="14px">14px</option>
+                                                                        <option value="16px">16px</option>
+                                                                        <option value="18px">18px</option>
+                                                                        <option value="20px">20px</option>
+                                                                        <option value="24px">24px</option>
+                                                                        <option value="28px">28px</option>
+                                                                        <option value="32px">32px</option>
+                                                                        <option value="36px">36px</option>
+                                                                        <option value="40px">40px</option>
+                                                                        <option value="48px">48px</option>
+                                                                        <option value="custom">Custom...</option>
                                                                     </select>
                                                                     <input type="color" data-cmd="foreColor" class="rte-color-picker" style="width: 28px; height: 28px; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; padding: 1px; vertical-align: middle; margin-right: 4px;" title="Text Color">
                                                                     <button type="button" data-cmd="insertIcon" title="Insert Font Awesome Icon"><i class="fas fa-icons"></i></button>
@@ -1521,6 +1553,19 @@ ob_start();
                                                 var sel = window.getSelection();
                                                 sel.removeAllRanges();
                                                 sel.addRange(savedRange);
+                                            }
+                                        }
+
+                                        function applyCustomFontSize(editor, size) {
+                                            var sel = window.getSelection();
+                                            if (!sel.rangeCount) return;
+                                            document.execCommand('fontSize', false, '7');
+                                            var fontTags = editor.getElementsByTagName('font');
+                                            for (var i = fontTags.length - 1; i >= 0; i--) {
+                                                if (fontTags[i].getAttribute('size') === '7') {
+                                                    fontTags[i].removeAttribute('size');
+                                                    fontTags[i].style.fontSize = size;
+                                                }
                                             }
                                         }
 
@@ -1701,9 +1746,25 @@ ob_start();
                                                  fontSizeSelect.addEventListener('change', function() {
                                                      var editor = document.getElementById(editorId);
                                                      editor.focus();
-                                                     if (this.value) {
-                                                         document.execCommand('fontSize', false, this.value);
+                                                     var val = this.value;
+                                                     if (!val) return;
+                                                     
+                                                     if (val === 'custom') {
+                                                         saveSelection(editorId);
+                                                         showRteModal('Enter Font Size', [
+                                                             { id: 'customSize', label: 'Font Size (e.g., 14px, 24px, 1.5rem)', value: '24px', placeholder: 'e.g. 24px' }
+                                                         ], function(values) {
+                                                             var size = values.customSize;
+                                                             if (size) {
+                                                                 restoreSelection();
+                                                                 applyCustomFontSize(editor, size);
+                                                             }
+                                                         });
+                                                     } else {
+                                                         applyCustomFontSize(editor, val);
                                                      }
+                                                     
+                                                     this.value = "";
                                                      syncTextarea(editorId);
                                                  });
                                              }
