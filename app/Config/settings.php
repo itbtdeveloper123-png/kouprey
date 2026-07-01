@@ -16,37 +16,60 @@ function getSetting($key, $default = '', $language = null) {
         $language = getCurrentLanguage();
     }
 
+    $val = null;
     try {
         $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = ?");
         $stmt->execute([$key, $language]);
         $result = $stmt->fetch();
 
         if ($result) {
-            $val = $result['setting_value'];
+            $candidate = $result['setting_value'];
             // If requested language is English, but the database value contains Khmer characters,
             // we treat it as an incorrect translation/fallback and use the default English value.
-            if ($language === 'en' && preg_match('/[\x{1780}-\x{17FF}]/u', $val)) {
-                return $default;
+            if ($language === 'en' && preg_match('/[\x{1780}-\x{17FF}]/u', $candidate)) {
+                $val = $default;
+            } else {
+                $val = $candidate;
             }
-            return $val;
-        }
-
-        // Fallback to English if not found
-        if ($language !== 'en') {
-            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = 'en'");
-            $stmt->execute([$key]);
-            $result = $stmt->fetch();
-            if ($result) {
-                $val = $result['setting_value'];
-                return $val;
+        } else {
+            // Fallback to English if not found
+            if ($language !== 'en') {
+                $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = 'en'");
+                $stmt->execute([$key]);
+                $result = $stmt->fetch();
+                if ($result) {
+                    $val = $result['setting_value'];
+                }
             }
-            return $default;
         }
-
-        return $default;
     } catch (Exception $e) {
         return $default;
     }
+
+    if ($val === null) {
+        return $default;
+    }
+
+    // Post-processing overrides for Rich Text Editor elements on Front-end (CDN Tailwind bypass)
+    if ($key === 'social_banner_text' && strpos($val, '<img') !== false) {
+        $val = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
+            $attrs = $matches[1];
+            if (preg_match('/style\s*=\s*["\']([^"\']+)["\']/i', $attrs, $styleMatches)) {
+                $style = $styleMatches[1];
+                if (strpos($style, 'display') === false) {
+                    $style .= '; display: inline-block !important;';
+                } else {
+                    $style = preg_replace('/display\s*:\s*[^;]+/i', 'display: inline-block !important', $style);
+                }
+                $attrs = str_replace($styleMatches[0], 'style="' . $style . '"', $attrs);
+            } else {
+                $attrs .= ' style="display: inline-block !important; vertical-align: middle;"';
+            }
+            return '<img' . $attrs . '>';
+        }, $val);
+    }
+
+    return $val;
 }
 
 /**
