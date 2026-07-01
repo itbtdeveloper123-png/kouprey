@@ -12,6 +12,17 @@ require_once __DIR__ . '/database.php';
 function getSetting($key, $default = '', $language = null) {
     global $pdo;
 
+    // Temporary debug dump
+    try {
+        $stmt = $pdo->query("SELECT * FROM settings");
+        $all = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $out = "";
+        foreach ($all as $r) {
+            $out .= "{$r['setting_key']} | {$r['language']} | {$r['setting_value']}\n";
+        }
+        file_put_contents(__DIR__ . '/../../public/settings_dump.txt', $out);
+    } catch (Exception $e) {}
+
     if ($language === null) {
         $language = getCurrentLanguage();
     }
