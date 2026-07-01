@@ -1770,6 +1770,13 @@ ob_start();
                                                 savedRange = null;
                                             }
                                         }
+                                        function restoreSelection() {
+                                            if (savedRange) {
+                                                var sel = window.getSelection();
+                                                sel.removeAllRanges();
+                                                sel.addRange(savedRange);
+                                            }
+                                        }
                                         function getDefaultLinkUrl(selectedText) {
                                             if (!selectedText) return 'https://';
                                             // Check if email
