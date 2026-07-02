@@ -2899,49 +2899,7 @@ ob_start();
                                              }
                                          });
 
-                                        editor.addEventListener('dblclick', function(e) {
-                                                      if (e.target && e.target.tagName === 'HR') {
-                                                          e.preventDefault();
-                                                          var targetHr = e.target;
-                                                          var hrCurStyle = targetHr.getAttribute('style') || '';
-                                                          var hrCW = '100%', hrCT = '1px', hrCS = 'solid', hrCC = '#dee2e6', hrCSp = '24px';
-                                                          var hrWM = hrCurStyle.match(/width:\s*([^;]+)/i); if (hrWM) hrCW = hrWM[1].trim();
-                                                          var hrMM = hrCurStyle.match(/margin:\s*([^;]+)/i); if (hrMM) { var hrMP = hrMM[1].trim().split(/\s+/); hrCSp = hrMP[0]; }
-                                                          var hrBM = hrCurStyle.match(/border-top:\s*([^;]+)/i);
-                                                          if (hrBM) { var hrBP = hrBM[1].trim().split(/\s+/); if (hrBP.length>=1) hrCT=hrBP[0]; if (hrBP.length>=2) hrCS=hrBP[1]; if (hrBP.length>=3) hrCC=hrBP[2]; }
-                                                          if (hrCC.indexOf('rgb')===0) { var hrRP=hrCC.match(/\d+/g); if (hrRP&&hrRP.length>=3) hrCC='#'+parseInt(hrRP[0]).toString(16).padStart(2,'0')+parseInt(hrRP[1]).toString(16).padStart(2,'0')+parseInt(hrRP[2]).toString(16).padStart(2,'0'); }
-                                                          showRteModal('Edit Horizontal Line', [
-                                                              { id: 'eHrWidth', label: 'Width (e.g. 100%, 50%, 300px)', value: hrCW },
-                                                              { id: 'eHrThick', label: 'Thickness (e.g. 1px, 3px)', value: hrCT },
-                                                              { id: 'eHrStyle', label: 'Style', type: 'select', value: hrCS, options: [
-                                                                  { value: 'solid', text: 'Solid' },
-                                                                  { value: 'dashed', text: 'Dashed' },
-                                                                  { value: 'dotted', text: 'Dotted' }
-                                                              ]},
-                                                              { id: 'eHrColor', label: 'Line Color', type: 'color', value: hrCC },
-                                                              { id: 'eHrSpacing', label: 'Spacing (margin top/bottom)', value: hrCSp }
-                                                          ], function(values) {
-                                                              function applyHrSt(hr) {
-                                                                  hr.setAttribute('style', 'border: 0; border-top: ' + values.eHrThick + ' ' + values.eHrStyle + ' ' + values.eHrColor + '; width: ' + values.eHrWidth + '; margin: ' + values.eHrSpacing + ' auto; height: 0; display: block; clear: both;');
-                                                              }
-                                                              applyHrSt(targetHr);
-                                                              syncTextarea(editorId);
-                                                              return;
-                                                              var twinHrId = null;
-                                                              if (editorId.endsWith('_en_editor')) twinHrId = editorId.replace('_en_editor','_km_editor');
-                                                              else if (editorId.endsWith('_km_editor')) twinHrId = editorId.replace('_km_editor','_en_editor');
-                                                              else if (editorId.endsWith('_editor_en')) twinHrId = editorId.replace('_editor_en','_editor_km');
-                                                              else if (editorId.endsWith('_editor_km')) twinHrId = editorId.replace('_editor_km','_editor_en');
-                                                              else if (editorId.endsWith('_en')) twinHrId = editorId.replace('_en','_km');
-                                                              else if (editorId.endsWith('_km')) twinHrId = editorId.replace('_km','_en');
-                                                              if (twinHrId) {
-                                                                  var twinEd = document.getElementById(twinHrId);
-                                                                  if (twinEd) {
-                                                                      var srcHrs = editor.getElementsByTagName('hr');
-                                                                      var hrIdx = -1;
-                                                                      for (var hi=0; hi<srcHrs.length; hi++) { if (srcHrs[hi]===targetHr) { hrIdx=hi; break; } }
-                                                                      if (hrIdx !== -1) { var tHrs = twinEd.getElementsByTagName('hr'); if (tHrs[hrIdx]) applyHrSt(tHrs[hrIdx]); }
-                                                                      syncTextarea(twinHrId);
+                                                                      
                                                                   }
                                                               }
                                                               syncTextarea(editorId);
