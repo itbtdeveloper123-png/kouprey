@@ -2753,9 +2753,7 @@ ob_start();
                                                                      if (targetIndex !== -1 && targetIndex < twinImgs.length) {
                                                                          applyImageUpdates(twinImgs[targetIndex]);
                                                                          updatedTwin = true;
-                                                                     }
-                                                                     
-                                                                     // Also sync any other image in the twin editor that matches the original URL
+                                                     // Also sync any other image in the twin editor that matches the original URL
                                                                      for (var i = 0; i < twinImgs.length; i++) {
                                                                          if (updatedTwin && i === targetIndex) continue;
                                                                          var tImg = twinImgs[i];
