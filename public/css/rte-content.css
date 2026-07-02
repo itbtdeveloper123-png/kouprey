@@ -22,28 +22,28 @@
     font-family: 'Inter', 'Hanuman', sans-serif !important;
 }
 
-/* Paragraphs & divs — compact uniform spacing */
+/* Paragraphs & divs — standard uniform spacing matching the editor */
 .content-section p,
 .content-section div { 
     color: #4B5563; 
     line-height: 1.65; 
     margin-top: 0 !important;
-    margin-bottom: 0.4rem !important; 
+    margin-bottom: 1rem !important; 
 }
 
-/* Lists — tight spacing */
+/* Lists — standard spacing matching the editor */
 .content-section ul {
     list-style-type: disc !important;
-    padding-left: 1.5rem !important;
-    margin: 0.25rem 0 0.5rem 0 !important;
+    padding-left: 2.5rem !important;
+    margin: 1rem 0 !important;
 }
 .content-section ol {
     list-style-type: decimal !important;
-    padding-left: 1.5rem !important;
-    margin: 0.25rem 0 0.5rem 0 !important;
+    padding-left: 2.5rem !important;
+    margin: 1rem 0 !important;
 }
 .content-section li {
-    padding: 0.05rem 0;
+    padding: 0.25rem 0 !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     color: #4B5563;
@@ -120,11 +120,11 @@
 .prose :where(img) { display: inline-block !important; }
 .prose :where(ul) {
     list-style-type: disc !important;
-    padding-left: 1.5rem !important;
+    padding-left: 2.5rem !important;
 }
 .prose :where(ol) {
     list-style-type: decimal !important;
-    padding-left: 1.5rem !important;
+    padding-left: 2.5rem !important;
 }
 .prose :where(li) {
     display: list-item !important;
