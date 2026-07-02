@@ -2567,7 +2567,14 @@ ob_start();
                                                                       var hr = document.createElement('hr');
                                                                       var hrSt = 'border: 0; border-top: ' + values.hrThickness + ' ' + values.hrStyle + ' ' + values.hrColor + '; width: ' + values.hrWidth + '; margin: ' + values.hrSpacing + ' auto; height: 0; display: block; clear: both;';
                                                                       hr.setAttribute('style', hrSt);
-                                                                      range.insertNode(hr);
+                                                                                                                                             var container = range.commonAncestorContainer;
+                                                                       if (container.nodeType === 3) container = container.parentNode;
+                                                                       if (container && container.closest('#' + editorId)) {
+                                                                           range.insertNode(hr);
+                                                                       } else {
+                                                                           var editor = document.getElementById(editorId);
+                                                                           editor.appendChild(hr);
+                                                                       }
                                                                       var p = document.createElement('p');
                                                                       p.innerHTML = '<br>';
                                                                       hr.parentNode.insertBefore(p, hr.nextSibling);
@@ -2751,6 +2758,8 @@ ob_start();
                                                              
                                                              // Apply to target
                                                              applyImageUpdates(targetImg);
+                                                              syncTextarea(editorId);
+                                                              return;
                                                              
                                                              // Sync with twin editor (EN <-> KM)
                                                              var twinEditorId = null;
@@ -2916,6 +2925,8 @@ ob_start();
                                                                   hr.setAttribute('style', 'border: 0; border-top: ' + values.eHrThick + ' ' + values.eHrStyle + ' ' + values.eHrColor + '; width: ' + values.eHrWidth + '; margin: ' + values.eHrSpacing + ' auto; height: 0; display: block; clear: both;');
                                                               }
                                                               applyHrSt(targetHr);
+                                                              syncTextarea(editorId);
+                                                              return;
                                                               var twinHrId = null;
                                                               if (editorId.endsWith('_en_editor')) twinHrId = editorId.replace('_en_editor','_km_editor');
                                                               else if (editorId.endsWith('_km_editor')) twinHrId = editorId.replace('_km_editor','_en_editor');
