@@ -2699,7 +2699,7 @@ ob_start();
                                                                      img.style.maskSize = '';
                                                                      img.style.webkitMaskRepeat = '';
                                                                      img.style.maskRepeat = '';
-                                                                 } else {
+                                                             } else {
                                                                      img.setAttribute('data-src', updatedUrl);
                                                                      img.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E";
                                                                      img.style.backgroundColor = editColor;
@@ -2737,7 +2737,27 @@ ob_start();
                                                                  var twinEditor = document.getElementById(twinEditorId);
                                                                  if (twinEditor) {
                                                                      var twinImgs = twinEditor.getElementsByTagName('img');
+                                                                     
+                                                                     // Find index of targetImg in the current editor
+                                                                     var currentImgs = editor.getElementsByTagName('img');
+                                                                     var targetIndex = -1;
+                                                                     for (var i = 0; i < currentImgs.length; i++) {
+                                                                         if (currentImgs[i] === targetImg) {
+                                                                             targetIndex = i;
+                                                                             break;
+                                                                         }
+                                                                     }
+                                                                     
+                                                                     var updatedTwin = false;
+                                                                     // Update the image at the same index if it exists in the twin editor
+                                                                     if (targetIndex !== -1 && targetIndex < twinImgs.length) {
+                                                                         applyImageUpdates(twinImgs[targetIndex]);
+                                                                         updatedTwin = true;
+                                                                     }
+                                                                     
+                                                                     // Also sync any other image in the twin editor that matches the original URL
                                                                      for (var i = 0; i < twinImgs.length; i++) {
+                                                                         if (updatedTwin && i === targetIndex) continue;
                                                                          var tImg = twinImgs[i];
                                                                          var tUrl = tImg.getAttribute('data-src') || tImg.src || '';
                                                                          var clean1 = tUrl.replace(/^(https?:\/\/[^\/]+)?/, '');
