@@ -3,9 +3,9 @@
 $filePath = dirname(__DIR__) . '/admin/settings.php';
 $content = file_get_contents($filePath);
 
-$pos = strpos($content, 'execCommand');
+$pos = strpos($content, 'document.execCommand(cmd');
 if ($pos !== false) {
-    echo "Found execCommand at position $pos.<br>";
+    echo "Found document.execCommand(cmd at position $pos.<br>";
     $start = max(0, $pos - 150);
     $length = 300;
     $slice = substr($content, $start, $length);
@@ -18,5 +18,5 @@ if ($pos !== false) {
     }
     echo "</pre>";
 } else {
-    echo "execCommand not found in settings.php";
+    echo "document.execCommand(cmd not found in settings.php";
 }
