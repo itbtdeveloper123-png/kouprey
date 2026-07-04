@@ -1421,7 +1421,6 @@ $topProducts = array_slice($topProducts, 0, 6);
 
 
 
-
 	<!-- Banner Slider removed (moved above replacing hero) -->
 
 	<?php 
@@ -2830,6 +2829,20 @@ $topProducts = array_slice($topProducts, 0, 6);
                                         <p class="text-gray-300 mb-4 leading-relaxed">
                                                 <?php echo htmlspecialchars(getSetting('site_description', 'Premium coffee beans and sustainable brewing solutions')); ?>
                                         </p>
+                                        <div class="space-y-2">
+                                                <div class="flex items-start">
+                                                        <i class="fas fa-map-marker-alt text-yellow-400 mt-1 mr-3"></i>
+                                                        <span class="text-gray-300"><?php echo nl2br(htmlspecialchars(getSetting('company_address', 'Phnom Penh, Cambodia'))); ?></span>
+                                                </div>
+                                                <div class="flex items-center">
+                                                        <i class="fas fa-phone text-yellow-400 mr-3"></i>
+                                                        <span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_phone', '+855 12 345 678')); ?></span>
+                                                </div>
+                                                <div class="flex items-center">
+                                                        <i class="fas fa-envelope text-yellow-400 mr-3"></i>
+                                                        <span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_email', 'info@kouprey.com')); ?></span>
+                                                </div>
+                                        </div>
                                 </div>
 
                                 <!-- Quick Links - Desktop: Original List, Mobile: Flex Cards -->
@@ -2880,7 +2893,42 @@ $topProducts = array_slice($topProducts, 0, 6);
                                         </div>
                                 </div>
 
+                                <!-- Social & Newsletter -->
+                                <div>
+                                        <h3 class="text-lg font-semibold mb-4 text-white"><?php echo getSetting('social_banner_text', 'Connect With Us'); ?></h3>
+                                        <div class="flex space-x-4 mb-6">
+                                                <?php if (getSetting('enable_social_links', '1') === '1'): ?>
+                                                        <?php if (getSetting('social_facebook')): ?>
+                                                                <a href="<?php echo htmlspecialchars(getSetting('social_facebook')); ?>" target="_blank" class="text-gray-300 hover:text-blue-400 transition-colors">
+                                                                        <i class="fab fa-facebook-f text-xl"></i>
+                                                                </a>
+                                                        <?php endif; ?>
+                                                        <?php if (getSetting('social_instagram')): ?>
+                                                                <a href="<?php echo htmlspecialchars(getSetting('social_instagram')); ?>" target="_blank" class="text-gray-300 hover:text-pink-400 transition-colors">
+                                                                        <i class="fab fa-instagram text-xl"></i>
+                                                                </a>
+                                                        <?php endif; ?>
+                                                        <?php if (getSetting('social_tiktok')): ?><a href="<?php echo htmlspecialchars(getSetting('social_tiktok')); ?>" target="_blank" class="text-gray-300 hover:text-pink-400 transition-colors">
+                                                                <i class="fab fa-tiktok text-xl"></i>
+                                                        </a><?php endif; ?>
+                                                        <?php if (getSetting('social_telegram')): ?><a href="<?php echo htmlspecialchars(getSetting('social_telegram')); ?>" target="_blank" class="text-gray-300 hover:text-blue-500 transition-colors">
+                                                                <i class="fab fa-telegram-plane text-xl"></i>
+                                                        </a><?php endif; ?>
+                                                <?php endif; ?>
+                                        </div>
 
+                                        <?php if (getSetting('enable_newsletter', '1') === '1'): ?>
+                                                <div>
+                                                        <p class="text-gray-300 text-sm mb-2"><?php echo htmlspecialchars(getSetting('newsletter_title', 'Stay Updated')); ?></p>
+                                                        <div class="flex">
+                                                                <input type="email" placeholder="<?php echo htmlspecialchars(getSetting('footer_enter_email', 'Enter your email')); ?>" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400">
+                                                                <button class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-r-lg transition-colors">
+                                                                        <i class="fas fa-paper-plane"></i>
+                                                                </button>
+                                                        </div>
+                                                </div>
+                                        <?php endif; ?>
+                                </div>
                         </div>
 
                         <!-- Bottom Bar -->
@@ -2889,7 +2937,6 @@ $topProducts = array_slice($topProducts, 0, 6);
                                 <div class="flex space-x-6 mt-4 md:mt-0">
                                         <a href="privacy_policy.php" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'Privacy Policy')); ?></a>
                                         <a href="terms_of_service.php" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'Terms of Service')); ?></a>
-
                                 </div>
                         </div>
                 </div>

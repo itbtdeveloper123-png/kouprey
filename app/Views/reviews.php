@@ -526,7 +526,20 @@ function generateStars($rating) {
 					<p class="text-gray-300 mb-4 leading-relaxed">
 						<?php echo htmlspecialchars(getSetting('site_description', 'Premium coffee beans and sustainable brewing solutions')); ?>
 					</p>
-
+					<div class="space-y-2">
+						<div class="flex items-start">
+							<i class="fas fa-map-marker-alt text-yellow-400 mt-1 mr-3"></i>
+							<span class="text-gray-300"><?php echo nl2br(htmlspecialchars(getSetting('company_address', 'Phnom Penh, Cambodia'))); ?></span>
+						</div>
+						<div class="flex items-center">
+							<i class="fas fa-phone text-yellow-400 mr-3"></i>
+							<span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_phone', '+855 12 345 678')); ?></span>
+						</div>
+						<div class="flex items-center">
+							<i class="fas fa-envelope text-yellow-400 mr-3"></i>
+							<span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_email', 'info@kouprey.com')); ?></span>
+						</div>
+					</div>
 				</div>
 
 				<!-- Quick Links -->
@@ -541,7 +554,42 @@ function generateStars($rating) {
 					</ul>
 				</div>
 
+				<!-- Social & Newsletter -->
+				<div>
+					<h3 class="text-lg font-semibold mb-4 text-white"><?php echo getSetting('social_banner_text', 'Connect With Us'); ?></h3>
+					<div class="flex space-x-4 mb-6">
+						<?php if (getSetting('enable_social_links', '1') === '1'): ?>
+							<?php if (getSetting('social_facebook')): ?>
+								<a href="<?php echo htmlspecialchars(getSetting('social_facebook')); ?>" target="_blank" class="text-gray-300 hover:text-blue-400 transition-colors">
+									<i class="fab fa-facebook-f text-xl"></i>
+								</a>
+							<?php endif; ?>
+							<?php if (getSetting('social_instagram')): ?>
+								<a href="<?php echo htmlspecialchars(getSetting('social_instagram')); ?>" target="_blank" class="text-gray-300 hover:text-pink-400 transition-colors">
+									<i class="fab fa-instagram text-xl"></i>
+								</a>
+							<?php endif; ?>
+							<?php if (getSetting('social_tiktok')): ?><a href="<?php echo htmlspecialchars(getSetting('social_tiktok')); ?>" target="_blank" class="text-gray-300 hover:text-pink-400 transition-colors">
+								<i class="fab fa-tiktok text-xl"></i>
+							</a><?php endif; ?>
+							<?php if (getSetting('social_telegram')): ?><a href="<?php echo htmlspecialchars(getSetting('social_telegram')); ?>" target="_blank" class="text-gray-300 hover:text-blue-500 transition-colors">
+								<i class="fab fa-telegram-plane text-xl"></i>
+							</a><?php endif; ?>
+						<?php endif; ?>
+					</div>
 
+					<?php if (getSetting('enable_newsletter', '1') === '1'): ?>
+						<div>
+							<p class="text-gray-300 text-sm mb-2"><?php echo htmlspecialchars(getSetting('footer_stay_updated', 'Stay Updated')); ?></p>
+							<div class="flex">
+								<input type="email" placeholder="<?php echo htmlspecialchars(getSetting('footer_enter_email', 'Enter your email')); ?>" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400">
+								<button class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-r-lg transition-colors">
+									<i class="fas fa-paper-plane"></i>
+								</button>
+							</div>
+						</div>
+					<?php endif; ?>
+				</div>
 			</div>
 
 			<!-- Bottom Bar -->
@@ -550,7 +598,7 @@ function generateStars($rating) {
 				<div class="flex space-x-6 mt-4 md:mt-0">
 				<a href="privacy_policy.php" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_privacy_policy', 'Privacy Policy')); ?></a>
 					<a href="terms_of_service.php" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_terms_of_service', 'Terms of Service')); ?></a>
-
+					<a href="#" onclick="openContactModal()" class="text-gray-400 hover:text-gray-300 text-sm transition-colors"><?php echo htmlspecialchars(getSetting('footer_contact_us', 'Contact Us')); ?></a>
 				</div>
 			</div>
 		</div>
@@ -751,9 +799,124 @@ function generateStars($rating) {
 		}
 	</style>
 
-
+	<!-- Contact Us Modal -->
+	<div id="contactModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+		<div class="absolute inset-0 bg-black bg-opacity-60 backdrop-blur-sm" onclick="closeContactModal()"></div>
+		<div class="relative w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl rounded-lg overflow-hidden modal-content transform scale-95 transition-transform duration-300 ease-out">
+			<div class="bg-gradient-to-r from-orange-500 to-red-600 p-6 text-white">
+				<div class="flex justify-between items-center">
+					<h3 class="text-2xl font-bold">Contact Us</h3>
+					<button onclick="closeContactModal()" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all duration-300">
+						<i class="fas fa-times text-white text-xl"></i>
+					</button>
+				</div>
+			</div>
+			<div class="p-6">
+				<div class="space-y-6">
+					<?php $contactContent = getSetting('contact_us', ''); ?>
+					<?php if (!empty($contactContent)): ?>
+						<div class="max-w-none content-section">
+							<?php echo $contactContent; ?>
+						</div>
+					<?php else: ?>
+						<div class="flex items-center">
+							<div class="bg-blue-100 p-3 rounded-full mr-4">
+								<i class="fas fa-map-marker-alt text-blue-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Address</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_address', '123 Coffee Street, City, Country')); ?></p>
+							</div>
+						</div>
+						
+						<div class="flex items-center">
+							<div class="bg-green-100 p-3 rounded-full mr-4">
+								<i class="fas fa-phone text-green-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Phone</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_phone', '+1 (555) 123-4567')); ?></p>
+							</div>
+						</div>
+						
+						<div class="flex items-center">
+							<div class="bg-purple-100 p-3 rounded-full mr-4">
+								<i class="fas fa-envelope text-purple-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Email</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_email', 'info@kouprey.com')); ?></p>
+							</div>
+						</div>
+						
+						<div class="flex items-center">
+							<div class="bg-yellow-100 p-3 rounded-full mr-4">
+								<i class="fas fa-clock text-yellow-600"></i>
+							</div>
+							<div>
+								<h4 class="font-semibold text-gray-800">Business Hours</h4>
+								<p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_hours', 'Mon-Fri: 9AM-6PM, Sat-Sun: 10AM-4PM')); ?></p>
+							</div>
+						</div>
+					<?php endif; ?>
+				</div>
+				
+				<div class="mt-8 pt-6 border-t border-gray-200">
+					<h4 class="font-semibold text-gray-800 mb-4">Send us a message</h4>
+					<form class="space-y-4">
+						<div>
+							<input type="text" placeholder="Your Name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+						</div>
+						<div>
+							<input type="email" placeholder="Your Email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+						</div>
+						<div>
+							<textarea rows="4" placeholder="Your Message" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"></textarea>
+						</div>
+						<button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+							Send Message
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<script>
+		// Contact Us Modal Functions
+		function openContactModal() {
+			const modal = document.getElementById('contactModal');
+			if (modal) {
+				modal.classList.remove('hidden');
+				modal.classList.add('flex');
+				// Trigger animation after a small delay
+				setTimeout(() => {
+					const modalContent = modal.querySelector('.modal-content');
+					if (modalContent) {
+						modalContent.classList.remove('scale-95');
+						modalContent.classList.add('scale-100');
+					}
+				}, 10);
+				document.body.style.overflow = 'hidden';
+			}
+		}
+
+		function closeContactModal() {
+			const modal = document.getElementById('contactModal');
+			if (modal) {
+				const modalContent = modal.querySelector('.modal-content');
+				if (modalContent) {
+					modalContent.classList.remove('scale-100');
+					modalContent.classList.add('scale-95');
+				}
+				// Hide after animation
+				setTimeout(() => {
+					modal.classList.add('hidden');
+					modal.classList.remove('flex');
+				}, 300);
+				document.body.style.overflow = 'auto';
+			}
+		}
 	</script>
 
 	<!-- Mobile Bottom Navigation (iOS 26 Floating Island) -->
