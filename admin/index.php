@@ -93,7 +93,7 @@ ob_start();
                         <div class="p-4 border rounded-4 hover-shadow transition-all bg-light h-100">
                             <i class="bi bi-gear-wide-connected text-success fs-3 d-block mb-3"></i>
                             <h5 class="text-dark fw-bold">Site Configuration</h5>
-                            <p class="text-secondary small mb-0">Update contact info, social links, and system settings</p>
+                            <p class="text-secondary small mb-0">Update social links and system settings</p>
                         </div>
                     </a>
                 </div>

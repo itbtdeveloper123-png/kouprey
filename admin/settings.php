@@ -97,7 +97,6 @@ if (!function_exists('localizeExternalImages')) {
 // Database Self-Healing: Repair invalid setting categories and remove duplicates
 try {
     $keyCategoryMap = [
-        'contact_us' => 'policies',
         'privacy_policy' => 'policies',
         'terms_of_service' => 'policies',
         'privacy_policy_title' => 'policies',
@@ -109,12 +108,7 @@ try {
         'social_instagram' => 'social',
         'social_tiktok' => 'social',
         'social_telegram' => 'social',
-        'company_logo' => 'contact',
-        'company_email' => 'contact',
-        'company_phone' => 'contact',
-        'company_address' => 'contact',
-        'working_hours' => 'contact',
-        'google_maps_embed' => 'contact',
+
         'about_banner_title' => 'about',
         'about_banner_desc' => 'about',
         'about_story_title' => 'about',
@@ -620,7 +614,6 @@ ob_start();
         <?php
         $categories = [
             'general' => ['icon' => 'bi-globe', 'title' => 'General Settings', 'description' => 'Basic website information and branding'],
-            'contact' => ['icon' => 'bi-telephone', 'title' => 'Contact Information', 'description' => 'Company contact details'],
             'hero' => ['icon' => 'bi-image', 'title' => 'Hero Section', 'description' => 'Main banner and call-to-action content'],
             'about' => ['icon' => 'bi-info-circle', 'title' => 'About Page', 'description' => 'About page content and sections'],
             'newsletter' => ['icon' => 'bi-envelope', 'title' => 'Newsletter', 'description' => 'Newsletter subscription settings'],
@@ -630,7 +623,7 @@ ob_start();
             'product' => ['icon' => 'bi-box-seam', 'title' => 'Product Information', 'description' => 'Product details and specifications'],
             'collections' => ['icon' => 'bi-collection', 'title' => 'Product Collections', 'description' => 'Manage Syrup & Powder collection texts'],
             'reviews' => ['icon' => 'bi-star', 'title' => 'Reviews Section', 'description' => 'Customer reviews page content'],
-            'policies' => ['icon' => 'bi-file-earmark-text', 'title' => 'Policies & Legal', 'description' => 'Privacy Policy, Terms of Service, and Contact Us content'],
+            'policies' => ['icon' => 'bi-file-earmark-text', 'title' => 'Policies & Legal', 'description' => 'Privacy Policy and Terms of Service content'],
             'pagination' => ['icon' => 'bi-list', 'title' => 'Pagination', 'description' => 'Content display settings'],
             'navigation' => ['icon' => 'bi-compass', 'title' => 'Navigation', 'description' => 'Navigation menu labels'],
             'file_manager' => ['icon' => 'bi-folder', 'title' => 'File Manager', 'description' => 'Manage uploaded product images'],
@@ -645,7 +638,7 @@ ob_start();
             <div id="settingsGrid" class="mb-5 <?php echo ($activeTab !== 'grid') ? 'd-none' : ''; ?>">
                 <div class="row g-4">
                     <?php foreach ($categories as $category => $categoryInfo): ?>
-                    <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social', 'flaticon'])) continue; ?>
+                    <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'about', 'file_manager', 'policies', 'social', 'flaticon'])) continue; ?>
                         <div class="col-xl-3 col-lg-4 col-md-6 animate-fade-in">
                             <div class="card h-100 border-0 card-workflow-item" onclick="switchSettingsTab(this, '<?php echo $category; ?>')">
                                 <div class="card-body p-4 d-flex flex-column justify-content-between">
@@ -670,7 +663,7 @@ ob_start();
             <!-- Tab content -->
             <div class="tab-content" id="settingsTabContent">
                 <?php foreach ($categories as $category => $categoryInfo): ?>
-                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'contact', 'about', 'file_manager', 'policies', 'social', 'flaticon'])) continue; ?>
+                <?php if (!isset($groupedSettings[$category]) && !in_array($category, ['collections', 'about', 'file_manager', 'policies', 'social', 'flaticon'])) continue; ?>
                     <div class="tab-pane fade <?php echo ($category === $activeTab) ? 'show active' : ''; ?>" id="<?php echo $category; ?>" role="tabpanel">
                         <div class="card border-0 shadow-premium overflow-hidden" style="border-radius: 28px;">
                             <div class="card-header bg-white border-bottom p-4">
@@ -1088,97 +1081,6 @@ ob_start();
                                         </div>
                                     </div>
 
-                                <?php elseif ($category === 'contact'): ?>
-                                    <?php
-                                    $contactSettings = [];
-                                    $keys = [
-                                        'company_address', 'company_phone', 'company_email', 'company_hours'
-                                    ];
-                                    foreach ($keys as $k) {
-                                        $contactSettings[$k]['en'] = getSettingVal('contact', $k, 'en');
-                                        $contactSettings[$k]['km'] = getSettingVal('contact', $k, 'km');
-                                    }
-                                    ?>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-4">
-                                            <div class="card h-100 border">
-                                                <div class="card-header bg-white fw-bold"><i class="bi bi-geo-alt me-2"></i>Address & Contact</div>
-                                                <div class="card-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">Company Address</label>
-                                                        <div class="border rounded p-2 bg-light mb-2">
-                                                            <span class="badge bg-secondary mb-1">English</span>
-                                                            <textarea name="company_address_en" class="form-control" rows="3" placeholder="Enter address in English..."><?php echo htmlspecialchars($contactSettings['company_address']['en'] ?? ''); ?></textarea>
-                                                        </div>
-                                                        <div class="border rounded p-2 bg-light">
-                                                            <span class="badge bg-primary mb-1">Khmer</span>
-                                                            <textarea name="company_address_km" class="form-control" rows="3" placeholder="Enter address in Khmer..."><?php echo htmlspecialchars($contactSettings['company_address']['km'] ?? ''); ?></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">Contact Phone</label>
-                                                        <div class="row">
-                                                            <div class="col-md-6 mb-2">
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
-                                                                    <input type="text" name="company_phone_en" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_phone']['en'] ?? ''); ?>" placeholder="+855 12 345 678">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6 mb-2">
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
-                                                                    <input type="text" name="company_phone_km" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_phone']['km'] ?? ''); ?>" placeholder="+855 12 345 678">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6 mb-4">
-                                            <div class="card h-100 border">
-                                                <div class="card-header bg-white fw-bold"><i class="bi bi-envelope me-2"></i>Email & Business Hours</div>
-                                                <div class="card-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">Contact Email</label>
-                                                        <div class="row">
-                                                            <div class="col-md-6 mb-2">
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
-                                                                    <input type="email" name="company_email_en" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_email']['en'] ?? ''); ?>" placeholder="info@kouprey.com">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6 mb-2">
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
-                                                                    <input type="email" name="company_email_km" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_email']['km'] ?? ''); ?>" placeholder="info@kouprey.com">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">Business Hours</label>
-                                                        <div class="row">
-                                                            <div class="col-md-6 mb-2">
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light text-secondary small fw-bold">EN</span>
-                                                                    <input type="text" name="company_hours_en" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_hours']['en'] ?? ''); ?>" placeholder="e.g. Mon-Sun: 7:30AM-6:00PM">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6 mb-2">
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
-                                                                    <input type="text" name="company_hours_km" class="form-control" value="<?php echo htmlspecialchars($contactSettings['company_hours']['km'] ?? ''); ?>" placeholder="e.g. ចន្ទ-អាទិត្យ: 7:30ព្រឹក-6:00ល្ងាច">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                 <?php elseif ($category === 'file_manager'): ?>
                                     <div class="row">
                                         <div class="col-12 mb-4">
@@ -1557,7 +1459,6 @@ ob_start();
                                         <div class="col-lg-7">
                                             <?php
                                             $policyFields = [
-                                                ['key' => 'contact_us', 'label' => 'Contact Us', 'badge' => 'bg-primary', 'icon' => 'bi-telephone'],
                                                 ['key' => 'privacy_policy', 'label' => 'Privacy Policy', 'badge' => 'bg-info', 'icon' => 'bi-shield-check'],
                                                 ['key' => 'terms_of_service', 'label' => 'Terms of Service', 'badge' => 'bg-success', 'icon' => 'bi-file-earmark-text'],
                                             ];
@@ -3103,7 +3004,6 @@ ob_start();
                                             var content = editor ? editor.innerHTML : '';
 
                                             var labelMap = {
-                                                'contact_us': 'Contact Us',
                                                 'privacy_policy': 'Privacy Policy',
                                                 'terms_of_service': 'Terms of Service'
                                             };
@@ -3573,7 +3473,6 @@ ob_start();
         // Category details for dynamic header update
         const categoryDetails = {
             'general': { title: 'General Settings', desc: 'Basic website information and branding' },
-            'contact': { title: 'Contact Information', desc: 'Company contact details' },
             'hero': { title: 'Hero Section', desc: 'Main banner and call-to-action content' },
             'about': { title: 'About Page', desc: 'About page content and sections' },
             'newsletter': { title: 'Newsletter Settings', desc: 'Newsletter subscription settings' },
@@ -3583,7 +3482,7 @@ ob_start();
             'product': { title: 'Product Information', desc: 'Product details and specifications' },
             'collections': { title: 'Product Collections', desc: 'Manage Syrup & Powder collection texts' },
             'reviews': { title: 'Reviews Section', desc: 'Customer reviews page content' },
-            'policies': { title: 'Policies & Legal', desc: 'Privacy Policy, Terms of Service, and Contact Us content' },
+            'policies': { title: 'Policies & Legal', desc: 'Privacy Policy and Terms of Service content' },
             'pagination': { title: 'Pagination Settings', desc: 'Content display settings' },
             'navigation': { title: 'Navigation Menu', desc: 'Navigation menu labels' },
             'file_manager': { title: 'File Manager', desc: 'Manage uploaded product images' }

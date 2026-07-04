@@ -36,11 +36,6 @@ $totalReviews = $reviewsResult['total_reviews'] ?? 0;
 $relatedProducts = $relatedResult['related_products'] ?? [];
 
 
-// Contact & Social Links
-$telegramLink = getSetting('social_telegram', '#');
-$whatsappLink = getSetting('social_whatsapp', '#');
-$facebookLink = getSetting('social_facebook', '#');
-
 // Fetch all products for search functionality
 $productStmt = $pdo->prepare("SELECT * FROM products ORDER BY featured DESC, best_seller DESC, id DESC");
 $productStmt->execute();
@@ -660,61 +655,6 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
                         <i class="fas fa-search-minus text-4xl mb-4 block opacity-20"></i>
                         <p class="text-lg"><?php echo htmlspecialchars(getSetting('no_results', 'No products found matching your search.')); ?></p>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Contact Us Modal -->
-    <div id="contactModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-        <div class="absolute inset-0 bg-black bg-opacity-60" onclick="closeContactModal()"></div>
-        <div class="relative w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl rounded-lg overflow-hidden modal-content transform scale-95 transition-transform duration-300 ease-out">
-            <div class="bg-orange-600 p-6 text-white">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-2xl font-bold">Contact Us</h3>
-                    <button onclick="closeContactModal()" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all duration-300">
-                        <i class="fas fa-times text-white text-xl"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="p-6">
-                <div class="space-y-6">
-                    <?php $contactContent = getSetting('contact_us', ''); ?>
-                    <?php if (!empty($contactContent)): ?>
-                        <div class="max-w-none content-section">
-                            <?php echo $contactContent; ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="flex items-center">
-                            <div class="bg-blue-100 p-3 rounded-full mr-4">
-                                <i class="fas fa-map-marker-alt text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Address</h4>
-                                <p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_address', '123 Coffee Street, City, Country')); ?></p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center">
-                            <div class="bg-green-100 p-3 rounded-full mr-4">
-                                <i class="fas fa-phone text-green-600"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Phone</h4>
-                                <p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_phone', '+855 12 345 678')); ?></p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center">
-                            <div class="bg-purple-100 p-3 rounded-full mr-4">
-                                <i class="fas fa-envelope text-purple-600"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Email</h4>
-                                <p class="text-gray-600"><?php echo htmlspecialchars(getSetting('company_email', 'info@kouprey.com')); ?></p>
-                            </div>
-                        </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
