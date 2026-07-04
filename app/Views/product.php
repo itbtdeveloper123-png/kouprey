@@ -2917,17 +2917,7 @@ $topProducts = array_slice($topProducts, 0, 6);
                                                 <?php endif; ?>
                                         </div>
 
-                                        <?php if (getSetting('enable_newsletter', '1') === '1'): ?>
-                                                <div>
-                                                        <p class="text-gray-300 text-sm mb-2"><?php echo htmlspecialchars(getSetting('newsletter_title', 'Stay Updated')); ?></p>
-                                                        <div class="flex">
-                                                                <input type="email" placeholder="<?php echo htmlspecialchars(getSetting('footer_enter_email', 'Enter your email')); ?>" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400">
-                                                                <button class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-r-lg transition-colors">
-                                                                        <i class="fas fa-paper-plane"></i>
-                                                                </button>
-                                                        </div>
-                                                </div>
-                                        <?php endif; ?>
+
                                 </div>
                         </div>
 
