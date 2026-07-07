@@ -3552,6 +3552,29 @@ ob_start();
             window.history.pushState({}, '', url);
         }
 
+        // ===== CRITICAL: Sync ALL RTE editors before form submission =====
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            // Force-sync every contenteditable editor into its hidden textarea
+            document.querySelectorAll('.rte-editor[contenteditable="true"]').forEach(function(editor) {
+                if (!editor.id) return;
+                var textareaName = editor.getAttribute('data-textarea');
+                if (!textareaName) return;
+
+                // 1) Try the named hidden textarea (id = name + '_textarea')
+                var textarea = document.getElementById(textareaName + '_textarea');
+                if (textarea) {
+                    textarea.value = editor.innerHTML;
+                    return;
+                }
+
+                // 2) Fallback: find by name attribute
+                var byName = document.querySelector('textarea[name="' + textareaName + '"]');
+                if (byName) {
+                    byName.value = editor.innerHTML;
+                }
+            });
+        });
+
         // Auto-run on load to initialize correct state
         document.addEventListener('DOMContentLoaded', function() {
             var activeTab = document.getElementById('activeTabInput').value;
