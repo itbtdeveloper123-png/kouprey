@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Flame, ArrowRight, Play } from 'lucide-react';
+import { Star, Flame, ArrowRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
 import { useApp } from '../context/AppContext';
@@ -158,22 +158,12 @@ export default function SpotlightHero({ products = [] }) {
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center">
-                      <a
-                        href="#products"
+                      <Link
+                        to={`/product/${spotlightProduct.base_product_id || spotlightProduct.id}`}
                         className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3.5 md:py-4 rounded-full font-bold shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 w-full sm:w-auto justify-center text-center cursor-pointer"
                       >
                         <span>{language === 'km' ? 'មើលផលិតផល' : 'View Product'}</span>
                         <ArrowRight className="w-4 h-4" />
-                      </a>
-
-                      <Link
-                        to="/features"
-                        className="group flex items-center gap-2 text-gray-500 hover:text-orange-600 font-medium transition-colors px-6 py-3"
-                      >
-                        <div className="w-10 h-10 rounded-full border-2 border-gray-200 group-hover:border-orange-500 flex items-center justify-center transition-colors">
-                          <Play className="w-3.5 h-3.5 text-gray-500 group-hover:text-orange-600 fill-current ml-0.5" />
-                        </div>
-                        <span>{language === 'km' ? 'ទស្សនាវីដេអូ' : 'Watch Video'}</span>
                       </Link>
                     </div>
 
