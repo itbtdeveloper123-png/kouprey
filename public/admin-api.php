@@ -1110,13 +1110,25 @@ switch ($action) {
             $targetPath = $uploadDir . $filename;
 
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-                // Compress if image_utils available and large
-                if (file_exists(__DIR__ . '/../app/Config/image_utils.php') && $file['size'] > 100 * 1024) {
+                // Ensure image is converted to WebP while preserving transparency
+                if ($ext !== 'webp' && function_exists('imagewebp') && file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
+                    require_once __DIR__ . '/../app/Config/image_utils.php';
+                    $webpFilename = $prefix . time() . '.webp';
+                    $webpPath = $uploadDir . $webpFilename;
+                    if (function_exists('compressImage') && compressImage($targetPath, $webpPath, 88, 1920, 1920)) {
+                        if (file_exists($targetPath) && $targetPath !== $webpPath) {
+                            @unlink($targetPath);
+                        }
+                        $filename = $webpFilename;
+                        $targetPath = $webpPath;
+                    }
+                } elseif (file_exists(__DIR__ . '/../app/Config/image_utils.php') && $file['size'] > 100 * 1024) {
                     require_once __DIR__ . '/../app/Config/image_utils.php';
                     if (function_exists('compressImage')) {
-                        compressImage($targetPath, $targetPath, 85, 1920, 1920);
+                        compressImage($targetPath, $targetPath, 88, 1920, 1920);
                     }
                 }
+
                 $relPath = match($type) {
                     'logo'   => '/uploads/' . $filename,
                     'banner' => '/uploads/banners/' . $filename,

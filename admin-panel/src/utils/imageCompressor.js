@@ -1,16 +1,21 @@
 /**
  * Client-side Image Compression Utility
- * Resizes large camera/phone photos before uploading to hosting server
- * Reduces upload time and network stalls dramatically (e.g. 3MB -> 100KB)
+ * Converts images to modern, high-performance WebP format while preserving 100% alpha transparency.
+ * Prevents network stalls on large uploads while avoiding any background color attachment.
  */
 
-export async function compressImageClient(file, maxWidth = 1200, maxHeight = 1200, quality = 0.85) {
+export async function compressImageClient(file, maxWidth = 1600, maxHeight = 1600, quality = 0.88) {
   if (!file || !file.type || !file.type.startsWith('image/')) {
     return file;
   }
 
-  // If already small (under 200 KB), keep original
-  if (file.size < 200 * 1024 && !file.type.includes('png')) {
+  // Preserve SVGs and animated GIFs
+  if (file.type === 'image/svg+xml' || file.type === 'image/gif') {
+    return file;
+  }
+
+  // If already a small WebP (under 300 KB), keep original
+  if (file.type === 'image/webp' && file.size < 300 * 1024) {
     return file;
   }
 
@@ -42,26 +47,36 @@ export async function compressImageClient(file, maxWidth = 1200, maxHeight = 120
           return resolve(file);
         }
 
-        // Fill with white background for transparent PNG converted to JPEG
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, width, height);
+        // Keep canvas completely transparent (NO white background)
+        ctx.clearRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Convert to WebP or JPEG
+        // Export to WebP format (supports alpha transparency & high compression)
         canvas.toBlob(
           (blob) => {
-            if (blob && blob.size < file.size) {
-              const newName = file.name.replace(/\.[^.]+$/, '.jpg');
+            if (blob && (blob.type === 'image/webp' || blob.size < file.size || file.type !== 'image/webp')) {
+              const newName = file.name.replace(/\.[^.]+$/, '.webp');
               const compressedFile = new File([blob], newName, {
-                type: 'image/jpeg',
+                type: 'image/webp',
                 lastModified: Date.now(),
               });
               resolve(compressedFile);
             } else {
-              resolve(file);
+              // Fallback to PNG if WebP export is not supported by browser (preserves transparency)
+              canvas.toBlob(
+                (pngBlob) => {
+                  if (pngBlob) {
+                    const pngName = file.name.replace(/\.[^.]+$/, '.png');
+                    resolve(new File([pngBlob], pngName, { type: 'image/png', lastModified: Date.now() }));
+                  } else {
+                    resolve(file);
+                  }
+                },
+                'image/png'
+              );
             }
           },
-          'image/jpeg',
+          'image/webp',
           quality
         );
       };
