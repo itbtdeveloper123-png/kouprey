@@ -138,4 +138,26 @@ export const adminApi = {
       isFormData: true,
     });
   },
+
+  // File Manager
+  getFileManagerImages: () => request('get_file_manager_images'),
+
+  deleteFileManager: (filenames) =>
+    request('delete_file_manager', {
+      method: 'POST',
+      body: { filenames: Array.isArray(filenames) ? filenames : [filenames] },
+    }),
+
+  uploadFileManager: async (files) => {
+    const formData = new FormData();
+    Array.from(files).forEach((f) => formData.append('images[]', f));
+    return request('upload_file_manager', {
+      method: 'POST',
+      body: formData,
+      isFormData: true,
+    });
+  },
+
+  convertAllWebp: () =>
+    request('convert_all_webp', { method: 'POST' }),
 };
