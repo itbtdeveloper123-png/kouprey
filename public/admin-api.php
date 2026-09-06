@@ -798,20 +798,66 @@ switch ($action) {
         try {
             $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
             $id = intval($data['id'] ?? 0);
-            $fields = [
+
+            // Fetch actual existing columns in features table
+            $existingCols = [];
+            try {
+                $chk = $pdo->query("SHOW COLUMNS FROM features");
+                if ($chk) {
+                    $existingCols = $chk->fetchAll(PDO::FETCH_COLUMN);
+                }
+            } catch (Exception $e) {}
+
+            // Auto-migrate: Attempt to add icon and image columns if database permissions allow
+            if (!empty($existingCols)) {
+                if (!in_array('icon', $existingCols)) {
+                    try {
+                        $pdo->exec("ALTER TABLE features ADD COLUMN icon VARCHAR(255) NULL DEFAULT ''");
+                        $existingCols[] = 'icon';
+                    } catch (Exception $ignored) {}
+                }
+                if (!in_array('image', $existingCols)) {
+                    try {
+                        $pdo->exec("ALTER TABLE features ADD COLUMN image VARCHAR(255) NULL DEFAULT ''");
+                        $existingCols[] = 'image';
+                    } catch (Exception $ignored) {}
+                }
+            }
+
+            $candidateFields = [
                 'title'       => trim($data['title'] ?? ''),
                 'description' => trim($data['description'] ?? ''),
                 'icon'        => trim($data['icon'] ?? ''),
                 'image'       => trim($data['image'] ?? ''),
                 'language'    => $data['language'] ?? 'km',
             ];
+
+            // Filter candidate fields to ONLY include columns that actually exist in the table
+            $fields = [];
+            foreach ($candidateFields as $col => $val) {
+                if (empty($existingCols)) {
+                    // Fallback to safe core columns if schema inspection failed
+                    if (!in_array($col, ['icon', 'image'])) {
+                        $fields[$col] = $val;
+                    }
+                } elseif (in_array($col, $existingCols)) {
+                    $fields[$col] = $val;
+                }
+            }
+
             if ($id > 0) {
                 $set = implode(', ', array_map(fn($k) => "$k = ?", array_keys($fields)));
                 $pdo->prepare("UPDATE features SET $set WHERE id = ?")->execute([...array_values($fields), $id]);
                 echo json_encode(['success' => true, 'action' => 'updated']);
             } else {
-                $maxBase = $pdo->query("SELECT COALESCE(MAX(base_feature_id),0) FROM features")->fetchColumn();
-                $fields['base_feature_id'] = $maxBase + 1;
+                if (empty($existingCols) || in_array('base_feature_id', $existingCols)) {
+                    $baseId = intval($data['base_feature_id'] ?? 0);
+                    if ($baseId <= 0) {
+                        $maxBase = $pdo->query("SELECT COALESCE(MAX(base_feature_id),0) FROM features")->fetchColumn();
+                        $baseId = $maxBase + 1;
+                    }
+                    $fields['base_feature_id'] = $baseId;
+                }
                 $cols = implode(', ', array_keys($fields));
                 $ph = implode(', ', array_fill(0, count($fields), '?'));
                 $pdo->prepare("INSERT INTO features ($cols) VALUES ($ph)")->execute(array_values($fields));
@@ -826,7 +872,12 @@ switch ($action) {
         try {
             $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
             $id = intval($data['id'] ?? 0);
-            $pdo->prepare("DELETE FROM features WHERE id = ?")->execute([$id]);
+            if ($id > 0) {
+                try {
+                    $pdo->prepare("DELETE FROM feature_products WHERE feature_id = ?")->execute([$id]);
+                } catch (Exception $ignored) {}
+                $pdo->prepare("DELETE FROM features WHERE id = ?")->execute([$id]);
+            }
             echo json_encode(['success' => true]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);

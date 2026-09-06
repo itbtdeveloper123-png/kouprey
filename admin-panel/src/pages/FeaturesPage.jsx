@@ -11,6 +11,7 @@ export default function FeaturesPage() {
   const [editingFeature, setEditingFeature] = useState(null);
   const [formData, setFormData] = useState({
     id: 0,
+    base_feature_id: 0,
     title: '',
     description: '',
     icon: '',
@@ -48,6 +49,7 @@ export default function FeaturesPage() {
     setEditingFeature(null);
     setFormData({
       id: 0,
+      base_feature_id: 0,
       title: '',
       description: '',
       icon: '',
@@ -61,6 +63,7 @@ export default function FeaturesPage() {
     setEditingFeature(f);
     setFormData({
       id: f.id,
+      base_feature_id: f.base_feature_id || 0,
       title: f.title || '',
       description: f.description || '',
       icon: f.icon || '',
