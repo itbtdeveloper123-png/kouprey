@@ -887,15 +887,34 @@ switch ($action) {
     case 'save_settings_bulk':
         try {
             $data = json_decode(file_get_contents('php://input'), true);
-            // data = [ { key, value, language }, ... ]
+            // data = [ { key, value, language, category }, ... ]
             if (!is_array($data) || empty($data)) { echo json_encode(['success' => false, 'error' => 'No data']); break; }
-            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            
+            $hasCat = false;
+            try {
+                $chk = $pdo->query("SHOW COLUMNS FROM settings LIKE 'category'");
+                $hasCat = ($chk && $chk->rowCount() > 0);
+            } catch (Exception $e) {}
+
+            if ($hasCat) {
+                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language, category) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = IF(VALUES(category) != '', VALUES(category), category)");
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            }
+
             $pdo->beginTransaction();
             foreach ($data as $item) {
                 $key  = trim($item['key'] ?? '');
                 $val  = $item['value'] ?? '';
                 $lang = $item['language'] ?? 'km';
-                if ($key) $stmt->execute([$key, $val, $lang]);
+                $cat  = trim($item['category'] ?? '');
+                if ($key) {
+                    if ($hasCat) {
+                        $stmt->execute([$key, $val, $lang, $cat]);
+                    } else {
+                        $stmt->execute([$key, $val, $lang]);
+                    }
+                }
             }
             $pdo->commit();
             echo json_encode(['success' => true, 'saved' => count($data)]);

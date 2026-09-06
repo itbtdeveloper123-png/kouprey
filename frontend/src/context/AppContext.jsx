@@ -75,7 +75,17 @@ const DEFAULT_SETTINGS_KM = {
   feature_direct_trade_title: 'ពាណិជ្ជកម្មដោយផ្ទាល់',
   feature_direct_trade_desc: 'យើងបង់តម្លៃយុត្តិធម៌ដោយផ្ទាល់ទៅកសិករ។',
   feature_flavor_title: 'ពូជរសជាតិសម្បូរបែប',
-  feature_flavor_desc: 'ពីកំណត់ព្រៃទៅកូឡាតេ រុករកជួរផលិតផលរបស់យើង។'
+  feature_flavor_desc: 'ពីកំណត់ព្រៃទៅកូឡាតេ រុករកជួរផលិតផលរបស់យើង។',
+  location_subtitle_tag: 'VISIT US',
+  location_title: 'ទីតាំងរបស់យើង',
+  location_desc: 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។',
+  location_store_name: 'KouPrey HQ',
+  location_address_label: 'ហាងរបស់យើង',
+  location_hours_label: 'ម៉ោងបើកដំណើរការ',
+  company_hours: 'រៀងរាល់ថ្ងៃ៖ ម៉ោង ៧:០០ ព្រឹក - ៨:០០ យប់',
+  company_map_embed: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh',
+  company_map_link: 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA',
+  location_btn_text: 'Get Directions'
 };
 
 const DEFAULT_SETTINGS_EN = {
@@ -149,7 +159,17 @@ const DEFAULT_SETTINGS_EN = {
   feature_direct_trade_title: 'Direct Trade',
   feature_direct_trade_desc: 'Fair compensation directly empowering coffee farmers.',
   feature_flavor_title: 'Flavor Diversity',
-  feature_flavor_desc: 'Rich profiles from dark roasts to ceremonial matcha.'
+  feature_flavor_desc: 'Rich profiles from dark roasts to ceremonial matcha.',
+  location_subtitle_tag: 'VISIT US',
+  location_title: 'Our Locations',
+  location_desc: 'Come experience the aroma and taste of our premium coffee in person.',
+  location_store_name: 'KouPrey HQ',
+  location_address_label: 'Our Store',
+  location_hours_label: 'Opening Hours',
+  company_hours: 'Daily: 7:00 AM - 8:00 PM',
+  company_map_embed: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh',
+  company_map_link: 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA',
+  location_btn_text: 'Get Directions'
 };
 
 function cleanSettings(rawSettings, lang) {

@@ -5,7 +5,7 @@ import ZigzagSpotlight from '../components/ZigzagSpotlight';
 import ProductCard from '../components/ProductCard';
 import { useApp } from '../context/AppContext';
 import { fetchProducts } from '../api/client';
-import { Coffee, Tag, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Coffee, Tag, LayoutGrid, ChevronLeft, ChevronRight, MapPin, Clock, Store, Navigation, ExternalLink } from 'lucide-react';
 
 export default function HomePage() {
   const { language, categories, settings } = useApp();
@@ -322,6 +322,115 @@ export default function HomePage() {
                 </div>
               )}
 
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────────────────────────────────────────────────── */}
+      {/* Visit Us / Location Map Section (Matching product.php lines 2740-2818) */}
+      {/* ───────────────────────────────────────────────────────── */}
+      <section id="location" className="py-20 md:py-32 relative overflow-hidden bg-gray-50/50">
+        {/* Decorative Ambient Blurs */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-30">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-200/40 rounded-full blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-blue-200/40 rounded-full blur-[100px]" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+          {/* Header */}
+          <div className="text-center mb-12 md:mb-16">
+            <span className="text-orange-600 font-bold tracking-widest uppercase text-xs md:text-sm mb-3 block">
+              {settings.location_subtitle_tag || 'VISIT US'}
+            </span>
+            <h2 className="text-4xl md:text-6xl font-black text-gray-900 mb-6 drop-shadow-xs">
+              {settings.location_title || (language === 'km' ? 'ទីតាំងរបស់យើង' : 'Our Locations')}
+            </h2>
+            <p className="text-gray-500 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
+              {settings.location_desc || (language === 'km' ? 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។' : 'Come experience the aroma and taste of our premium coffee in person.')}
+            </p>
+          </div>
+
+          {/* Dual-Pane Card */}
+          <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[580px] border border-gray-100 hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-shadow duration-500">
+            {/* Info Side */}
+            <div className="w-full lg:w-2/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center relative bg-white">
+              {/* Decorative Corner Shape */}
+              <div className="absolute right-0 top-0 w-32 h-32 bg-orange-50 rounded-bl-[100%] opacity-50 pointer-events-none" />
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-8 md:mb-10 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm shadow-sm flex-shrink-0">
+                  <Store className="w-4 h-4" />
+                </span>
+                <span>{settings.location_store_name || 'KouPrey HQ'}</span>
+              </h3>
+
+              <div className="space-y-6 relative z-10">
+                {/* Address Card */}
+                <div className="group flex items-start gap-4 md:gap-5 p-4 rounded-2xl hover:bg-gray-50 transition-colors duration-300 cursor-default border border-transparent hover:border-gray-100">
+                  <div className="w-14 h-14 rounded-2xl bg-orange-100/50 group-hover:bg-orange-100 flex items-center justify-center text-orange-600 flex-shrink-0 transition-colors shadow-xs">
+                    <MapPin className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Address</span>
+                    <h4 className="font-bold text-gray-900 text-lg mb-1">
+                      {settings.location_address_label || (language === 'km' ? 'ហាងរបស់យើង' : 'Our Store')}
+                    </h4>
+                    <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
+                      {settings.company_address || (language === 'km' ? '120408 សង្កាត់បឹងកក់ 2 ខណ្ឌទួលគោក រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា។' : '120408 Sangkat Boeung Kak 2, Khan Tuol Kouk, Phnom Penh, Cambodia.')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hours Card */}
+                <div className="group flex items-start gap-4 md:gap-5 p-4 rounded-2xl hover:bg-gray-50 transition-colors duration-300 cursor-default border border-transparent hover:border-gray-100">
+                  <div className="w-14 h-14 rounded-2xl bg-blue-100/50 group-hover:bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0 transition-colors shadow-xs">
+                    <Clock className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Schedule</span>
+                    <h4 className="font-bold text-gray-900 text-lg mb-1">
+                      {settings.location_hours_label || (language === 'km' ? 'ម៉ោងបើកដំណើរការ' : 'Opening Hours')}
+                    </h4>
+                    <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
+                      {settings.company_hours || (language === 'km' ? 'រៀងរាល់ថ្ងៃ៖ ម៉ោង ៧:០០ ព្រឹក - ៨:០០ យប់' : 'Daily: 7:00 AM - 8:00 PM')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Get Directions Button */}
+              <a
+                href={settings.company_map_link || 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 md:mt-10 group relative flex items-center justify-center gap-3 bg-gray-900 text-white py-4 md:py-5 px-8 rounded-2xl font-bold overflow-hidden transition-all hover:bg-orange-600 shadow-xl hover:shadow-orange-500/30 transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                <Navigation className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+                <span>{settings.location_btn_text || (language === 'km' ? 'Get Directions' : 'Get Directions')}</span>
+              </a>
+            </div>
+
+            {/* Map Side */}
+            <div className="w-full lg:w-3/5 h-[420px] sm:h-[480px] lg:h-auto min-h-[420px] relative bg-gray-100">
+              {/* Open in Maps Overlay */}
+              <a
+                href={settings.company_map_link || 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md text-gray-800 text-xs font-bold px-3.5 py-2 rounded-xl shadow-md hover:bg-white hover:text-orange-600 flex items-center gap-1.5 border border-gray-200/80 transition-all cursor-pointer"
+              >
+                <span>Open in Maps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <iframe
+                src={settings.company_map_embed || 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh'}
+                className="absolute inset-0 w-full h-full border-0 contrast-[1.05]"
+                allowFullScreen=""
+                loading="lazy"
+                title="KouPrey Coffee Location"
+              />
             </div>
           </div>
         </div>

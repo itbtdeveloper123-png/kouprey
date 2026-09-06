@@ -38,7 +38,11 @@ import {
   UploadCloud,
   Wand2,
   CheckSquare,
-  Square
+  Square,
+  MapPin,
+  Clock,
+  Store,
+  Navigation
 } from 'lucide-react';
 
 const FacebookIcon = ({ size = 16, className = "" }) => (
@@ -143,6 +147,15 @@ const CATEGORIES_METADATA = [
     badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
   },
   {
+    id: 'location',
+    title: 'Store Location & Map',
+    titleKm: 'ទីតាំងហាង & ផែនទី (Location & Map)',
+    description: 'Store address, opening hours, Google Maps embed and directions',
+    descriptionKm: 'អាសយដ្ឋានហាង ម៉ោងបើកដំណើរការ តំណភ្ជាប់ Google Maps និងផែនទីទីតាំង',
+    icon: MapPin,
+    badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  },
+  {
     id: 'reviews',
     title: 'Reviews Section',
     titleKm: 'ផ្នែកការវាយតម្លៃ (Reviews)',
@@ -198,6 +211,45 @@ const CATEGORIES_METADATA = [
   },
 ];
 
+const DEFAULT_LOCATION_SETTINGS = {
+  location_subtitle_tag: { en: 'VISIT US', km: 'VISIT US', type: 'text', description: 'Section top subtitle tag' },
+  location_title: { en: 'Our Locations', km: 'ទីតាំងរបស់យើង', type: 'text', description: 'Main section heading' },
+  location_desc: {
+    en: 'Come experience the aroma and taste of our premium coffee in person.',
+    km: 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។',
+    type: 'textarea',
+    description: 'Section description'
+  },
+  location_store_name: { en: 'KouPrey HQ', km: 'KouPrey HQ', type: 'text', description: 'Store branch name' },
+  location_address_label: { en: 'Our Store', km: 'ហាងរបស់យើង', type: 'text', description: 'Address badge label' },
+  company_address: {
+    en: '120408 Sangkat Boeung Kak 2, Khan Tuol Kouk, Phnom Penh, Cambodia.',
+    km: '120408 សង្កាត់បឹងកក់ 2 ខណ្ឌទួលគោក រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា។',
+    type: 'textarea',
+    description: 'Store address'
+  },
+  location_hours_label: { en: 'Opening Hours', km: 'ម៉ោងបើកដំណើរការ', type: 'text', description: 'Schedule badge label' },
+  company_hours: {
+    en: 'Daily: 7:00 AM - 8:00 PM',
+    km: 'រៀងរាល់ថ្ងៃ៖ ម៉ោង ៧:០០ ព្រឹក - ៨:០០ យប់',
+    type: 'textarea',
+    description: 'Opening hours / schedule'
+  },
+  company_map_embed: {
+    en: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh',
+    km: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh',
+    type: 'url',
+    description: 'Google Maps embed URL (iframe src)'
+  },
+  company_map_link: {
+    en: 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA',
+    km: 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA',
+    type: 'url',
+    description: 'Get Directions link'
+  },
+  location_btn_text: { en: 'Get Directions', km: 'Get Directions', type: 'text', description: 'Directions button text' }
+};
+
 const EMOJI_LIST = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','•'];
 
 export default function SettingsPage() {
@@ -228,6 +280,9 @@ export default function SettingsPage() {
   // Policy preview state
   const [activePolicyPreview, setActivePolicyPreview] = useState('privacy_policy_km');
 
+  // Location preview state
+  const [locationPreviewLang, setLocationPreviewLang] = useState('km');
+
   // Flaticon browser state
   const [flaticonUrl, setFlaticonUrl] = useState('https://www.flaticon.com/');
 
@@ -241,10 +296,10 @@ export default function SettingsPage() {
     try {
       const res = await adminApi.getSettings();
       if (res.success) {
+        let built = {};
         if (res.grouped && Object.keys(res.grouped).length > 0) {
-          setGroupedSettings(res.grouped);
+          built = { ...res.grouped };
         } else if (res.raw && Array.isArray(res.raw)) {
-          const built = {};
           res.raw.forEach((r) => {
             const key = r.setting_key;
             const lang = r.language || 'km';
@@ -261,8 +316,32 @@ export default function SettingsPage() {
             }
             built[cat][key].values[lang] = r.setting_value || '';
           });
-          setGroupedSettings(built);
         }
+
+        // Initialize location category with default fallbacks and existing address/hours
+        if (!built.location) built.location = {};
+        Object.entries(DEFAULT_LOCATION_SETTINGS).forEach(([k, def]) => {
+          if (!built.location[k]) {
+            const fromGeneralEn = built.general?.[k]?.values?.en;
+            const fromGeneralKm = built.general?.[k]?.values?.km;
+            built.location[k] = {
+              key: k,
+              category: 'location',
+              type: def.type,
+              description: def.description,
+              values: {
+                en: fromGeneralEn || def.en,
+                km: fromGeneralKm || def.km,
+              },
+            };
+          } else {
+            if (!built.location[k].values) built.location[k].values = { en: '', km: '' };
+            if (!built.location[k].values.en) built.location[k].values.en = def.en;
+            if (!built.location[k].values.km) built.location[k].values.km = def.km;
+          }
+        });
+
+        setGroupedSettings(built);
       }
     } catch (err) {
       showToast(err.message || 'Failed to load settings', 'error');
@@ -2113,6 +2192,451 @@ export default function SettingsPage() {
           )}
 
           {/* ───────────────────────────────────────────────────────── */}
+          {/* TAB: STORE LOCATION & MAP (Visit Us Section on Frontend)  */}
+          {/* ───────────────────────────────────────────────────────── */}
+          {activeTab === 'location' && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white rounded-2xl border border-emerald-200/80 p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 flex-shrink-0">
+                    <MapPin size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Store Location & Map (ទីតាំងហាង & ផែនទី)
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      គ្រប់គ្រងផ្នែក Visit Us ដែលបង្ហាញលើទំព័រដើម / ផលិតផល រួមមាន អាសយដ្ឋាន ម៉ោងបើកដំណើរការ និងផែនទី Google Maps
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="http://localhost:5173/#location"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 shadow-2xs transition"
+                >
+                  <Eye size={15} />
+                  <span>មើលលើគេហទំព័រ</span>
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+
+              {/* Grid: 2 Columns for Forms */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 1. Section Headers */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
+                  <div className="border-b border-gray-100 pb-3">
+                    <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                      <Target size={17} className="text-orange-500" />
+                      <span>១. ចំណងជើងផ្នែក (Section Header Texts)</span>
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-0.5">កំណត់ចំណងជើងធំ និងពាក្យរៀបរាប់ខាងលើផ្នែក</p>
+                  </div>
+
+                  {/* Subtitle Tag */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                      ស្លាកខាងលើ (Subtitle Tag)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">EN</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'location_subtitle_tag', 'en', 'VISIT US')}
+                          onChange={(e) => setVal('location', 'location_subtitle_tag', 'en', e.target.value)}
+                          placeholder="VISIT US"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">KM</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'location_subtitle_tag', 'km', 'VISIT US')}
+                          onChange={(e) => setVal('location', 'location_subtitle_tag', 'km', e.target.value)}
+                          placeholder="VISIT US"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Title */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                      ចំណងជើងធំ (Main Heading)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">EN</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'location_title', 'en', 'Our Locations')}
+                          onChange={(e) => setVal('location', 'location_title', 'en', e.target.value)}
+                          placeholder="Our Locations"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">KM</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'location_title', 'km', 'ទីតាំងរបស់យើង')}
+                          onChange={(e) => setVal('location', 'location_title', 'km', e.target.value)}
+                          placeholder="ទីតាំងរបស់យើង"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                      ការពិពណ៌នាសង្ខេប (Description)
+                    </label>
+                    <div className="space-y-2">
+                      <div className="border border-gray-200 rounded-xl p-2.5 bg-gray-50/50">
+                        <span className="text-[11px] font-semibold text-gray-500 mb-1 block">English</span>
+                        <textarea
+                          rows={2}
+                          value={getVal('location', 'location_desc', 'en', 'Come experience the aroma and taste of our premium coffee in person.')}
+                          onChange={(e) => setVal('location', 'location_desc', 'en', e.target.value)}
+                          placeholder="Description in English..."
+                          className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div className="border border-gray-200 rounded-xl p-2.5 bg-emerald-50/30">
+                        <span className="text-[11px] font-semibold text-emerald-800 mb-1 block">Khmer (ភាសាខ្មែរ)</span>
+                        <textarea
+                          rows={2}
+                          value={getVal('location', 'location_desc', 'km', 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។')}
+                          onChange={(e) => setVal('location', 'location_desc', 'km', e.target.value)}
+                          placeholder="ការពិពណ៌នាជាភាសាខ្មែរ..."
+                          className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Store Info & Schedule */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
+                  <div className="border-b border-gray-100 pb-3">
+                    <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                      <Store size={17} className="text-emerald-600" />
+                      <span>២. ព័ត៌មានហាង & ម៉ោងបើក (Store Details & Schedule)</span>
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-0.5">ឈ្មោះសាខាហាង អាសយដ្ឋាន និងម៉ោងបម្រើសេវាកម្ម</p>
+                  </div>
+
+                  {/* Store Name */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                      ឈ្មោះហាង (Store Branch Name)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">EN</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'location_store_name', 'en', 'KouPrey HQ')}
+                          onChange={(e) => setVal('location', 'location_store_name', 'en', e.target.value)}
+                          placeholder="KouPrey HQ"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">KM</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'location_store_name', 'km', 'KouPrey HQ')}
+                          onChange={(e) => setVal('location', 'location_store_name', 'km', e.target.value)}
+                          placeholder="KouPrey HQ"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Address Section */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-gray-700">អាសយដ្ឋាន (Company Address)</label>
+                      <span className="text-[10px] text-gray-400 font-mono">company_address</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="border border-gray-200 rounded-xl p-2.5 bg-gray-50/50">
+                        <span className="text-[11px] font-semibold text-gray-500 mb-1 block">English Address</span>
+                        <textarea
+                          rows={2}
+                          value={getVal('location', 'company_address', 'en', '120408 Sangkat Boeung Kak 2, Khan Tuol Kouk, Phnom Penh, Cambodia.')}
+                          onChange={(e) => {
+                            setVal('location', 'company_address', 'en', e.target.value);
+                            setVal('general', 'company_address', 'en', e.target.value);
+                          }}
+                          placeholder="English Address..."
+                          className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div className="border border-gray-200 rounded-xl p-2.5 bg-emerald-50/30">
+                        <span className="text-[11px] font-semibold text-emerald-800 mb-1 block">Khmer Address (អាសយដ្ឋានខ្មែរ)</span>
+                        <textarea
+                          rows={2}
+                          value={getVal('location', 'company_address', 'km', '120408 សង្កាត់បឹងកក់ 2 ខណ្ឌទួលគោក រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា។')}
+                          onChange={(e) => {
+                            setVal('location', 'company_address', 'km', e.target.value);
+                            setVal('general', 'company_address', 'km', e.target.value);
+                          }}
+                          placeholder="អាសយដ្ឋានជាភាសាខ្មែរ..."
+                          className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hours Section */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-gray-700">ម៉ោងបើកដំណើរការ (Opening Hours)</label>
+                      <span className="text-[10px] text-gray-400 font-mono">company_hours</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">EN</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'company_hours', 'en', 'Daily: 7:00 AM - 8:00 PM')}
+                          onChange={(e) => {
+                            setVal('location', 'company_hours', 'en', e.target.value);
+                            setVal('general', 'company_hours', 'en', e.target.value);
+                          }}
+                          placeholder="Daily: 7:00 AM - 8:00 PM"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">KM</span>
+                        <input
+                          type="text"
+                          value={getVal('location', 'company_hours', 'km', 'រៀងរាល់ថ្ងៃ៖ ម៉ោង ៧:០០ ព្រឹក - ៨:០០ យប់')}
+                          onChange={(e) => {
+                            setVal('location', 'company_hours', 'km', e.target.value);
+                            setVal('general', 'company_hours', 'km', e.target.value);
+                          }}
+                          placeholder="រៀងរាល់ថ្ងៃ៖ ម៉ោង ៧:០០ ព្រឹក - ៨:០០ យប់"
+                          className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Google Maps & Navigation Link */}
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
+                <div className="border-b border-gray-100 pb-3">
+                  <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                    <Navigation size={17} className="text-sky-600" />
+                    <span>៣. ការកំណត់ Google Maps & ប៊ូតុងទិសដៅ (Maps Integration)</span>
+                  </h4>
+                  <p className="text-xs text-gray-400 mt-0.5">តំណភ្ជាប់ Google Maps Embed Iframe និងតំណភ្ជាប់ផ្ទាល់សម្រាប់ប៊ូតុង "Get Directions"</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Map Embed URL */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700 block">
+                      Google Maps Embed Iframe URL
+                    </label>
+                    <input
+                      type="url"
+                      value={getVal('location', 'company_map_embed', 'en', 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh')}
+                      onChange={(e) => {
+                        let val = e.target.value.trim();
+                        const match = val.match(/src=["']([^"']+)["']/);
+                        if (match) val = match[1];
+                        setVal('location', 'company_map_embed', 'en', val);
+                        setVal('location', 'company_map_embed', 'km', val);
+                      }}
+                      placeholder="https://www.google.com/maps/embed?pb=..."
+                      className="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <p className="text-[11px] text-gray-400">
+                      💡 គន្លឹះ៖ ចូល Google Maps &gt; Share &gt; Embed a map &gt; ចម្លង URL ក្នុង <code>src="..."</code>
+                    </p>
+                  </div>
+
+                  {/* Get Directions Link */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700 block">
+                      Google Maps Direct Link (Get Directions URL)
+                    </label>
+                    <input
+                      type="url"
+                      value={getVal('location', 'company_map_link', 'en', 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA')}
+                      onChange={(e) => {
+                        setVal('location', 'company_map_link', 'en', e.target.value.trim());
+                        setVal('location', 'company_map_link', 'km', e.target.value.trim());
+                      }}
+                      placeholder="https://maps.app.goo.gl/..."
+                      className="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <p className="text-[11px] text-gray-400">
+                      🔗 តំណភ្ជាប់ដែលបើក Google Maps App ដោយផ្ទាល់ពេលអតិថិជនចុច
+                    </p>
+                  </div>
+                </div>
+
+                {/* Button Text */}
+                <div className="pt-2">
+                  <label className="text-xs font-semibold text-gray-700 block mb-1">
+                    អក្សរលើប៊ូតុងទិសដៅ (Button Text)
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">EN</span>
+                      <input
+                        type="text"
+                        value={getVal('location', 'location_btn_text', 'en', 'Get Directions')}
+                        onChange={(e) => setVal('location', 'location_btn_text', 'en', e.target.value)}
+                        placeholder="Get Directions"
+                        className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">KM</span>
+                      <input
+                        type="text"
+                        value={getVal('location', 'location_btn_text', 'km', 'Get Directions')}
+                        onChange={(e) => setVal('location', 'location_btn_text', 'km', e.target.value)}
+                        placeholder="Get Directions"
+                        className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Interactive Live Preview */}
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Eye size={17} className="text-emerald-600" />
+                    <h4 className="font-bold text-gray-900 text-sm">
+                      ទិដ្ឋភាពជាក់ស្តែង (Live Interactive Preview)
+                    </h4>
+                  </div>
+                  <div className="inline-flex p-1 bg-gray-100 rounded-xl text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setLocationPreviewLang('km')}
+                      className={`px-3 py-1 rounded-lg transition cursor-pointer ${
+                        locationPreviewLang === 'km' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      ភាសាខ្មែរ (KM)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLocationPreviewLang('en')}
+                      className={`px-3 py-1 rounded-lg transition cursor-pointer ${
+                        locationPreviewLang === 'en' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      English (EN)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Rendered Preview Card */}
+                <div className="p-4 sm:p-8 bg-gray-50/80 rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="text-center mb-8">
+                    <span className="text-orange-600 font-bold tracking-widest uppercase text-xs mb-2 block">
+                      {getVal('location', 'location_subtitle_tag', locationPreviewLang, 'VISIT US')}
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
+                      {getVal('location', 'location_title', locationPreviewLang, locationPreviewLang === 'km' ? 'ទីតាំងរបស់យើង' : 'Our Locations')}
+                    </h3>
+                    <p className="text-gray-500 max-w-xl mx-auto text-xs sm:text-sm">
+                      {getVal('location', 'location_desc', locationPreviewLang, locationPreviewLang === 'km' ? 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។' : 'Come experience the aroma and taste of our premium coffee in person.')}
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
+                    {/* Left Details */}
+                    <div className="w-full md:w-1/2 p-6 flex flex-col justify-center space-y-4">
+                      <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">
+                          <Store size={14} />
+                        </span>
+                        <span>{getVal('location', 'location_store_name', locationPreviewLang, 'KouPrey HQ')}</span>
+                      </h4>
+
+                      <div className="space-y-3 text-xs">
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
+                          <div className="w-9 h-9 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                            <MapPin size={18} />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Address</span>
+                            <span className="font-bold text-gray-900 block">
+                              {getVal('location', 'location_address_label', locationPreviewLang, locationPreviewLang === 'km' ? 'ហាងរបស់យើង' : 'Our Store')}
+                            </span>
+                            <p className="text-gray-600 text-[11px] leading-relaxed mt-0.5">
+                              {getVal('location', 'company_address', locationPreviewLang, locationPreviewLang === 'km' ? '120408 សង្កាត់បឹងកក់ 2 ខណ្ឌទួលគោក រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា។' : '120408 Sangkat Boeung Kak 2, Khan Tuol Kouk, Phnom Penh, Cambodia.')}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
+                          <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                            <Clock size={18} />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Schedule</span>
+                            <span className="font-bold text-gray-900 block">
+                              {getVal('location', 'location_hours_label', locationPreviewLang, locationPreviewLang === 'km' ? 'ម៉ោងបើកដំណើរការ' : 'Opening Hours')}
+                            </span>
+                            <p className="text-gray-600 text-[11px] leading-relaxed mt-0.5">
+                              {getVal('location', 'company_hours', locationPreviewLang, locationPreviewLang === 'km' ? 'រៀងរាល់ថ្ងៃ៖ ម៉ោង ៧:០០ ព្រឹក - ៨:០០ យប់' : 'Daily: 7:00 AM - 8:00 PM')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <div className="inline-flex items-center gap-2 bg-gray-900 text-white py-2.5 px-5 rounded-xl font-bold text-xs shadow-md">
+                          <Navigation size={14} />
+                          <span>{getVal('location', 'location_btn_text', locationPreviewLang, 'Get Directions')}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Map */}
+                    <div className="w-full md:w-1/2 h-[280px] md:h-auto min-h-[260px] relative bg-gray-200">
+                      <div className="absolute top-3 left-3 z-10 bg-white/95 text-gray-800 text-[11px] font-bold px-2.5 py-1 rounded-md shadow-xs flex items-center gap-1 border border-gray-200">
+                        <span>Open in Maps</span>
+                        <ExternalLink size={11} />
+                      </div>
+                      <iframe
+                        src={getVal('location', 'company_map_embed', 'en', 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d292.34896165878865!2d104.91197826608598!3d11.55083956811418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2skh!4v1767834278383!5m2!1sen!2skh')}
+                        className="w-full h-full border-0 contrast-[1.05]"
+                        allowFullScreen=""
+                        loading="lazy"
+                        title="Map Preview"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ───────────────────────────────────────────────────────── */}
           {/* STANDARD CATEGORIES (General, Hero, Footer, Newsletter, etc) */}
           {/* ───────────────────────────────────────────────────────── */}
           {activeTab !== 'collections' &&
@@ -2120,7 +2644,8 @@ export default function SettingsPage() {
            activeTab !== 'social' &&
            activeTab !== 'policies' &&
            activeTab !== 'file_manager' &&
-           activeTab !== 'flaticon' && (
+           activeTab !== 'flaticon' &&
+           activeTab !== 'location' && (
             <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-6">
               <div className="border-b border-gray-100 pb-4">
                 <h3 className="text-base font-bold text-gray-900">
