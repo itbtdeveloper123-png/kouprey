@@ -48,8 +48,8 @@ export default function AboutPage() {
     : 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80';
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16 space-y-20">
+    <div className="min-h-screen bg-white pb-24 pt-24 md:pt-32">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-12 space-y-20">
         
         {/* Section 1: Hero Story matching about.php */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-center">

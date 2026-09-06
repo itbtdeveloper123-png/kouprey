@@ -76,8 +76,8 @@ export default function FeaturesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-20">
+    <div className="min-h-screen bg-white pb-24 pt-24 md:pt-32">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10">
         
         {/* Header matching features.php */}
         <div className="text-center mb-16 md:mb-24 space-y-4">

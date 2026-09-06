@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import MobileNav from './components/MobileNav';
 import ProductDetailModal from './components/ProductDetailModal';
 import ReviewModal from './components/ReviewModal';
 import SearchModal from './components/SearchModal';
@@ -31,7 +32,7 @@ function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-800">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pb-24 md:pb-0">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -44,6 +45,9 @@ function MainLayout() {
         </Routes>
       </main>
       <Footer />
+
+      {/* Global Mobile Bottom Nav on All Pages */}
+      <MobileNav />
 
       {/* Global Modals */}
       <ProductDetailModal />

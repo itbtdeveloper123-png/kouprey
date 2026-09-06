@@ -51,8 +51,8 @@ export default function ReviewsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-20 space-y-16">
+    <div className="min-h-screen bg-white pb-24 pt-24 md:pt-32">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-12 space-y-16">
         
         {/* Header Section matching reviews.php */}
         <div className="text-center mb-16 space-y-4">

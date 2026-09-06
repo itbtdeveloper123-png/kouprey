@@ -66,8 +66,8 @@ export default function PolicyPage() {
   const cleanHtml = processHtml(rawContent);
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      <main className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-16 space-y-12">
+    <div className="min-h-screen bg-white pb-24 pt-24 md:pt-32">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-12 space-y-12">
         
         {/* Header matching privacy_policy.php / terms_of_service.php */}
         <div className="text-center mb-12 space-y-4">

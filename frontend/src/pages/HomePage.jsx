@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import SpotlightHero from '../components/SpotlightHero';
 import ZigzagSpotlight from '../components/ZigzagSpotlight';
 import ProductCard from '../components/ProductCard';
-import MobileNav from '../components/MobileNav';
 import { useApp } from '../context/AppContext';
 import { fetchProducts } from '../api/client';
 import { Coffee, Tag, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -323,12 +322,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Mobile Bottom Navigation & Floating Filter */}
-      <MobileNav
-        categories={categories}
-        selectedCategory={cleanSelectedCategory}
-        onSelectCategory={handleSelectCategory}
-      />
     </div>
   );
 }

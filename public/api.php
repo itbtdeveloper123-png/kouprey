@@ -127,8 +127,25 @@ switch ($action) {
             }
 
             if ($search !== '') {
-                $where[] = "(p.name LIKE ? OR p.short_description LIKE ? OR p.detailed_description LIKE ?)";
+                $where[] = "(
+                    p.name LIKE ? 
+                    OR p.description LIKE ? 
+                    OR p.detailed_description LIKE ? 
+                    OR p.ingredients LIKE ?
+                    OR p.tasting_notes LIKE ?
+                    OR c.name LIKE ?
+                    OR EXISTS (
+                        SELECT 1 FROM products p2 
+                        WHERE p2.base_product_id = p.base_product_id 
+                        AND (p2.name LIKE ? OR p2.description LIKE ?)
+                    )
+                )";
                 $searchTerm = "%$search%";
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
                 $params[] = $searchTerm;
                 $params[] = $searchTerm;
                 $params[] = $searchTerm;

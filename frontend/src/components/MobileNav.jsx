@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Coffee, Zap, Star, User, Filter, X, Grid, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-export default function MobileNav({ categories = [], selectedCategory = 'all', onSelectCategory }) {
-  const { language, settings } = useApp();
+export default function MobileNav({ categories: propCategories, selectedCategory = 'all', onSelectCategory }) {
+  const { language, categories: appCategories } = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  const categories = propCategories && propCategories.length > 0 ? propCategories : (appCategories || []);
 
   const isActive = (path, isAnchor = false) => {
     if (isAnchor && (location.pathname === '/' || location.pathname.startsWith('/product'))) return true;
     if (!isAnchor && location.pathname.startsWith(path)) return true;
     return false;
+  };
+
+  const handleCategoryClick = (catId) => {
+    if (onSelectCategory) {
+      onSelectCategory(catId);
+    } else {
+      const cleanId = String(catId).replace(/^category-/, '');
+      const targetUrl = cleanId === 'all' ? '/#products' : `/?category=${cleanId}#products`;
+      navigate(targetUrl);
+    }
+    setFilterModalOpen(false);
   };
 
   return (
@@ -148,11 +162,8 @@ export default function MobileNav({ categories = [], selectedCategory = 'all', o
             {/* Quick Actions Row */}
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => {
-                  if (onSelectCategory) onSelectCategory('all');
-                  setFilterModalOpen(false);
-                }}
-                className={`p-4 rounded-2xl flex flex-col items-center justify-center transition-all ${
+                onClick={() => handleCategoryClick('all')}
+                className={`p-4 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer ${
                   selectedCategory === 'all'
                     ? 'bg-yellow-50 text-black shadow-md'
                     : 'bg-gray-100 text-gray-700'
@@ -165,11 +176,8 @@ export default function MobileNav({ categories = [], selectedCategory = 'all', o
               </button>
 
               <button
-                onClick={() => {
-                  if (onSelectCategory) onSelectCategory('all');
-                  setFilterModalOpen(false);
-                }}
-                className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-4 rounded-2xl flex flex-col items-center justify-center shadow-md"
+                onClick={() => handleCategoryClick('all')}
+                className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-4 rounded-2xl flex flex-col items-center justify-center shadow-md cursor-pointer"
               >
                 <RotateCcw className="w-6 h-6 mb-1.5" />
                 <span className="font-semibold text-sm">
@@ -186,11 +194,8 @@ export default function MobileNav({ categories = [], selectedCategory = 'all', o
                 return (
                   <button
                     key={category.id || catId}
-                    onClick={() => {
-                      if (onSelectCategory) onSelectCategory(catId);
-                      setFilterModalOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between ${
+                    onClick={() => handleCategoryClick(catId)}
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
                       isSelected
                         ? 'bg-yellow-50 text-black font-bold shadow-xs'
                         : 'hover:bg-white text-gray-700'

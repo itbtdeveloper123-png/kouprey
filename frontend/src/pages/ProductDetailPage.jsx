@@ -107,8 +107,8 @@ export default function ProductDetailPage() {
   const embedUrl = getEmbedUrl(product.video_url);
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
+    <div className="min-h-screen bg-white pb-20 pt-20 md:pt-28">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-16">
         
         {/* Breadcrumb matching PHP product_detail.php */}
         <nav className="flex text-sm text-gray-500 mb-6 overflow-x-auto whitespace-nowrap pb-2 items-center space-x-2">
