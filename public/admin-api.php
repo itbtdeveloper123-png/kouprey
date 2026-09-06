@@ -360,20 +360,33 @@ switch ($action) {
     // ── SETTINGS ────────────────────────────────
     case 'get_all_settings':
         try {
-            $lang = $_GET['lang'] ?? null;
-            if ($lang) {
-                $stmt = $pdo->prepare("SELECT * FROM settings WHERE language = ? OR language = 'en' ORDER BY language DESC");
-                $stmt->execute([$lang]);
-            } else {
-                $stmt = $pdo->query("SELECT * FROM settings ORDER BY language, setting_key");
-            }
-            $rows = $stmt->fetchAll();
-            // Build key => value map
-            $map = [];
+            $stmt = $pdo->query("SELECT * FROM settings ORDER BY category, setting_key");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Build key => value map and category-grouped structure
+            $map = ['km' => [], 'en' => []];
+            $grouped = [];
             foreach ($rows as $r) {
-                $map[$r['language']][$r['setting_key']] = $r['setting_value'];
+                $lang = $r['language'] ?? 'km';
+                $key = $r['setting_key'];
+                $cat = !empty($r['category']) ? $r['category'] : 'general';
+                $val = $r['setting_value'] ?? '';
+
+                $map[$lang][$key] = $val;
+
+                if (!isset($grouped[$cat][$key])) {
+                    $grouped[$cat][$key] = [
+                        'key' => $key,
+                        'category' => $cat,
+                        'type' => $r['setting_type'] ?? 'text',
+                        'description' => $r['description'] ?? '',
+                        'values' => ['en' => '', 'km' => '']
+                    ];
+                }
+                $grouped[$cat][$key]['values'][$lang] = $val;
             }
-            echo json_encode(['success' => true, 'settings' => $map, 'raw' => $rows], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            echo json_encode(['success' => true, 'settings' => $map, 'grouped' => $grouped, 'raw' => $rows], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
