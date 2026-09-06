@@ -59,21 +59,20 @@ export default function Footer() {
           
           {/* Column 1: Company Information (col-span-1 md:col-span-2) */}
           <div className="col-span-1 md:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <img
-                src={logoUrl}
-                alt={companyName}
-                referrerPolicy="no-referrer"
-                className="h-10 w-auto object-contain"
-                onError={(e) => {
-                  if (e.target.src !== FOOTER_LOGO) {
-                    e.target.src = FOOTER_LOGO;
-                  }
-                }}
-              />
-              <span className="text-xl font-bold text-white tracking-wide font-freeman">
-                {companyName}
-              </span>
+            <div className="flex items-center">
+              <Link to="/" className="inline-block transition-transform hover:scale-105">
+                <img
+                  src={logoUrl}
+                  alt={companyName}
+                  referrerPolicy="no-referrer"
+                  className="h-16 sm:h-20 w-auto object-contain"
+                  onError={(e) => {
+                    if (e.target.src !== FOOTER_LOGO) {
+                      e.target.src = FOOTER_LOGO;
+                    }
+                  }}
+                />
+              </Link>
             </div>
 
             <p className="text-gray-300 text-sm leading-relaxed max-w-md">
