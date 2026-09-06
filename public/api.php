@@ -41,16 +41,27 @@ switch ($action) {
                 $settings['company_logo'] = $settings['site_logo'];
             }
 
-            // Fetch categories for language
+            // Ensure legacy syrup products have category_id assigned
+            try {
+                $pdo->exec("UPDATE products SET category_id = 19 WHERE base_product_id IN (85, 83, 81) AND language = 'en' AND (category_id IS NULL OR category_id = 0)");
+                $pdo->exec("UPDATE products SET category_id = 20 WHERE base_product_id IN (85, 83, 81) AND language = 'km' AND (category_id IS NULL OR category_id = 0)");
+            } catch (Exception $ignore) {}
+
+            // Fetch categories for language with accurate product count
             $catStmt = $pdo->prepare("
-                SELECT c.*, COUNT(p.id) as product_count
+                SELECT c.*, 
+                    (
+                        SELECT COUNT(p.id) 
+                        FROM products p 
+                        LEFT JOIN categories pc ON p.category_id = pc.id
+                        WHERE (pc.base_category_id = c.base_category_id OR (c.base_category_id = 19 AND (p.name LIKE '%Syrup%' OR p.name LIKE '%ស៊ីរ៉ូ%' OR p.name LIKE '%សុីរ៉ូ%')))
+                        AND p.enabled = 1 AND p.language = ?
+                    ) as product_count
                 FROM categories c
-                LEFT JOIN products p ON p.category_id = c.id AND p.enabled = 1
                 WHERE c.language = ?
-                GROUP BY c.id
                 ORDER BY c.name ASC
             ");
-            $catStmt->execute([$language]);
+            $catStmt->execute([$language, $language]);
             $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Fetch banners from uploads directory
@@ -81,6 +92,12 @@ switch ($action) {
 
     case 'get_products':
         try {
+            // Ensure legacy syrup products have category_id assigned
+            try {
+                $pdo->exec("UPDATE products SET category_id = 19 WHERE base_product_id IN (85, 83, 81) AND language = 'en' AND (category_id IS NULL OR category_id = 0)");
+                $pdo->exec("UPDATE products SET category_id = 20 WHERE base_product_id IN (85, 83, 81) AND language = 'km' AND (category_id IS NULL OR category_id = 0)");
+            } catch (Exception $ignore) {}
+
             $categoryId = $_GET['category_id'] ?? null;
             $baseCategoryId = $_GET['base_category_id'] ?? null;
             $search = trim($_GET['search'] ?? '');
@@ -91,7 +108,8 @@ switch ($action) {
             $params = [$language];
 
             if ($baseCategoryId) {
-                $where[] = "c.base_category_id = ?";
+                $where[] = "(c.base_category_id = ? OR (? = '19' AND (p.name LIKE '%Syrup%' OR p.name LIKE '%ស៊ីរ៉ូ%' OR p.name LIKE '%សុីរ៉ូ%')))";
+                $params[] = $baseCategoryId;
                 $params[] = $baseCategoryId;
             } elseif ($categoryId) {
                 $where[] = "p.category_id = ?";
@@ -146,6 +164,14 @@ switch ($action) {
 
             // Normalize fields
             foreach ($products as &$prod) {
+                // Ensure syrup products have base_category_id 19 if missing
+                if (empty($prod['base_category_id'])) {
+                    if (stripos($prod['name'], 'syrup') !== false || strpos($prod['name'], 'ស៊ីរ៉ូ') !== false || strpos($prod['name'], 'សុីរ៉ូ') !== false) {
+                        $prod['base_category_id'] = 19;
+                        $prod['category_id'] = ($language === 'km' ? 20 : 19);
+                        $prod['category_name'] = ($language === 'km' ? 'សុីរ៉ូ' : 'Syrup');
+                    }
+                }
                 $prod['avg_rating'] = round((float)$prod['avg_rating'], 1);
                 $prod['review_count'] = (int)$prod['review_count'];
                 $prod['price'] = (float)$prod['price'];
