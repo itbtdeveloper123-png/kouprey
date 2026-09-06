@@ -38,10 +38,18 @@ export default function SpotlightHero({ products = [] }) {
     );
   }
 
-  const spotlightProducts = products;
+  // Prioritize featured or best seller products, limited to max 5 items for a clean, sleek hero presentation
+  const spotlightProducts = React.useMemo(() => {
+    if (!products || products.length === 0) return [];
+    const featured = products.filter((p) => p.featured == 1 || p.best_seller == 1);
+    if (featured.length >= 3) {
+      return featured.slice(0, 5);
+    }
+    return products.slice(0, 5);
+  }, [products]);
 
   return (
-    <section className="relative w-full pt-24 pb-12 md:pt-32 md:pb-20 overflow-hidden bg-white">
+    <section className="relative w-full pt-24 pb-8 md:pt-32 md:pb-16 overflow-hidden bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
         <Swiper
           modules={[Autoplay, Pagination, EffectFade]}
@@ -191,8 +199,12 @@ export default function SpotlightHero({ products = [] }) {
           })}
         </Swiper>
 
-        {/* Carousel Pagination Bullets */}
-        <div className="spotlight-pagination flex justify-center !bottom-0 pt-4" />
+        {/* Carousel Pagination Bullets (Only if more than 1 item) */}
+        {spotlightProducts.length > 1 && (
+          <div className="flex justify-center pt-8">
+            <div className="spotlight-pagination" />
+          </div>
+        )}
       </div>
     </section>
   );
