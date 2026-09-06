@@ -179,6 +179,10 @@ export const adminApi = {
     });
   },
 
-  convertAllWebp: () =>
-    request('convert_all_webp', { method: 'POST' }),
+  convertAllWebp: (folder = '') =>
+    request('convert_all_webp', {
+      method: 'POST',
+      body: { folder },
+      params: folder ? { folder } : {},
+    }),
 };

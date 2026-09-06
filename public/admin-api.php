@@ -1299,6 +1299,12 @@ switch ($action) {
 
     case 'convert_all_webp':
         try {
+            @set_time_limit(300);
+            @ini_set('memory_limit', '512M');
+
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $folderParam = trim($_GET['folder'] ?? $data['folder'] ?? '');
+
             $folderMap = [
                 'products'   => ['dir' => __DIR__ . '/assets/images/products/', 'url' => '/kouprey/public/assets/images/products/'],
                 'banner'     => ['dir' => __DIR__ . '/assets/images/banner/', 'url' => '/kouprey/public/assets/images/banner/'],
@@ -1309,6 +1315,12 @@ switch ($action) {
                 'related'    => ['dir' => __DIR__ . '/uploads/related/', 'url' => '/uploads/related/'],
             ];
 
+            if (!empty($folderParam) && $folderParam !== 'all' && isset($folderMap[$folderParam])) {
+                $targetFolders = [$folderParam => $folderMap[$folderParam]];
+            } else {
+                $targetFolders = $folderMap;
+            }
+
             $converted = 0;
             $dbUpdates = 0;
 
@@ -1316,7 +1328,7 @@ switch ($action) {
                 require_once __DIR__ . '/../app/Config/image_utils.php';
                 $settings = function_exists('getCompressionSettings') ? getCompressionSettings('product') : ['quality' => 88, 'maxWidth' => 1920, 'maxHeight' => 1920];
 
-                foreach ($folderMap as $fKey => $fInfo) {
+                foreach ($targetFolders as $fKey => $fInfo) {
                     $dir = $fInfo['dir'];
                     if (!is_dir($dir)) continue;
 

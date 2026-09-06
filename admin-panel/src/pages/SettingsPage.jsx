@@ -673,12 +673,12 @@ export default function SettingsPage() {
     }
   };
 
-  const handleConvertAllWebp = async () => {
-    if (!confirm('តើអ្នកចង់បម្លែងរូបភាពទាំងអស់ក្នុងប្រព័ន្ធទៅជា WebP ទេ? រូបភាពនឹងរក្សាគុណភាពច្បាស់ គ្មាន Background និងកែប្រែទិន្នន័យក្នុង Database ដោយស្វ័យប្រវត្តិ។')) return;
+  const handleConvertAllWebp = async (targetFolder = '') => {
     setConvertingWebp(true);
+    const folderName = targetFolder || fileManagerFolder;
     try {
-      showToast('កំពុងបម្លែងរូបភាពទាំងអស់ទៅជា WebP...', 'info');
-      const res = await adminApi.convertAllWebp();
+      showToast(`កំពុងបម្លែងរូបភាពទៅជា WebP (${folderName === 'all' ? 'គ្រប់ Folder' : folderName})...`, 'info');
+      const res = await adminApi.convertAllWebp(folderName);
       if (res.success) {
         showToast(`ជោគជ័យ! បានបម្លែងរូបភាព ${res.converted || 0} ទៅជា WebP (កែប្រែ Database ${res.db_updates || 0} កន្លែង)។`);
         loadFileManager(fileManagerFolder);
@@ -1942,12 +1942,24 @@ export default function SettingsPage() {
 
                   <button
                     type="button"
-                    onClick={handleConvertAllWebp}
+                    onClick={() => handleConvertAllWebp(fileManagerFolder)}
                     disabled={convertingWebp}
-                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition disabled:opacity-50"
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition disabled:opacity-50"
+                    title="បម្លែងរូបភាពក្នុង Folder បច្ចុប្បន្នទៅជា WebP"
                   >
                     {convertingWebp ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                    <span>Convert All to WebP</span>
+                    <span>{convertingWebp ? 'កំពុងបម្លែង...' : 'Convert Folder នេះ'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleConvertAllWebp('all')}
+                    disabled={convertingWebp}
+                    className="px-3 py-2 bg-gray-800 hover:bg-black active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition disabled:opacity-50"
+                    title="បម្លែងរូបភាពគ្រប់ Folder ទាំងអស់ក្នុងប្រព័ន្ធ"
+                  >
+                    <RefreshCw size={13} className={convertingWebp ? "animate-spin" : ""} />
+                    <span>Convert គ្រប់ Folder</span>
                   </button>
 
                   <button
