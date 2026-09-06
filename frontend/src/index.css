@@ -51,3 +51,49 @@ h3 img, p img, .rte-inserted-img {
 .animate-modal-slide {
   animation: modalSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* IOS Aesthetic Swiper Pagination */
+.swiper-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease;
+  z-index: 20 !important;
+}
+
+.swiper-pagination-bullet {
+  width: 8px !important;
+  height: 8px !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  opacity: 1 !important;
+  border-radius: 20px !important;
+  transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1) !important;
+  margin: 0 !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.swiper-pagination-bullet-active {
+  width: 28px !important;
+  background: #ea580c !important;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35) !important;
+}
+
+/* Glass effect for pagination containers */
+.spotlight-swiper .swiper-pagination,
+.category-swiper-syrup .swiper-pagination,
+.category-swiper-powder .swiper-pagination,
+.category-swiper-bean .swiper-pagination {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 8px 16px !important;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  width: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  bottom: 8px !important;
+}
+

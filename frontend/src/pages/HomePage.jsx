@@ -14,7 +14,8 @@ export default function HomePage() {
 
   // Parse page from query string: default 1
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-  const selectedCategory = searchParams.get('category') || 'all';
+  // Normalize selected category: strip 'category-' prefix if present
+  const cleanSelectedCategory = (searchParams.get('category') || 'all').replace(/^category-/, '');
 
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,13 +34,15 @@ export default function HomePage() {
     return () => { isMounted = false; };
   }, [language]);
 
-  // Filter products by category
+  // Filter products by category (matching base_category_id or category_id or name fallback)
   const filteredProducts = allProducts.filter((product) => {
-    if (selectedCategory === 'all') return true;
-    if (selectedCategory === 'featured') return product.featured == 1;
+    if (cleanSelectedCategory === 'all') return true;
+    if (cleanSelectedCategory === 'featured') return product.featured == 1;
     return (
-      product.base_category_id == selectedCategory ||
-      product.category_id == selectedCategory
+      product.base_category_id == cleanSelectedCategory ||
+      product.category_id == cleanSelectedCategory ||
+      (cleanSelectedCategory === '19' && /syrup|ស៊ីរ៉ូ|សុីរ៉ូ/i.test(product.name || '')) ||
+      (cleanSelectedCategory === '13' && /powder|matcha|ម្សៅ/i.test(product.name || ''))
     );
   });
 
@@ -50,10 +53,20 @@ export default function HomePage() {
   const pagedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleSelectCategory = (catId) => {
+    const cleanId = catId.toString().replace(/^category-/, '');
     const params = new URLSearchParams(searchParams);
-    params.set('category', catId);
+    if (cleanId === 'all') {
+      params.delete('category');
+    } else {
+      params.set('category', cleanId);
+    }
     params.set('page', '1');
     setSearchParams(params);
+
+    const elem = document.getElementById('products');
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const handlePageChange = (page) => {
@@ -94,11 +107,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* 1. Spotlight Showcase Hero Slider */}
+      {/* 1. Spotlight Showcase Hero Slider (Draggable / Swipeable) */}
       <SpotlightHero products={allProducts} />
 
-      {/* 2. Category Zigzag Feature Showcase (Powder & Beans) */}
-      <ZigzagSpotlight products={allProducts} />
+      {/* 2. Category Zigzag Feature Showcase with Draggable Swipers */}
+      <ZigzagSpotlight products={allProducts} onSelectCategory={handleSelectCategory} />
 
       {/* 3. Main Product Catalog Section with Sidebar & Grid */}
       <section id="products" className="px-3 py-10 md:px-6 md:py-20 lg:py-24 bg-white">
@@ -132,13 +145,13 @@ export default function HomePage() {
                   <button
                     onClick={() => handleSelectCategory('all')}
                     className={`w-full text-left px-5 py-4 rounded-xl transition-all duration-300 flex items-center justify-between group cursor-pointer ${
-                      selectedCategory === 'all'
+                      cleanSelectedCategory === 'all'
                         ? 'bg-yellow-50 text-black font-semibold shadow-xs'
                         : 'hover:bg-indigo-50 hover:shadow-md text-gray-700'
                     }`}
                   >
                     <span className="flex items-center gap-3">
-                      <LayoutGrid className={`w-5 h-5 transition-transform group-hover:scale-110 ${selectedCategory === 'all' ? 'text-black' : 'text-gray-500'}`} />
+                      <LayoutGrid className={`w-5 h-5 transition-transform group-hover:scale-110 ${cleanSelectedCategory === 'all' ? 'text-black' : 'text-gray-500'}`} />
                       <span className="font-medium text-sm">
                         {language === 'km' ? 'ផលិតផលទាំងអស់' : 'All Products'}
                       </span>
@@ -151,9 +164,12 @@ export default function HomePage() {
                   {/* Category Buttons from Database */}
                   {categories.map((category) => {
                     const catId = (category.base_category_id || category.id).toString();
-                    const isSelected = selectedCategory === catId;
+                    const isSelected = cleanSelectedCategory === catId;
                     const catCount = allProducts.filter(
-                      p => p.base_category_id == category.base_category_id
+                      p => p.base_category_id == category.base_category_id ||
+                           p.category_id == category.id ||
+                           (catId === '19' && /syrup|ស៊ីរ៉ូ|សុីរ៉ូ/i.test(p.name || '')) ||
+                           (catId === '13' && /powder|matcha|ម្សៅ/i.test(p.name || ''))
                     ).length;
 
                     return (
@@ -296,7 +312,7 @@ export default function HomePage() {
       {/* 4. Mobile Bottom Navigation & Floating Filter */}
       <MobileNav
         categories={categories}
-        selectedCategory={selectedCategory}
+        selectedCategory={cleanSelectedCategory}
         onSelectCategory={handleSelectCategory}
       />
     </div>
