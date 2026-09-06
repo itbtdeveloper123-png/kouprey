@@ -1268,6 +1268,20 @@ switch ($action) {
                     if (empty($safe) || $safe === '.' || $safe === '..') $safe = uniqid() . '.' . $ext;
                     $dest = $dir . $safe;
                     if (move_uploaded_file($tmps[$i], $dest)) {
+                        $lowExt = strtolower($ext);
+                        // Auto-convert to WebP on server to ensure consistent WebP format
+                        if ($lowExt !== 'webp' && function_exists('imagewebp') && file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
+                            require_once __DIR__ . '/../app/Config/image_utils.php';
+                            $baseNameNoExt = pathinfo($safe, PATHINFO_FILENAME);
+                            $webpName = $baseNameNoExt . '.webp';
+                            $webpDest = $dir . $webpName;
+                            if (function_exists('compressImage') && compressImage($dest, $webpDest, 88, 1920, 1920)) {
+                                if (file_exists($dest) && $dest !== $webpDest) {
+                                    @unlink($dest);
+                                }
+                                $safe = $webpName;
+                            }
+                        }
                         $uploaded++;
                         $uploadedFiles[] = [
                             'filename' => $safe,
@@ -1285,34 +1299,107 @@ switch ($action) {
 
     case 'convert_all_webp':
         try {
-            $dir = __DIR__ . '/assets/images/products/';
-            $images = glob($dir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}', GLOB_BRACE) ?: [];
+            $folderMap = [
+                'products'   => ['dir' => __DIR__ . '/assets/images/products/', 'url' => '/kouprey/public/assets/images/products/'],
+                'banner'     => ['dir' => __DIR__ . '/assets/images/banner/', 'url' => '/kouprey/public/assets/images/banner/'],
+                'banners'    => ['dir' => __DIR__ . '/uploads/banners/', 'url' => '/uploads/banners/'],
+                'categories' => ['dir' => __DIR__ . '/assets/images/categories/', 'url' => '/kouprey/public/assets/images/categories/'],
+                'uploads'    => ['dir' => __DIR__ . '/uploads/', 'url' => '/uploads/'],
+                'showcase'   => ['dir' => __DIR__ . '/uploads/showcase/', 'url' => '/uploads/showcase/'],
+                'related'    => ['dir' => __DIR__ . '/uploads/related/', 'url' => '/uploads/related/'],
+            ];
+
             $converted = 0;
             $dbUpdates = 0;
 
-            if (!empty($images) && file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
+            if (file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
                 require_once __DIR__ . '/../app/Config/image_utils.php';
-                $settings = function_exists('getCompressionSettings') ? getCompressionSettings('product') : ['quality' => 85, 'maxWidth' => 1920, 'maxHeight' => 1920];
+                $settings = function_exists('getCompressionSettings') ? getCompressionSettings('product') : ['quality' => 88, 'maxWidth' => 1920, 'maxHeight' => 1920];
 
-                foreach ($images as $img) {
-                    if (!is_file($img)) continue;
-                    $info = pathinfo($img);
-                    $newFn = $info['filename'] . '.webp';
-                    $newPath = $dir . $newFn;
+                foreach ($folderMap as $fKey => $fInfo) {
+                    $dir = $fInfo['dir'];
+                    if (!is_dir($dir)) continue;
 
-                    if (function_exists('compressImage') && compressImage($img, $newPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
-                        $converted++;
+                    $images = glob($dir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}', GLOB_BRACE) ?: [];
+                    foreach ($images as $img) {
+                        if (!is_file($img)) continue;
+                        $info = pathinfo($img);
                         $oldBasename = $info['basename'];
-                        $oldRel = '/kouprey/public/assets/images/products/' . $oldBasename;
-                        $newRel = '/kouprey/public/assets/images/products/' . $newFn;
+                        $newFn = $info['filename'] . '.webp';
+                        $newPath = $dir . $newFn;
 
-                        $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
-                        $stmt->execute([$newRel, $oldRel]);
-                        $dbUpdates += $stmt->rowCount();
+                        if (function_exists('compressImage') && compressImage($img, $newPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
+                            $converted++;
+                            // Delete old non-webp file if new webp file exists and has size
+                            if ($newPath !== $img && file_exists($newPath) && filesize($newPath) > 0) {
+                                @unlink($img);
+                            }
 
-                        $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
-                        $stmt->execute([$newFn, $oldBasename]);
-                        $dbUpdates += $stmt->rowCount();
+                            $oldRel = $fInfo['url'] . $oldBasename;
+                            $newRel = $fInfo['url'] . $newFn;
+
+                            $oldPatterns = [
+                                $oldBasename,
+                                $oldRel,
+                                '/uploads/' . $oldBasename,
+                                '/uploads/banners/' . $oldBasename,
+                                '/uploads/showcase/' . $oldBasename,
+                                '/uploads/related/' . $oldBasename,
+                                '/kouprey/public/uploads/' . $oldBasename,
+                                '/kouprey/public/uploads/banners/' . $oldBasename,
+                                '/kouprey/public/uploads/showcase/' . $oldBasename,
+                                '/kouprey/public/uploads/related/' . $oldBasename,
+                                '/kouprey/public/assets/images/products/' . $oldBasename,
+                                '/kouprey/public/assets/images/categories/' . $oldBasename,
+                                '/kouprey/public/assets/images/banner/' . $oldBasename,
+                            ];
+
+                            foreach (array_unique($oldPatterns) as $oldP) {
+                                $newP = str_replace($oldBasename, $newFn, $oldP);
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE categories SET image = ? WHERE image = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_value = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE about SET image = ? WHERE image = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE about SET person_image = ? WHERE person_image = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE product_related SET custom_image = ? WHERE custom_image = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+
+                                try {
+                                    $stmt = $pdo->prepare("UPDATE features SET image = ? WHERE image = ?");
+                                    $stmt->execute([$newP, $oldP]);
+                                    $dbUpdates += $stmt->rowCount();
+                                } catch (Exception $e) {}
+                            }
+                        }
                     }
                 }
             }

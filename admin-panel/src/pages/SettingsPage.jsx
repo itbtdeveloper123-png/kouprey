@@ -62,6 +62,7 @@ import { adminApi } from '../api/adminClient';
 import ImageUpload from '../components/ImageUpload';
 import PolicyRichEditor from '../components/PolicyRichEditor';
 import { formatImageUrl } from '../utils/imageUrl';
+import { compressImageClient } from '../utils/imageCompressor';
 
 // All 15 Categories matching admin/settings.php lines 615-631
 const CATEGORIES_METADATA = [
@@ -649,29 +650,38 @@ export default function SettingsPage() {
   };
 
   const handleUploadNewImages = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const rawFiles = e.target.files;
+    if (!rawFiles || rawFiles.length === 0) return;
+    setConvertingWebp(true);
     try {
-      const res = await adminApi.uploadFileManager(files, fileManagerFolder);
+      showToast('កំពុងបម្លែង និងបញ្ចូលរូបភាព WebP...', 'info');
+      const convertedFiles = await Promise.all(
+        Array.from(rawFiles).map((f) => compressImageClient(f))
+      );
+      const res = await adminApi.uploadFileManager(convertedFiles, fileManagerFolder);
       if (res.success) {
-        showToast(`បានបញ្ចូលរូបភាព ${res.uploaded} ជោគជ័យ!`);
+        showToast(`បានបញ្ចូលរូបភាព WebP ចំនួន ${res.uploaded} ជោគជ័យ!`);
         loadFileManager(fileManagerFolder);
+      } else {
+        showToast(res.error || 'បរាជ័យក្នុងការបញ្ចូលរូបភាព', 'error');
       }
     } catch (e) {
       showToast(e.message || 'Error uploading files', 'error');
     } finally {
+      setConvertingWebp(false);
       if (fileUploadInputRef.current) fileUploadInputRef.current.value = '';
     }
   };
 
   const handleConvertAllWebp = async () => {
-    if (!confirm('តើអ្នកចង់បម្លែងរូបភាពទាំងអស់ទៅជា WebP ដើម្បីបង្កើនល្បឿនគេហទំព័រទេ? រូបភាពនឹងរក្សាគុណភាពច្បាស់ និងកាត់បន្ថយទំហំឯកសារ។')) return;
+    if (!confirm('តើអ្នកចង់បម្លែងរូបភាពទាំងអស់ក្នុងប្រព័ន្ធទៅជា WebP ទេ? រូបភាពនឹងរក្សាគុណភាពច្បាស់ គ្មាន Background និងកែប្រែទិន្នន័យក្នុង Database ដោយស្វ័យប្រវត្តិ។')) return;
     setConvertingWebp(true);
     try {
+      showToast('កំពុងបម្លែងរូបភាពទាំងអស់ទៅជា WebP...', 'info');
       const res = await adminApi.convertAllWebp();
       if (res.success) {
-        showToast(`ជោគជ័យ! បានបម្លែងរូបភាព ${res.converted || 0} ទៅជា WebP។`);
-        loadFileManager();
+        showToast(`ជោគជ័យ! បានបម្លែងរូបភាព ${res.converted || 0} ទៅជា WebP (កែប្រែ Database ${res.db_updates || 0} កន្លែង)។`);
+        loadFileManager(fileManagerFolder);
       } else {
         showToast(res.error || 'បរាជ័យក្នុងការបម្លែង', 'error');
       }
