@@ -1067,9 +1067,9 @@ switch ($action) {
                     }
                 }
                 $relPath = match($type) {
-                    'logo'   => '/kouprey/public/uploads/' . $filename,
-                    'banner' => '/kouprey/public/uploads/banners/' . $filename,
-                    default  => '/kouprey/public/uploads/' . $filename,
+                    'logo'   => '/uploads/' . $filename,
+                    'banner' => '/uploads/banners/' . $filename,
+                    default  => '/uploads/' . $filename,
                 };
                 echo json_encode(['success' => true, 'path' => $relPath, 'filename' => $filename]);
             } else {
@@ -1088,11 +1088,11 @@ switch ($action) {
             $folderMap = [
                 'products'   => ['dir' => __DIR__ . '/assets/images/products/', 'url' => '/kouprey/public/assets/images/products/', 'name' => 'Products'],
                 'banner'     => ['dir' => __DIR__ . '/assets/images/banner/', 'url' => '/kouprey/public/assets/images/banner/', 'name' => 'Banners (Assets)'],
-                'banners'    => ['dir' => __DIR__ . '/uploads/banners/', 'url' => '/kouprey/public/uploads/banners/', 'name' => 'Banners (Uploads)'],
+                'banners'    => ['dir' => __DIR__ . '/uploads/banners/', 'url' => '/uploads/banners/', 'name' => 'Banners (Uploads)'],
                 'categories' => ['dir' => __DIR__ . '/assets/images/categories/', 'url' => '/kouprey/public/assets/images/categories/', 'name' => 'Categories'],
-                'uploads'    => ['dir' => __DIR__ . '/uploads/', 'url' => '/kouprey/public/uploads/', 'name' => 'Uploads Root'],
-                'showcase'   => ['dir' => __DIR__ . '/uploads/showcase/', 'url' => '/kouprey/public/uploads/showcase/', 'name' => 'Showcase'],
-                'related'    => ['dir' => __DIR__ . '/uploads/related/', 'url' => '/kouprey/public/uploads/related/', 'name' => 'Related Products'],
+                'uploads'    => ['dir' => __DIR__ . '/uploads/', 'url' => '/uploads/', 'name' => 'Uploads Root'],
+                'showcase'   => ['dir' => __DIR__ . '/uploads/showcase/', 'url' => '/uploads/showcase/', 'name' => 'Showcase'],
+                'related'    => ['dir' => __DIR__ . '/uploads/related/', 'url' => '/uploads/related/', 'name' => 'Related Products'],
             ];
 
             $availableFolders = [

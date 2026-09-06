@@ -18,7 +18,18 @@ function setCached(key, data) {
 export function getImageUrl(path) {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) {
+    if (path.includes('/kouprey/public/uploads/')) {
+      return path.replace('/kouprey/public/uploads/', '/uploads/');
+    }
     return path;
+  }
+  // All uploaded files must be served from /uploads/ directly for high-speed static delivery (1.3s vs 52s stall)
+  if (path.includes('/uploads/')) {
+    const uploadSubpath = path.substring(path.indexOf('/uploads/'));
+    return `https://www.kouprey.asia${uploadSubpath}`;
+  }
+  if (path.startsWith('uploads/')) {
+    return `https://www.kouprey.asia/${path}`;
   }
   if (path.startsWith('/kouprey/public/')) {
     return `https://www.kouprey.asia${path}`;
@@ -26,10 +37,10 @@ export function getImageUrl(path) {
   if (path.startsWith('kouprey/public/')) {
     return `https://www.kouprey.asia/${path}`;
   }
-  if (path.startsWith('/uploads/') || path.startsWith('/assets/')) {
+  if (path.startsWith('/assets/')) {
     return `https://www.kouprey.asia/kouprey/public${path}`;
   }
-  if (path.startsWith('uploads/') || path.startsWith('assets/')) {
+  if (path.startsWith('assets/')) {
     return `https://www.kouprey.asia/kouprey/public/${path}`;
   }
   const cleanPath = path.startsWith('/') ? path : `/${path}`;

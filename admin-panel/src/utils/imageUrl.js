@@ -48,7 +48,18 @@ export function formatImageUrl(url, defaultFolder = 'products') {
   // When running locally on Vite dev server, use relative path so Vite proxies /kouprey and /uploads smoothly
   const prefix = isLocal ? '' : HOSTING_ORIGIN;
 
-  // Already prefixed with /kouprey/public/
+  // CRITICAL: Any uploads path (e.g. /kouprey/public/uploads/... or /uploads/...)
+  // MUST be routed directly as /uploads/ because /kouprey/public/uploads/ triggers
+  // a 52-second rewrite loop / stall on the hosting server, while /uploads/ loads in 1.3s!
+  if (clean.includes('/uploads/')) {
+    const uploadSubpath = clean.substring(clean.indexOf('/uploads/'));
+    return `${prefix}${uploadSubpath}`;
+  }
+  if (clean.startsWith('uploads/')) {
+    return `${prefix}/${clean}`;
+  }
+
+  // Already prefixed with /kouprey/public/ (for assets)
   if (clean.startsWith('/kouprey/public/')) {
     return `${prefix}${clean}`;
   }
@@ -64,30 +75,22 @@ export function formatImageUrl(url, defaultFolder = 'products') {
     return `${prefix}/kouprey/public/${clean}`;
   }
 
-  // Uploads path
-  if (clean.startsWith('/uploads/')) {
-    return `${prefix}/kouprey/public${clean}`;
-  }
-  if (clean.startsWith('uploads/')) {
-    return `${prefix}/kouprey/public/${clean}`;
-  }
-
   // Just a filename (e.g. "coffee-blend.png")
   if (!clean.includes('/')) {
     if (defaultFolder === 'banner' || defaultFolder === 'banners') {
-      return `${prefix}/kouprey/public/assets/images/banner/${clean}`;
+      return `${prefix}/uploads/banners/${clean}`;
     }
     if (defaultFolder === 'categories') {
       return `${prefix}/kouprey/public/assets/images/categories/${clean}`;
     }
     if (defaultFolder === 'showcase') {
-      return `${prefix}/kouprey/public/uploads/showcase/${clean}`;
+      return `${prefix}/uploads/showcase/${clean}`;
     }
     if (defaultFolder === 'related') {
-      return `${prefix}/kouprey/public/uploads/related/${clean}`;
+      return `${prefix}/uploads/related/${clean}`;
     }
     if (defaultFolder === 'uploads') {
-      return `${prefix}/kouprey/public/uploads/${clean}`;
+      return `${prefix}/uploads/${clean}`;
     }
     return `${prefix}/kouprey/public/assets/images/products/${clean}`;
   }
@@ -112,14 +115,7 @@ export function handleImageError(e, fallbackUrl = '') {
     return;
   }
 
-  // Step 1: If failed with absolute https://www.kouprey.asia/kouprey/public/..., try local relative /kouprey/public/...
-  if (currentSrc.includes('www.kouprey.asia/kouprey/public/')) {
-    const rel = currentSrc.substring(currentSrc.indexOf('/kouprey/public/'));
-    target.src = rel;
-    return;
-  }
-
-  // Step 2: If failed with /kouprey/public/uploads/..., try root /uploads/...
+  // Step 1: If URL contains /kouprey/public/uploads/, switch to direct /uploads/
   if (currentSrc.includes('/kouprey/public/uploads/')) {
     const filename = currentSrc.split('/kouprey/public/uploads/')[1];
     if (filename) {
@@ -128,13 +124,20 @@ export function handleImageError(e, fallbackUrl = '') {
     }
   }
 
-  // Step 3: If failed with /uploads/..., try https://www.kouprey.asia/uploads/...
+  // Step 2: If failed with /uploads/ on localhost, try direct https://www.kouprey.asia/uploads/...
   if (currentSrc.includes('/uploads/') && !currentSrc.includes('www.kouprey.asia')) {
     const filename = currentSrc.split('/uploads/')[1];
     if (filename) {
       target.src = `https://www.kouprey.asia/uploads/${filename}`;
       return;
     }
+  }
+
+  // Step 3: If failed with absolute https://www.kouprey.asia/kouprey/public/assets/..., try relative
+  if (currentSrc.includes('www.kouprey.asia/kouprey/public/')) {
+    const rel = currentSrc.substring(currentSrc.indexOf('/kouprey/public/'));
+    target.src = rel;
+    return;
   }
 
   // Step 4: Try explicit fallbackUrl if provided
