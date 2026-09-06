@@ -585,6 +585,123 @@ switch ($action) {
         }
         break;
 
+    // ── FILE MANAGER ───────────────────────────
+    case 'get_file_manager_images':
+        try {
+            $dir = __DIR__ . '/assets/images/products/';
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            $files = glob($dir . '*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}', GLOB_BRACE) ?: [];
+            usort($files, fn($a, $b) => filemtime($b) - filemtime($a));
+
+            $items = array_map(function($path) {
+                $basename = basename($path);
+                return [
+                    'filename' => $basename,
+                    'url'      => '/kouprey/public/assets/images/products/' . $basename,
+                    'size'     => round(filesize($path) / 1024, 1) . ' KB',
+                    'bytes'    => filesize($path),
+                    'time'     => filemtime($path),
+                ];
+            }, $files);
+
+            echo json_encode(['success' => true, 'images' => $items], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'delete_file_manager':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $filenames = $data['filenames'] ?? [];
+            if (!empty($data['filename'])) $filenames[] = $data['filename'];
+
+            $dir = __DIR__ . '/assets/images/products/';
+            $deleted = 0;
+            foreach ($filenames as $fn) {
+                $safe = basename($fn);
+                $p = $dir . $safe;
+                if (file_exists($p) && is_file($p)) {
+                    if (unlink($p)) $deleted++;
+                }
+            }
+            echo json_encode(['success' => true, 'deleted' => $deleted]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'upload_file_manager':
+        try {
+            if (!isset($_FILES['images']) && !isset($_FILES['file'])) {
+                echo json_encode(['success' => false, 'error' => 'No files uploaded']);
+                break;
+            }
+            $dir = __DIR__ . '/assets/images/products/';
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+            $files = $_FILES['images'] ?? $_FILES['file'];
+            $names = is_array($files['name']) ? $files['name'] : [$files['name']];
+            $tmps  = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
+            $errs  = is_array($files['error']) ? $files['error'] : [$files['error']];
+
+            $uploaded = 0;
+            foreach ($names as $i => $name) {
+                if ($errs[$i] === 0) {
+                    $ext = pathinfo($name, PATHINFO_EXTENSION);
+                    $safe = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($name));
+                    if (empty($safe) || $safe === '.' || $safe === '..') $safe = uniqid() . '.' . $ext;
+                    $target = $dir . $safe;
+                    if (move_uploaded_file($tmps[$i], $target)) {
+                        $uploaded++;
+                    }
+                }
+            }
+            echo json_encode(['success' => true, 'uploaded' => $uploaded]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'convert_all_webp':
+        try {
+            $dir = __DIR__ . '/assets/images/products/';
+            $images = glob($dir . '*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}', GLOB_BRACE) ?: [];
+            $converted = 0;
+            $dbUpdates = 0;
+
+            if (!empty($images) && file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
+                require_once __DIR__ . '/../app/Config/image_utils.php';
+                $settings = function_exists('getCompressionSettings') ? getCompressionSettings('product') : ['quality' => 85, 'maxWidth' => 1920, 'maxHeight' => 1920];
+
+                foreach ($images as $img) {
+                    if (!is_file($img)) continue;
+                    $info = pathinfo($img);
+                    $newFn = $info['filename'] . '.webp';
+                    $newPath = $dir . $newFn;
+
+                    if (function_exists('compressImage') && compressImage($img, $newPath, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
+                        $converted++;
+                        $oldBasename = $info['basename'];
+                        $oldRel = '/kouprey/public/assets/images/products/' . $oldBasename;
+                        $newRel = '/kouprey/public/assets/images/products/' . $newFn;
+
+                        $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
+                        $stmt->execute([$newRel, $oldRel]);
+                        $dbUpdates += $stmt->rowCount();
+
+                        $stmt = $pdo->prepare("UPDATE products SET image = ? WHERE image = ?");
+                        $stmt->execute([$newFn, $oldBasename]);
+                        $dbUpdates += $stmt->rowCount();
+                    }
+                }
+            }
+            echo json_encode(['success' => true, 'converted' => $converted, 'db_updates' => $dbUpdates]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
     default:
         echo json_encode(['success' => false, 'error' => "Unknown action: $action"]);
 }
