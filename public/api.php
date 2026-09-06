@@ -260,12 +260,33 @@ switch ($action) {
         echo json_encode($controller->getRelatedProducts($baseProductId, $language), JSON_UNESCAPED_UNICODE);
         break;
 
+    case 'get_features':
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM features ORDER BY base_feature_id, language");
+            $stmt->execute();
+            $allFeatures = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $featuresGrouped = [];
+            foreach ($allFeatures as $f) {
+                $bId = $f['base_feature_id'] ?? $f['id'];
+                $featuresGrouped[$bId][$f['language']] = $f;
+            }
+            $features = array_values(array_map(function($group) use ($language) {
+                return $group[$language] ?? ($group['en'] ?? reset($group));
+            }, $featuresGrouped));
+
+            echo json_encode(['success' => true, 'features' => $features], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage(), 'features' => []]);
+        }
+        break;
+
     case 'get_page_content':
         $page = $_GET['page'] ?? '';
         try {
             switch ($page) {
                 case 'features':
-                    $stmt = $pdo->prepare("SELECT * FROM features ORDER BY base_feature_id, sort_order ASC, id ASC");
+                    $stmt = $pdo->prepare("SELECT * FROM features ORDER BY base_feature_id, language");
                     $stmt->execute();
                     $allFeatures = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     
@@ -278,26 +299,34 @@ switch ($action) {
                         return $group[$language] ?? ($group['en'] ?? reset($group));
                     }, $featuresGrouped));
 
-                    echo json_encode(['success' => true, 'page' => 'features', 'features' => $features], JSON_UNESCAPED_UNICODE);
+                    echo json_encode(['success' => true, 'page' => 'features', 'features' => $features], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 case 'about':
                     $stmt = $pdo->query("SELECT * FROM about ORDER BY id DESC LIMIT 1");
                     $about = $stmt->fetch(PDO::FETCH_ASSOC);
-                    echo json_encode(['success' => true, 'page' => 'about', 'about' => $about ?: []], JSON_UNESCAPED_UNICODE);
+                    echo json_encode(['success' => true, 'page' => 'about', 'about' => $about ?: []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 case 'privacy_policy':
                     loadAllSettingsIntoCache($language);
-                    $title = getSetting('privacy_policy_title', $language === 'km' ? 'គោលការណ៍ភាពឯកជន' : 'Privacy Policy', $language);
-                    $content = getSetting('privacy_policy_content', '', $language);
-                    echo json_encode(['success' => true, 'page' => 'privacy_policy', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE);
+                    $title = getSetting('privacy_policy_title', $language === 'km' ? 'គោលការណ៍ឯកជនភាព' : 'Privacy Policy', $language);
+                    $content = getSetting('privacy_policy', '', $language);
+                    if (empty($content)) {
+                        $content = getSetting('privacy_policy_content', '', $language);
+                    }
+                    echo json_encode(['success' => true, 'page' => 'privacy_policy', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 case 'terms_of_service':
                     loadAllSettingsIntoCache($language);
                     $title = getSetting('terms_of_service_title', $language === 'km' ? 'លក្ខខណ្ឌប្រើប្រាស់' : 'Terms of Service', $language);
-                    $content = getSetting('terms_of_service_content', '', $language);
+                    $content = getSetting('terms_of_service', '', $language);
+                    if (empty($content)) {
+                        $content = getSetting('terms_of_service_content', '', $language);
+                    }
+                    echo json_encode(['success' => true, 'page' => 'terms_of_service', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    break;
                     echo json_encode(['success' => true, 'page' => 'terms_of_service', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE);
                     break;
 
