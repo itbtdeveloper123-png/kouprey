@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { submitReview } from '../api/client';
 
 export default function ReviewModal() {
-  const { reviewProduct, setReviewProduct, t } = useApp();
+  const { reviewProduct, setReviewProduct, t, language } = useApp();
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [name, setName] = useState('');
@@ -59,8 +59,8 @@ export default function ReviewModal() {
             <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto text-emerald-700 font-bold text-2xl">
               ✓
             </div>
-            <p className="font-bold text-lg">សូមអរគុណ!</p>
-            <p className="text-xs text-gray-500">មតិវាយតម្លៃរបស់អ្នកត្រូវបានកត់ត្រាទុកដោយជោគជ័យ។</p>
+            <p className="font-bold text-lg">{language === 'km' ? 'សូមអរគុណ!' : 'Thank you!'}</p>
+            <p className="text-xs text-gray-500">{language === 'km' ? 'មតិវាយតម្លៃរបស់អ្នកត្រូវបានកត់ត្រាទុកដោយជោគជ័យ។' : 'Your review has been submitted successfully.'}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +101,7 @@ export default function ReviewModal() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="ឧ. សុខ ចាន់ដារ៉ា"
+                placeholder={language === 'km' ? 'ឧ. សុខ ចាន់ដារ៉ា' : 'e.g. John Doe'}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-emerald-600 focus:outline-hidden"
               />
             </div>
@@ -116,7 +116,7 @@ export default function ReviewModal() {
                 rows={4}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="សរសេរមតិ ឬចំណាប់អារម្មណ៍របស់អ្នកអំពីផលិតផលនេះ..."
+                placeholder={language === 'km' ? 'សរសេរមតិ ឬចំណាប់អារម្មណ៍របស់អ្នកអំពីផលិតផលនេះ...' : 'Share your honest thoughts about this blend...'}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-emerald-600 focus:outline-hidden"
               />
             </div>

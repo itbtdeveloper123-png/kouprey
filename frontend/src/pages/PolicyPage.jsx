@@ -143,11 +143,11 @@ export default function PolicyPage() {
                 <ul className="space-y-2 text-gray-600 text-sm">
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                    <span><strong>{language === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន៖' : 'Personal Info:'}</strong> ឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋានដឹកជញ្ជូន។</span>
+                    <span><strong>{language === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន៖' : 'Personal Info:'}</strong> {language === 'km' ? 'ឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋានដឹកជញ្ជូន។' : ' Name, phone number, and delivery address.'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                    <span><strong>{language === 'km' ? 'ព័ត៌មានការបញ្ជាទិញ៖' : 'Order Info:'}</strong> បញ្ជីទំនិញ និងព័ត៌មានលម្អិតអំពីការទូទាត់។</span>
+                    <span><strong>{language === 'km' ? 'ព័ត៌មានការបញ្ជាទិញ៖' : 'Order Info:'}</strong> {language === 'km' ? 'បញ្ជីទំនិញ និងព័ត៌មានលម្អិតអំពីការទូទាត់។' : ' Item list and payment details.'}</span>
                   </li>
                 </ul>
               </div>

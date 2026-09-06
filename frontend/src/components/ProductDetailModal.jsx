@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
 export default function ProductDetailModal() {
-  const { selectedProduct, setSelectedProduct, setReviewProduct, addToCart, t } = useApp();
+  const { selectedProduct, setSelectedProduct, setReviewProduct, addToCart, t, language } = useApp();
   const [quantity, setQuantity] = useState(1);
 
   if (!selectedProduct) return null;
@@ -113,7 +113,7 @@ export default function ProductDetailModal() {
             {/* Quality badge */}
             <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50/60 p-2.5 rounded-xl">
               <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>គុណភាពស្តង់ដារខ្ពស់ ធានាភាពស្រស់ និងរសជាតិឆ្ងាញ់ពិតៗ</span>
+              <span>{language === 'km' ? 'គុណភាពស្តង់ដារខ្ពស់ ធានាភាពស្រស់ និងរសជាតិឆ្ងាញ់ពិតៗ' : 'Premium Standard Quality, Guaranteed Freshness & Authentic Flavor'}</span>
             </div>
           </div>
 

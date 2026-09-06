@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
 export default function HeroBanner() {
-  const { banners, heroImages, settings, t } = useApp();
+  const { banners, heroImages, settings, t, language } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Combine available banner images
@@ -55,11 +55,11 @@ export default function HeroBanner() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight text-white drop-shadow-sm">
-            {settings.hero_title || 'រសជាតិដ៏ឈ្ងុយឆ្ងាញ់ គុណភាពខ្ពស់ពិតៗ'}
+            {settings.hero_title || (language === 'km' ? 'រសជាតិដ៏ឈ្ងុយឆ្ងាញ់ គុណភាពខ្ពស់ពិតៗ' : 'Exceptional Flavor, Truly Premium Quality')}
           </h1>
 
           <p className="text-sm md:text-base text-emerald-100/90 leading-relaxed max-w-lg">
-            {settings.hero_subtitle || 'ផលិតផលកាហ្វេ និងតែបៃតងធម្មជាតិ លំដាប់ពិសេស ផ្តល់នូវថាមពល និងភាពស្រស់ស្រាយពេញមួយថ្ងៃ។'}
+            {settings.hero_subtitle || (language === 'km' ? 'ផលិតផលកាហ្វេ និងតែបៃតងធម្មជាតិ លំដាប់ពិសេស ផ្តល់នូវថាមពល និងភាពស្រស់ស្រាយពេញមួយថ្ងៃ។' : 'Specialty organic coffee and premium matcha to energize and refresh your entire day.')}
           </p>
 
           <div className="pt-2 flex flex-wrap gap-3 items-center">
