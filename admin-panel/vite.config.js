@@ -33,6 +33,11 @@ export default defineConfig({
         target: 'https://www.kouprey.asia',
         changeOrigin: true,
         secure: false
+      },
+      '/uploads': {
+        target: 'https://www.kouprey.asia',
+        changeOrigin: true,
+        secure: false
       }
     }
   }

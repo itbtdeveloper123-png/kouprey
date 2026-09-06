@@ -1,15 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
+import { formatImageUrl, handleImageError } from '../utils/imageUrl';
 
 export default function ImageUpload({ value, onChange, type = 'product', label = 'រូបភាព (Image)' }) {
   const [uploading, setUploading] = useState(false);
+  const [localPreview, setLocalPreview] = useState('');
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
   const handleFile = async (file) => {
     if (!file) return;
     setError('');
+    const previewUrl = URL.createObjectURL(file);
+    setLocalPreview(previewUrl);
     setUploading(true);
 
     try {
@@ -18,9 +22,11 @@ export default function ImageUpload({ value, onChange, type = 'product', label =
         onChange(res.path);
       } else {
         setError(res.error || 'Upload failed');
+        setLocalPreview('');
       }
     } catch (err) {
       setError(err.message || 'Upload error');
+      setLocalPreview('');
     } finally {
       setUploading(false);
     }
@@ -33,26 +39,33 @@ export default function ImageUpload({ value, onChange, type = 'product', label =
     }
   };
 
-  const formatImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return `https://www.kouprey.asia${url.startsWith('/') ? '' : '/'}${url}`;
-  };
+  const displaySrc = localPreview || (value ? formatImageUrl(value, type === 'banner' ? 'banner' : 'products') : '');
 
   return (
     <div className="space-y-2">
       {label && <label className="block text-sm font-semibold text-gray-700">{label}</label>}
 
-      {value ? (
+      {displaySrc ? (
         <div className="relative group rounded-xl border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center h-48 w-full max-w-xs shadow-sm">
+          {uploading && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex flex-col items-center justify-center z-10">
+              <Loader2 size={24} className="animate-spin text-amber-600 mb-1" />
+              <span className="text-xs font-semibold text-amber-800">កំពុង Upload...</span>
+            </div>
+          )}
           <img
-            src={formatImageUrl(value)}
+            key={displaySrc}
+            src={displaySrc}
             alt="Preview"
             className="w-full h-full object-contain p-2"
+            onError={handleImageError}
           />
           <button
             type="button"
-            onClick={() => onChange('')}
+            onClick={() => {
+              setLocalPreview('');
+              onChange('');
+            }}
             className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition shadow hover:bg-red-700"
             title="Remove Image"
           >

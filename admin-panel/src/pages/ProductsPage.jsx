@@ -33,10 +33,11 @@ import {
   FileText,
   ListPlus,
   ArrowRightLeft,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
-import { formatImageUrl } from '../utils/imageUrl';
+import { formatImageUrl, handleImageError } from '../utils/imageUrl';
 import MediaBrowserModal from '../components/MediaBrowserModal';
 
 // ──────────────────────────────────────────────
@@ -211,6 +212,8 @@ export default function ProductsPage() {
   const [drawerMode, setDrawerMode] = useState('add'); // 'add' | 'edit'
   const [drawerTab, setDrawerTab] = useState('en'); // 'en' | 'km'
   const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [productForm, setProductForm] = useState({
     base_product_id: 0,
     price: '',
@@ -314,6 +317,8 @@ export default function ProductsPage() {
   const openAddProduct = () => {
     setDrawerMode('add');
     setDrawerTab('en');
+    setImagePreview('');
+    setUploadingImage(false);
     setProductForm({
       base_product_id: 0,
       price: '',
@@ -352,6 +357,8 @@ export default function ProductsPage() {
   const openEditProduct = async (product) => {
     setDrawerMode('edit');
     setDrawerTab('en');
+    setImagePreview('');
+    setUploadingImage(false);
     const baseId = product.base_product_id || product.id;
 
     // 1. INSTANT OPEN (0ms): Prefill from row data immediately!
@@ -937,9 +944,7 @@ export default function ProductsPage() {
                                 alt={p.name}
                                 loading="lazy"
                                 className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
-                                onError={(e) => {
-                                  e.target.src = 'https://placehold.co/100x100?text=No+Img';
-                                }}
+                                onError={handleImageError}
                               />
                             </div>
                           </td>
@@ -1234,9 +1239,7 @@ export default function ProductsPage() {
                             src={formatImageUrl(cat.image, 'categories')}
                             alt={cat.name}
                             className="w-full h-full object-contain"
-                            onError={(e) => {
-                              e.target.src = 'https://placehold.co/100x100?text=No+Img';
-                            }}
+                            onError={handleImageError}
                           />
                         </div>
                       </td>
@@ -1629,6 +1632,7 @@ export default function ProductsPage() {
                     type="button"
                     onClick={() =>
                       openMediaBrowser((selectedUrl) => {
+                        setImagePreview('');
                         setProductForm((prev) => ({ ...prev, image: selectedUrl }));
                         showToast('បានជ្រើសរើសរូបភាពជោគជ័យ!');
                       }, 'ជ្រើសរើសរូបភាពផលិតផលពី Hosting Media')
@@ -1642,14 +1646,19 @@ export default function ProductsPage() {
 
                 <div className="flex items-center gap-4">
                   {/* Thumbnail Preview */}
-                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="relative w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white p-1 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
+                    {uploadingImage && (
+                      <div className="absolute inset-0 bg-white/85 backdrop-blur-[1px] flex flex-col items-center justify-center z-10">
+                        <Loader2 size={20} className="animate-spin text-amber-600 mb-0.5" />
+                        <span className="text-[9px] font-bold text-amber-800">កំពុង Upload...</span>
+                      </div>
+                    )}
                     <img
-                      src={formatImageUrl(productForm.image, 'products')}
+                      key={imagePreview || productForm.image || 'empty-preview'}
+                      src={imagePreview || formatImageUrl(productForm.image, 'products')}
                       alt="Preview"
                       className="max-h-full max-w-full object-contain"
-                      onError={(e) => {
-                        e.target.src = 'https://placehold.co/100x100?text=No+Img';
-                      }}
+                      onError={handleImageError}
                     />
                   </div>
 
@@ -1657,29 +1666,46 @@ export default function ProductsPage() {
                     <input
                       type="text"
                       value={productForm.image}
-                      onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                      onChange={(e) => {
+                        setImagePreview('');
+                        setProductForm({ ...productForm, image: e.target.value });
+                      }}
                       placeholder="e.g. /kouprey/public/assets/images/products/coffee.webp"
                       className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
                     />
                     <div className="flex items-center gap-2">
-                      <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg text-xs text-gray-700 cursor-pointer transition">
-                        <Upload size={12} />
-                        <span>Upload ថ្មី</span>
+                      <label className={`inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 cursor-pointer transition shadow-2xs ${uploadingImage ? 'opacity-60 pointer-events-none' : ''}`}>
+                        {uploadingImage ? (
+                          <Loader2 size={12} className="animate-spin text-amber-600" />
+                        ) : (
+                          <Upload size={12} />
+                        )}
+                        <span>{uploadingImage ? 'កំពុង Upload...' : 'Upload ថ្មី'}</span>
                         <input
                           type="file"
                           accept="image/*"
+                          disabled={uploadingImage}
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              const localUrl = URL.createObjectURL(file);
+                              setImagePreview(localUrl);
+                              setUploadingImage(true);
                               try {
                                 const res = await adminApi.uploadImage(file, 'product');
                                 if (res.success && res.path) {
                                   setProductForm((prev) => ({ ...prev, image: res.path }));
                                   showToast('បានផ្ទុកឡើងរូបភាពជោគជ័យ!');
+                                } else {
+                                  showToast(res.error || 'Upload failed', 'error');
+                                  setImagePreview('');
                                 }
                               } catch (err) {
                                 showToast('Upload failed: ' + err.message, 'error');
+                                setImagePreview('');
+                              } finally {
+                                setUploadingImage(false);
                               }
                             }
                           }}
@@ -2297,9 +2323,7 @@ export default function ProductsPage() {
                           src={formatImageUrl(p.image, 'products')}
                           alt={p.name}
                           className="w-8 h-8 rounded-lg object-contain bg-gray-100 border border-gray-200 p-0.5"
-                          onError={(e) => {
-                            e.target.src = 'https://placehold.co/50x50?text=No+Img';
-                          }}
+                          onError={handleImageError}
                         />
                         <div>
                           <p className="text-xs font-bold text-gray-800">{p.name}</p>
