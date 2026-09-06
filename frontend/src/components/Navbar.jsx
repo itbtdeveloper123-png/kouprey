@@ -1,165 +1,122 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, X, Globe } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
 export default function Navbar() {
-  const { language, switchLanguage, t, settings, cart, setIsSearchOpen } = useApp();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { language, switchLanguage, t, settings, setIsSearchOpen } = useApp();
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
   const logoUrl = settings.company_logo ? getImageUrl(settings.company_logo) : '';
-  const totalCartCount = cart.reduce((sum, i) => sum + (i.quantity || 1), 0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
-    { to: '/', label: t.home },
-    { to: '/features', label: t.features },
-    { to: '/about', label: t.about },
-    { to: '/reviews', label: t.reviews },
+    { to: '/', label: language === 'km' ? 'ផលិតផល' : 'Product', isAnchor: true },
+    { to: '/features', label: language === 'km' ? 'លក្ខណៈពិសេស' : 'Features' },
+    { to: '/reviews', label: language === 'km' ? 'ការពិនិត្យ' : 'Reviews' },
+    { to: '/about', label: language === 'km' ? 'អំពីយើង' : 'About' },
   ];
 
-  const isActive = (path) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
+  const isActive = (path, isAnchor) => {
+    if (isAnchor && (location.pathname === '/' || location.pathname.startsWith('/product'))) return true;
+    if (!isAnchor && location.pathname.startsWith(path)) return true;
     return false;
   };
 
-  return (
-    <>
-      {/* Top Notice / Social Banner if present */}
-      {settings.social_banner_text && (
-        <div className="bg-emerald-800 text-white text-xs md:text-sm py-1.5 px-4 text-center font-medium shadow-inner">
-          <div
-            className="max-w-6xl mx-auto flex items-center justify-center gap-2"
-            dangerouslySetInnerHTML={{ __html: settings.social_banner_text }}
-          />
-        </div>
-      )}
+  const toggleLanguage = () => {
+    switchLanguage(language === 'km' ? 'en' : 'km');
+  };
 
-      {/* Main Sticky Navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-xs transition-all">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-18 flex items-center justify-between">
-          
-          {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+  return (
+    <header
+      className={`w-full fixed top-0 left-0 z-50 transition-all duration-500 px-4 py-4 md:px-6 md:py-3 ${
+        scrolled
+          ? 'bg-white/80 shadow-md backdrop-blur-[30px] saturate-180'
+          : 'bg-white/40 backdrop-blur-[30px] saturate-180 border-b border-white/30'
+      }`}
+    >
+      <div className="flex items-center justify-between max-w-6xl mx-auto h-full">
+        {/* Logo */}
+        <div className="flex items-center">
+          <Link to="/" className="flex items-center transform active:scale-95 transition-transform">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt={settings.company_name || 'KouPrey'}
-                className="h-12 w-auto object-contain transition-transform group-hover:scale-105"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
+                className="h-14 w-auto object-contain"
+                style={{ height: '56px' }}
+                onError={(e) => { e.target.style.display = 'none'; }}
               />
-            ) : null}
-            <span className="font-bold text-xl md:text-2xl text-emerald-800 tracking-tight">
-              {settings.company_name || 'KouPrey'}
-            </span>
+            ) : (
+              <span className="font-bold text-2xl text-gray-900 font-freeman">
+                {settings.company_name || 'KouPrey'}
+              </span>
+            )}
           </Link>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-            {navLinks.map((link) => {
-              const active = isActive(link.to);
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    active
-                      ? 'text-emerald-700 bg-emerald-50 font-bold'
-                      : 'text-gray-600 hover:text-emerald-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Actions: Search, Lang Switcher, Cart, Mobile Menu */}
-          <div className="flex items-center space-x-2 md:space-x-3">
-            
-            {/* Search Trigger */}
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="p-2.5 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors"
-              title={t.search_placeholder}
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* Language Switcher */}
-            <div className="flex items-center bg-gray-100 p-1 rounded-full text-xs font-semibold">
-              <button
-                onClick={() => switchLanguage('km')}
-                className={`px-2.5 py-1 rounded-full transition-all ${
-                  language === 'km'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                ខ្មែរ
-              </button>
-              <button
-                onClick={() => switchLanguage('en')}
-                className={`px-2.5 py-1 rounded-full transition-all ${
-                  language === 'en'
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                EN
-              </button>
-            </div>
-
-            {/* Cart Button */}
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="relative p-2.5 text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors"
-              aria-label="Shopping Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {totalCartCount > 0 && (
-                <span className="absolute top-1 right-1 bg-emerald-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
-                  {totalCartCount}
-                </span>
-              )}
-            </button>
-
-            {/* Mobile Hamburger Toggle */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-700 hover:text-emerald-700 rounded-lg"
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-2 shadow-lg animate-modal-slide">
-            {navLinks.map((link) => (
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-4">
+          {navLinks.map((link) => {
+            const active = isActive(link.to, link.isAnchor);
+            return (
               <Link
                 key={link.to}
                 to={link.to}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-2.5 rounded-xl text-base font-medium ${
-                  isActive(link.to)
-                    ? 'text-emerald-700 bg-emerald-50 font-bold'
-                    : 'text-gray-700 hover:bg-gray-50'
+                className={`transition-all flex items-center h-10 px-4 py-2 rounded-xl text-sm font-bold ${
+                  active
+                    ? 'text-[#92adc5] bg-[#92adc5]/10'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
                 }`}
               >
                 {link.label}
               </Link>
-            ))}
-          </div>
-        )}
-      </header>
-    </>
+            );
+          })}
+        </nav>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3">
+          {/* Language Switcher Pill */}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-4 py-2 transition-all active:scale-95 border border-gray-100 shadow-xs cursor-pointer"
+            title={language === 'km' ? 'ប្តូរភាសា (Switch Language)' : 'Switch Language'}
+          >
+            <img
+              src={
+                language === 'en'
+                  ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80'
+                  : 'https://cdn-icons-png.flaticon.com/512/16022/16022033.png'
+              }
+              alt={language === 'en' ? 'English' : 'Khmer'}
+              className="w-6 h-6 object-cover rounded-full shadow-2xs"
+            />
+            <span className="font-bold text-sm text-gray-700">
+              {language === 'en' ? 'EN' : 'KM'}
+            </span>
+          </button>
+
+          {/* Search Button */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-xs cursor-pointer"
+            title={language === 'km' ? 'ស្វែងរក' : 'Search'}
+            aria-label="Search"
+          >
+            <Search className="w-5 h-5 stroke-[2.5]" />
+          </button>
+        </div>
+      </div>
+    </header>
   );
 }

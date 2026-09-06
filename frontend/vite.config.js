@@ -12,16 +12,14 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api.php': {
-        target: 'http://localhost/kouprey/public',
-        changeOrigin: true
+        target: 'https://www.kouprey.asia',
+        changeOrigin: true,
+        secure: false
       },
-      '/uploads': {
-        target: 'http://localhost/kouprey/public',
-        changeOrigin: true
-      },
-      '/assets': {
-        target: 'http://localhost/kouprey/public',
-        changeOrigin: true
+      '/kouprey': {
+        target: 'https://www.kouprey.asia',
+        changeOrigin: true,
+        secure: false
       }
     }
   }

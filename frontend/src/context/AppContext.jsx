@@ -1,72 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchBootstrap, trackVisit } from '../api/client';
+import { UI_STRINGS } from './strings';
 
 const AppContext = createContext();
-
-export const UI_STRINGS = {
-  km: {
-    home: 'ទំព័រដើម',
-    products: 'ផលិតផល',
-    features: 'លក្ខណៈពិសេស',
-    about: 'អំពីយើង',
-    reviews: 'មតិយោបល់',
-    privacy: 'គោលការណ៍ភាពឯកជន',
-    terms: 'លក្ខខណ្ឌប្រើប្រាស់',
-    search_placeholder: 'ស្វែងរកផលិតផលតាមឈ្មោះ...',
-    all_categories: 'ទាំងអស់',
-    add_to_cart: 'ដាក់ក្នុងកន្ត្រក',
-    buy_now: 'ទិញឥឡូវនេះ',
-    quick_view: 'មើលលម្អិត',
-    reviews_count: 'ការវាយតម្លៃ',
-    stars: 'ផ្កាយ',
-    in_stock: 'មានក្នុងស្តុក',
-    featured: 'ពេញនិយម',
-    best_seller: 'លក់ដាច់បំផុត',
-    related_products: 'ផលិតផលដែលទាក់ទង',
-    write_review: 'សរសេរមតិវាយតម្លៃ',
-    your_name: 'ឈ្មោះរបស់អ្នក',
-    your_review: 'មតិយោបល់របស់អ្នក',
-    rating: 'ពិន្ទុ',
-    submit: 'បញ្ជូន',
-    cancel: 'បោះបង់',
-    no_products_found: 'រកមិនឃើញផលិតផលដែលត្រូវនឹងការស្វែងរកទេ',
-    contact_us: 'ទំនាក់ទំនង',
-    cart_empty: 'កន្ត្រករបស់អ្នកនៅទទេ',
-    added_to_cart: 'បានបន្ថែមទៅកន្ត្រក!',
-    view_details: 'មើលព័ត៌មានលម្អិត'
-  },
-  en: {
-    home: 'Home',
-    products: 'Products',
-    features: 'Features',
-    about: 'About Us',
-    reviews: 'Reviews',
-    privacy: 'Privacy Policy',
-    terms: 'Terms of Service',
-    search_placeholder: 'Search products by name...',
-    all_categories: 'All',
-    add_to_cart: 'Add to Cart',
-    buy_now: 'Buy Now',
-    quick_view: 'Quick View',
-    reviews_count: 'reviews',
-    stars: 'stars',
-    in_stock: 'In Stock',
-    featured: 'Featured',
-    best_seller: 'Best Seller',
-    related_products: 'Related Products',
-    write_review: 'Write a Review',
-    your_name: 'Your Name',
-    your_review: 'Your Review',
-    rating: 'Rating',
-    submit: 'Submit Review',
-    cancel: 'Cancel',
-    no_products_found: 'No products found matching your search',
-    contact_us: 'Contact Us',
-    cart_empty: 'Your cart is empty',
-    added_to_cart: 'Added to cart!',
-    view_details: 'View Details'
-  }
-};
 
 export function AppProvider({ children }) {
   const [language, setLanguage] = useState(() => {

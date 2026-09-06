@@ -1,131 +1,304 @@
 import React, { useState, useEffect } from 'react';
-import HeroBanner from '../components/HeroBanner';
-import CategoryFilter from '../components/CategoryFilter';
+import { useSearchParams } from 'react-router-dom';
+import SpotlightHero from '../components/SpotlightHero';
+import ZigzagSpotlight from '../components/ZigzagSpotlight';
 import ProductCard from '../components/ProductCard';
+import MobileNav from '../components/MobileNav';
 import { useApp } from '../context/AppContext';
 import { fetchProducts } from '../api/client';
-import { Coffee, Award, Truck, HeartHandshake } from 'lucide-react';
+import { Coffee, Tag, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HomePage() {
-  const { language, categories, t } = useApp();
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [products, setProducts] = useState([]);
+  const { language, categories, settings } = useApp();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Parse page from query string: default 1
+  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  const selectedCategory = searchParams.get('category') || 'all';
+
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const ITEMS_PER_PAGE = 9;
+
+  // Fetch all products for language
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    fetchProducts({
-      lang: language,
-      baseCategoryId: selectedCategory
-    }).then((prods) => {
+    fetchProducts({ lang: language }).then((prods) => {
       if (!isMounted) return;
-      setProducts(prods || []);
+      setAllProducts(prods || []);
       setLoading(false);
     });
     return () => { isMounted = false; };
-  }, [language, selectedCategory]);
+  }, [language]);
+
+  // Filter products by category
+  const filteredProducts = allProducts.filter((product) => {
+    if (selectedCategory === 'all') return true;
+    if (selectedCategory === 'featured') return product.featured == 1;
+    return (
+      product.base_category_id == selectedCategory ||
+      product.category_id == selectedCategory
+    );
+  });
+
+  const totalProducts = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalProducts / ITEMS_PER_PAGE));
+  const validPage = Math.min(currentPage, totalPages);
+  const startIndex = (validPage - 1) * ITEMS_PER_PAGE;
+  const pagedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handleSelectCategory = (catId) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('category', catId);
+    params.set('page', '1');
+    setSearchParams(params);
+  };
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    const params = new URLSearchParams(searchParams);
+    params.set('page', page.toString());
+    setSearchParams(params);
+
+    // Smooth scroll to products anchor
+    const elem = document.getElementById('products');
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Build pagination window
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, validPage - 2);
+    let endPage = Math.min(totalPages, validPage + 2);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+      if (startPage === 1) {
+        endPage = Math.min(totalPages, maxPagesToShow);
+      } else {
+        startPage = Math.max(1, totalPages - maxPagesToShow + 1);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return { pages, startPage, endPage };
+  };
+
+  const { pages, startPage, endPage } = getPageNumbers();
 
   return (
-    <div className="space-y-8 md:space-y-12">
-      {/* Hero Banner Section */}
-      <HeroBanner />
+    <div className="min-h-screen bg-white pb-20">
+      {/* 1. Spotlight Showcase Hero Slider */}
+      <SpotlightHero products={allProducts} />
 
-      {/* Main Catalog Section */}
-      <section id="products-section" className="max-w-6xl mx-auto px-4 md:px-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-100 pb-4">
-          <div>
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
-              {t.products}
-            </span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-1">
-              {language === 'km' ? 'ផលិតផលកាហ្វេ & តែបៃតងពិសេស' : 'Premium Coffee & Matcha'}
-            </h2>
+      {/* 2. Category Zigzag Feature Showcase (Powder & Beans) */}
+      <ZigzagSpotlight products={allProducts} />
+
+      {/* 3. Main Product Catalog Section with Sidebar & Grid */}
+      <section id="products" className="px-3 py-10 md:px-6 md:py-20 lg:py-24 bg-white">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-10 md:mb-16">
+            <h3 className="text-3xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-4 flex items-center justify-center tracking-tight">
+              <Coffee className="w-8 h-8 md:w-12 md:h-12 text-yellow-500 mr-3 md:mr-4 inline-block" />
+              <span>{settings.our_products || (language === 'km' ? 'ផលិតផលរបស់យើង' : 'Our Products')}</span>
+            </h3>
+            <p className="text-gray-500 text-base md:text-xl max-w-2xl mx-auto">
+              {settings.our_products_description || (language === 'km'
+                ? 'ស្វែងយល់ពីបណ្តុំផលិតផលកាហ្វេ និងតែបៃតងលំដាប់ពិសេសរបស់យើង'
+                : 'Discover our complete collection of premium coffee products')}
+            </p>
           </div>
 
-          {/* Category Filter */}
-          <CategoryFilter
-            categories={categories}
-            selectedCategoryId={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
+          {/* Sidebar Layout */}
+          <div className="flex flex-col lg:flex-row gap-8">
+            
+            {/* Categories Sidebar (Desktop) */}
+            <div className="hidden lg:block lg:w-1/4">
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 sticky top-24">
+                <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                  <Tag className="w-5 h-5 text-indigo-600" />
+                  <span>{language === 'km' ? 'ប្រភេទផលិតផល' : 'Product Categories'}</span>
+                </h4>
+
+                <div className="max-h-96 overflow-y-auto pr-1 space-y-3">
+                  {/* All Products Button */}
+                  <button
+                    onClick={() => handleSelectCategory('all')}
+                    className={`w-full text-left px-5 py-4 rounded-xl transition-all duration-300 flex items-center justify-between group cursor-pointer ${
+                      selectedCategory === 'all'
+                        ? 'bg-yellow-50 text-black font-semibold shadow-xs'
+                        : 'hover:bg-indigo-50 hover:shadow-md text-gray-700'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <LayoutGrid className={`w-5 h-5 transition-transform group-hover:scale-110 ${selectedCategory === 'all' ? 'text-black' : 'text-gray-500'}`} />
+                      <span className="font-medium text-sm">
+                        {language === 'km' ? 'ផលិតផលទាំងអស់' : 'All Products'}
+                      </span>
+                    </span>
+                    <span className="bg-black/15 text-black px-3 py-1 rounded-full text-xs font-semibold">
+                      {allProducts.length}
+                    </span>
+                  </button>
+
+                  {/* Category Buttons from Database */}
+                  {categories.map((category) => {
+                    const catId = (category.base_category_id || category.id).toString();
+                    const isSelected = selectedCategory === catId;
+                    const catCount = allProducts.filter(
+                      p => p.base_category_id == category.base_category_id
+                    ).length;
+
+                    return (
+                      <button
+                        key={category.id || catId}
+                        onClick={() => handleSelectCategory(catId)}
+                        className={`w-full text-left px-5 py-4 rounded-xl transition-all duration-300 flex items-center justify-between group cursor-pointer ${
+                          isSelected
+                            ? 'bg-yellow-50 text-black font-semibold shadow-xs'
+                            : 'hover:bg-indigo-50 hover:shadow-md text-gray-700'
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <Tag className="w-4 h-4 text-indigo-500 group-hover:text-indigo-600 transition-colors" />
+                          <span className="font-medium text-sm group-hover:text-gray-900">
+                            {category.name}
+                          </span>
+                        </span>
+                        <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold group-hover:bg-indigo-200 transition-colors">
+                          {catCount}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Products Grid Column (Desktop 3/4) */}
+            <div className="w-full lg:w-3/4">
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                  {[...Array(9)].map((_, i) => (
+                    <div key={i} className="bg-gray-100 rounded-[2rem] h-80 animate-pulse" />
+                  ))}
+                </div>
+              ) : pagedProducts.length === 0 ? (
+                <div className="text-center py-20 bg-gray-50 rounded-[2rem] border border-gray-100 space-y-3">
+                  <Coffee className="w-16 h-16 text-gray-300 mx-auto" />
+                  <p className="text-gray-500 text-lg">
+                    {language === 'km' ? 'មិនមានផលិតផលនៅពេលនេះទេ។' : 'No products available at the moment.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                  {pagedProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+
+              {/* iOS Style Pagination Box (Matching product.php lines 2146-2195) */}
+              {totalPages > 1 && (
+                <div className="mt-14 flex justify-center">
+                  <nav className="inline-flex items-center bg-gray-100/90 backdrop-blur-md p-1.5 rounded-[1.5rem] border border-gray-200/60 shadow-xs">
+                    {/* Previous Page */}
+                    <button
+                      onClick={() => handlePageChange(validPage - 1)}
+                      disabled={validPage <= 1}
+                      className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer ${
+                        validPage <= 1
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-gray-500 hover:bg-white hover:text-orange-600'
+                      }`}
+                      aria-label="Previous Page"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center px-2 gap-1">
+                      {startPage > 1 && (
+                        <>
+                          <button
+                            onClick={() => handlePageChange(1)}
+                            className="w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:text-orange-600 transition-all cursor-pointer"
+                          >
+                            1
+                          </button>
+                          {startPage > 2 && (
+                            <span className="px-1.5 text-gray-400 text-xs italic">...</span>
+                          )}
+                        </>
+                      )}
+
+                      {pages.map((p) => {
+                        const isCurrent = p === validPage;
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => handlePageChange(p)}
+                            className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold transition-all duration-300 cursor-pointer ${
+                              isCurrent
+                                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-110'
+                                : 'text-gray-500 hover:bg-white hover:text-orange-600'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        );
+                      })}
+
+                      {endPage < totalPages && (
+                        <>
+                          {endPage < totalPages - 1 && (
+                            <span className="px-1.5 text-gray-400 text-xs italic">...</span>
+                          )}
+                          <button
+                            onClick={() => handlePageChange(totalPages)}
+                            className="w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:text-orange-600 transition-all cursor-pointer"
+                          >
+                            {totalPages}
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Next Page */}
+                    <button
+                      onClick={() => handlePageChange(validPage + 1)}
+                      disabled={validPage >= totalPages}
+                      className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer ${
+                        validPage >= totalPages
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-gray-500 hover:bg-white hover:text-orange-600'
+                      }`}
+                      aria-label="Next Page"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </nav>
+                </div>
+              )}
+
+            </div>
+          </div>
         </div>
-
-        {/* Product Grid */}
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 py-12">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-gray-100 rounded-2xl h-72 animate-pulse" />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 space-y-3">
-            <Coffee className="w-12 h-12 text-emerald-700/40 mx-auto" />
-            <p className="text-gray-600 font-medium">{t.no_products_found}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
       </section>
 
-      {/* Highlights / Value Proposition Section */}
-      <section className="max-w-6xl mx-auto px-4 md:px-6 pt-6">
-        <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white rounded-3xl p-8 md:p-12 shadow-xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-800/80 border border-emerald-700/50 flex items-center justify-center flex-shrink-0 text-emerald-300">
-                <Award className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-white mb-1">
-                  {language === 'km' ? 'គុណភាពស្តង់ដារ ១០០%' : '100% Premium Quality'}
-                </h3>
-                <p className="text-xs text-emerald-200/80 leading-relaxed">
-                  {language === 'km'
-                    ? 'ជ្រើសរើសគ្រាប់កាហ្វេ និងស្លឹកតែល្អបំផុត ពីកសិដ្ឋានធម្មជាតិពិតៗ។'
-                    : 'Crafted from the finest natural coffee beans and premium matcha leaves.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-800/80 border border-emerald-700/50 flex items-center justify-center flex-shrink-0 text-emerald-300">
-                <Truck className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-white mb-1">
-                  {language === 'km' ? 'ដឹកជញ្ជូនរហ័សទាន់ចិត្ត' : 'Fast Delivery'}
-                </h3>
-                <p className="text-xs text-emerald-200/80 leading-relaxed">
-                  {language === 'km'
-                    ? 'សេវាកម្មដឹកជញ្ជូនរហ័សទូទាំងរាជធានីភ្នំពេញ និងតាមបណ្តាខេត្ត។'
-                    : 'Fast and reliable delivery service across Phnom Penh and provinces.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-800/80 border border-emerald-700/50 flex items-center justify-center flex-shrink-0 text-emerald-300">
-                <HeartHandshake className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-white mb-1">
-                  {language === 'km' ? 'សេវាកម្មរួសរាយរាក់ទាក់' : 'Friendly Support'}
-                </h3>
-                <p className="text-xs text-emerald-200/80 leading-relaxed">
-                  {language === 'km'
-                    ? 'ក្រុមការងារតែងតែត្រៀមខ្លួនជួយប្រឹក្សា និងឆ្លើយតបរាល់ចម្ងល់របស់អ្នក។'
-                    : 'Our team is always ready to assist and ensure total customer satisfaction.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 4. Mobile Bottom Navigation & Floating Filter */}
+      <MobileNav
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleSelectCategory}
+      />
     </div>
   );
 }
