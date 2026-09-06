@@ -25,7 +25,7 @@ import {
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  const { language, settings, t, setReviewProduct, addToCart } = useApp();
+  const { language, settings, t, setReviewProduct } = useApp();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
@@ -260,34 +260,26 @@ export default function ProductDetailPage() {
                 </p>
               )}
 
-              {/* Action Buttons: Add to Cart & Direct Contact */}
+              {/* Direct Contact Actions */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                <button
-                  onClick={() => addToCart(product)}
-                  className="flex-1 min-w-[200px] h-12 bg-orange-500 hover:bg-orange-600 active:scale-98 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all cursor-pointer"
-                >
-                  <Package className="w-5 h-5" />
-                  <span>{t.add_to_cart}</span>
-                </button>
-
                 {settings?.social_telegram && (
                   <a
                     href={settings.social_telegram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="h-12 px-6 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-2xl flex items-center justify-center gap-2 border border-blue-200/60 transition-all active:scale-98"
+                    className="flex-1 min-w-[180px] h-12 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-98"
                   >
                     <Send className="w-4 h-4" />
-                    <span>Telegram</span>
+                    <span>{language === 'km' ? 'កុម្ម៉ង់តាម Telegram' : 'Order via Telegram'}</span>
                   </a>
                 )}
 
                 {settings?.company_phone && (
                   <a
-                    href={`tel:${settings.company_phone}`}
-                    className="h-12 px-5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-2xl flex items-center justify-center gap-2 border border-gray-200 transition-all active:scale-98"
+                    href={`tel:${settings.company_phone.replace(/\s+/g, '')}`}
+                    className="flex-1 min-w-[180px] h-12 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-98"
                   >
-                    <PhoneCall className="w-4 h-4 text-emerald-600" />
+                    <PhoneCall className="w-4 h-4" />
                     <span>{settings.company_phone}</span>
                   </a>
                 )}

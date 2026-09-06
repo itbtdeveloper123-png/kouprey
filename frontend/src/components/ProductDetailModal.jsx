@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { X, Star, ShoppingBag, MessageSquare, Check, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { X, Star, MessageSquare, ShieldCheck, ArrowRight, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
 export default function ProductDetailModal() {
-  const { selectedProduct, setSelectedProduct, setReviewProduct, addToCart, t, language } = useApp();
-  const [quantity, setQuantity] = useState(1);
+  const navigate = useNavigate();
+  const { selectedProduct, setSelectedProduct, setReviewProduct, settings, t, language } = useApp();
 
   if (!selectedProduct) return null;
 
@@ -13,13 +14,6 @@ export default function ProductDetailModal() {
   const rating = Number(selectedProduct.avg_rating) || 5.0;
   const price = Number(selectedProduct.price) || 0;
   const originalPrice = Number(selectedProduct.original_price) || 0;
-
-  const handleAdd = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart(selectedProduct);
-    }
-    setSelectedProduct(null);
-  };
 
   const handleOpenReview = () => {
     setReviewProduct(selectedProduct);
@@ -117,35 +111,31 @@ export default function ProductDetailModal() {
             </div>
           </div>
 
-          {/* Quantity and Actions */}
-          <div className="pt-6 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3.5 py-2 text-gray-600 hover:bg-gray-100 font-bold"
-                >
-                  -
-                </button>
-                <span className="px-4 py-2 text-sm font-bold text-gray-800 min-w-10 text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3.5 py-2 text-gray-600 hover:bg-gray-100 font-bold"
-                >
-                  +
-                </button>
-              </div>
+          {/* Actions */}
+          <div className="pt-6 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => {
+                const prodId = selectedProduct.base_product_id || selectedProduct.id;
+                setSelectedProduct(null);
+                navigate(`/product/${prodId}`);
+              }}
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 active:scale-95 text-gray-950 font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-orange-500/20 transition-all text-sm cursor-pointer"
+            >
+              <span>{language === 'km' ? 'មើលព័ត៌មានលម្អិត' : 'View Full Details'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
 
-              <button
-                onClick={handleAdd}
-                className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-emerald-700/20 transition-all text-sm"
+            {settings?.social_telegram && (
+              <a
+                href={settings.social_telegram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg shadow-blue-500/20 transition-all text-sm"
               >
-                <ShoppingBag className="w-4 h-4" />
-                <span>{t.add_to_cart} (${(price * quantity).toFixed(2)})</span>
-              </button>
-            </div>
+                <Send className="w-4 h-4" />
+                <span>Telegram</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

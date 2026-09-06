@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Local & CDN Font Declarations */
 @font-face {
   font-family: 'Superspace Bold';
   src: url('/fonts/Superspace Bold ver 1.00.ttf') format('truetype'),
@@ -9,36 +10,91 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Hanuman';
+  src: url('/fonts/Hanuman-Regular.ttf') format('truetype'),
+       url('https://fonts.gstatic.com/s/hanuman/v24/VuJudNvD15HhpJJBYq31yFn72hxIv0sd5xDs.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanuman';
+  src: url('/fonts/Hanuman-Bold.ttf') format('truetype'),
+       url('https://fonts.gstatic.com/s/hanuman/v24/VuJudNvD15HhpJJBYq31yFn72hxIv0v64BDs.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-sans: 'Superspace Bold', 'Freeman', 'Hanuman', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Hanuman', 'Superspace Bold', 'Freeman', system-ui, -apple-system, sans-serif;
   --font-superspace: 'Superspace Bold', sans-serif;
-  --font-freeman: 'Superspace Bold', 'Freeman', serif;
+  --font-freeman: 'Hanuman', 'Superspace Bold', 'Freeman', serif;
   --color-primary: #15803d;
   --color-primary-hover: #166534;
 }
 
 body {
-  font-family: 'Superspace Bold', 'Freeman', 'Hanuman', sans-serif;
+  font-family: 'Hanuman', 'Superspace Bold', 'Freeman', sans-serif;
   color: #1f2937;
   background-color: #ffffff;
 }
 
-/* English Language font preference */
-html[lang="en"] body,
-html[lang="en"] {
-  font-family: 'Superspace Bold', 'Freeman', sans-serif;
+/* =========================================================
+   KHMER FONT ENFORCEMENT (Hanuman)
+   Matching kouprey.asia layout.php behavior
+   ========================================================= */
+:lang(km),
+html[lang="km"],
+html[lang="km"] body {
+  font-family: 'Hanuman', serif !important;
 }
 
-/* Khmer Language font preference */
-html[lang="km"] body,
-html[lang="km"] {
-  font-family: 'Hanuman', 'Superspace Bold', sans-serif;
+:lang(km) :where(h1, h2, h3, h4, h5, h6, p, span, div, li, button, a, label, input, textarea, strong, b, em),
+[lang="km"] :where(h1, h2, h3, h4, h5, h6, p, span, div, li, button, a, label, input, textarea, strong, b, em),
+.kh {
+  font-family: 'Hanuman', serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+:lang(km) h1, :lang(km) h2, :lang(km) h3,
+[lang="km"] h1, [lang="km"] h2, [lang="km"] h3 {
+  line-height: 1.4;
+}
+
+.kh-700, :lang(km) strong, :lang(km) b, [lang="km"] strong, [lang="km"] b {
+  font-weight: 700;
+}
+
+html[lang="km"] .font-freeman,
+html[lang="km"] .font-superspace,
+html[lang="km"] .font-sans {
+  font-family: 'Hanuman', serif !important;
+}
+
+/* =========================================================
+   ENGLISH FONT ENFORCEMENT (Superspace Bold / Freeman)
+   ========================================================= */
+:lang(en),
+html[lang="en"],
+html[lang="en"] body {
+  font-family: 'Superspace Bold', 'Freeman', sans-serif !important;
+}
+
+:lang(en) :where(h1, h2, h3, h4, h5, h6, p, span, div, li, button, a, label, input, textarea, strong, b, em),
+[lang="en"] :where(h1, h2, h3, h4, h5, h6, p, span, div, li, button, a, label, input, textarea, strong, b, em) {
+  font-family: 'Superspace Bold', 'Freeman', sans-serif !important;
+}
+
+html[lang="en"] .font-freeman,
 .font-freeman {
   font-family: 'Superspace Bold', 'Freeman', sans-serif !important;
 }
 
+html[lang="en"] .font-superspace,
 .font-superspace {
   font-family: 'Superspace Bold', sans-serif !important;
 }
