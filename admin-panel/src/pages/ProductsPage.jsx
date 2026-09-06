@@ -704,21 +704,21 @@ export default function ProductsPage() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-gray-50/80 border-b border-gray-200/80 text-gray-500 font-bold uppercase tracking-wider">
+                <thead className="bg-gray-50/80 border-b border-gray-200/80 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
                   <tr>
-                    <th className="py-3.5 px-3 w-10 text-center">
-                      <GripVertical size={14} className="mx-auto text-gray-400" />
+                    <th className="py-3 px-2 w-8 text-center">
+                      <GripVertical size={13} className="mx-auto text-gray-400" />
                     </th>
-                    <th className="py-3.5 px-3 w-14">ID</th>
-                    <th className="py-3.5 px-3 w-20">រូបភាព</th>
-                    <th className="py-3.5 px-4 min-w-[180px]">ឈ្មោះផលិតផល</th>
-                    <th className="py-3.5 px-4 max-w-xs">ការពិពណ៌នា</th>
-                    <th className="py-3.5 px-3">ប្រភេទ</th>
-                    <th className="py-3.5 px-3">តម្លៃ ($)</th>
-                    <th className="py-3.5 px-3 text-center">Featured</th>
-                    <th className="py-3.5 px-3 text-center">Best Seller</th>
-                    <th className="py-3.5 px-3 text-center">ស្ថានភាព</th>
-                    <th className="py-3.5 px-4 text-center">សកម្មភាព (Actions)</th>
+                    <th className="py-3 px-2 w-12 text-center">ID</th>
+                    <th className="py-3 px-2 w-16 text-center">រូបភាព</th>
+                    <th className="py-3 px-3 min-w-[140px]">ឈ្មោះផលិតផល</th>
+                    <th className="py-3 px-3 max-w-[200px]">ការពិពណ៌នា</th>
+                    <th className="py-3 px-2.5">ប្រភេទ</th>
+                    <th className="py-3 px-2.5 whitespace-nowrap">តម្លៃ ($)</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">Featured</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">Best Seller</th>
+                    <th className="py-3 px-2 text-center whitespace-nowrap">ស្ថានភាព</th>
+                    <th className="py-3 px-3 text-center whitespace-nowrap">សកម្មភាព</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -744,16 +744,16 @@ export default function ProductsPage() {
                       return (
                         <tr key={p.id} className="hover:bg-amber-50/20 transition-colors group">
                           {/* Drag handle */}
-                          <td className="py-3 px-3 text-center text-gray-300 group-hover:text-gray-400 cursor-grab">
-                            <GripVertical size={14} className="mx-auto" />
+                          <td className="py-2.5 px-2 text-center text-gray-300 group-hover:text-gray-400 cursor-grab">
+                            <GripVertical size={13} className="mx-auto" />
                           </td>
 
                           {/* ID */}
-                          <td className="py-3 px-3 font-mono font-bold text-gray-500">#{p.id}</td>
+                          <td className="py-2.5 px-2 text-center font-mono font-bold text-gray-500">#{p.id}</td>
 
                           {/* Thumbnail Image with hover zoom */}
-                          <td className="py-3 px-3">
-                            <div className="w-12 h-12 rounded-xl border border-gray-200 bg-gray-50 p-1 flex items-center justify-center overflow-hidden relative shadow-xs">
+                          <td className="py-2.5 px-2 text-center">
+                            <div className="w-11 h-11 rounded-xl border border-gray-200 bg-gray-50 p-1 flex items-center justify-center overflow-hidden relative shadow-xs mx-auto">
                               <img
                                 src={imgUrl}
                                 alt={p.name}
@@ -767,26 +767,26 @@ export default function ProductsPage() {
                           </td>
 
                           {/* Name (Bilingual preview) */}
-                          <td className="py-3 px-4">
+                          <td className="py-2.5 px-3">
                             <div className="font-bold text-gray-900 text-sm">
                               {p.name || p.name_km || p.name_en || 'គ្មានឈ្មោះ'}
                             </div>
                             <div className="text-[11px] text-gray-400 flex items-center gap-1.5 mt-0.5">
                               <span className="text-gray-500 font-medium">EN:</span>
-                              <span className="truncate max-w-[140px]">{p.name_en || '-'}</span>
+                              <span className="truncate max-w-[130px]">{p.name_en || '-'}</span>
                               <span>•</span>
                               <span className="text-gray-500 font-medium">KM:</span>
-                              <span className="truncate max-w-[140px]">{p.name_km || '-'}</span>
+                              <span className="truncate max-w-[130px]">{p.name_km || '-'}</span>
                             </div>
                           </td>
 
                           {/* Description */}
-                          <td className="py-3 px-4 max-w-xs truncate text-gray-500" title={p.description}>
+                          <td className="py-2.5 px-3 max-w-[200px] truncate text-gray-500" title={p.description}>
                             {p.description || '-'}
                           </td>
 
                           {/* Category Badge */}
-                          <td className="py-3 px-3">
+                          <td className="py-2.5 px-2.5">
                             {p.category_name ? (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
                                 {p.category_name}
@@ -797,12 +797,12 @@ export default function ProductsPage() {
                           </td>
 
                           {/* Price */}
-                          <td className="py-3 px-3 font-bold text-emerald-600 text-sm">
+                          <td className="py-2.5 px-2.5 font-bold text-emerald-600 text-sm whitespace-nowrap">
                             ${parseFloat(p.price || 0).toFixed(2)}
                           </td>
 
                           {/* Featured Badge */}
-                          <td className="py-3 px-3 text-center">
+                          <td className="py-2.5 px-2 text-center whitespace-nowrap">
                             <span
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 Number(p.featured) === 1
@@ -816,7 +816,7 @@ export default function ProductsPage() {
                           </td>
 
                           {/* Best Seller Badge */}
-                          <td className="py-3 px-3 text-center">
+                          <td className="py-2.5 px-2 text-center whitespace-nowrap">
                             <span
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 Number(p.best_seller) === 1
@@ -830,7 +830,7 @@ export default function ProductsPage() {
                           </td>
 
                           {/* Enabled Badge */}
-                          <td className="py-3 px-3 text-center">
+                          <td className="py-2.5 px-2 text-center whitespace-nowrap">
                             <span
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 Number(p.enabled) !== 0
@@ -843,16 +843,8 @@ export default function ProductsPage() {
                             </span>
                           </td>
 
-                          {/* Actions matching admin/products.php:
-                              ⭐ Toggle Featured
-                              🏆 Toggle Best Seller
-                              📦 Toggle Collection visibility
-                              ⚙️ Detailed Product Specs modal
-                              ✏️ Edit Product Drawer
-                              👁️ Toggle Enabled
-                              🗑️ Delete Product
-                          */}
-                          <td className="py-3 px-4 text-center">
+                          {/* Actions */}
+                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
                             <div className="inline-flex items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-200/80 shadow-2xs">
                               {/* Toggle Featured */}
                               <button
