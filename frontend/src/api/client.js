@@ -72,9 +72,29 @@ export async function fetchProducts({ lang = 'km', categoryId = null, baseCatego
     const res = await fetch(`${BASE_URL}/api.php?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    if (data.success === false) {
+      throw new Error(data.error || 'Server error fetching products');
+    }
     return data.products || [];
   } catch (err) {
     console.warn('API fetchProducts fallback:', err);
+    try {
+      const cached = JSON.parse(localStorage.getItem(`kouprey_prods_${lang}`) || '[]');
+      if (cached && cached.length > 0) {
+        let prods = cached;
+        if (baseCategoryId) prods = prods.filter(p => p.base_category_id == baseCategoryId);
+        if (search) {
+          const q = search.toLowerCase();
+          prods = prods.filter(p => 
+            (p.name || '').toLowerCase().includes(q) || 
+            (p.description || '').toLowerCase().includes(q) || 
+            (p.category_name || '').toLowerCase().includes(q)
+          );
+        }
+        return prods;
+      }
+    } catch {}
+
     // 18 Sample products to demonstrate full 9-item pagination when local server is offline
     const isKm = lang === 'km';
     const sampleProducts = [

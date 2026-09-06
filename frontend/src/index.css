@@ -1,15 +1,46 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Superspace Bold';
+  src: url('/fonts/Superspace Bold ver 1.00.ttf') format('truetype'),
+       url('https://www.kouprey.asia/kouprey/public/fonts/Superspace%20Bold%20ver%201.00.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-sans: 'Freeman', 'Hanuman', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Superspace Bold', 'Freeman', 'Hanuman', system-ui, -apple-system, sans-serif;
+  --font-superspace: 'Superspace Bold', sans-serif;
+  --font-freeman: 'Superspace Bold', 'Freeman', serif;
   --color-primary: #15803d;
   --color-primary-hover: #166534;
 }
 
 body {
-  font-family: 'Freeman', 'Hanuman', sans-serif;
+  font-family: 'Superspace Bold', 'Freeman', 'Hanuman', sans-serif;
   color: #1f2937;
   background-color: #ffffff;
+}
+
+/* English Language font preference */
+html[lang="en"] body,
+html[lang="en"] {
+  font-family: 'Superspace Bold', 'Freeman', sans-serif;
+}
+
+/* Khmer Language font preference */
+html[lang="km"] body,
+html[lang="km"] {
+  font-family: 'Hanuman', 'Superspace Bold', sans-serif;
+}
+
+.font-freeman {
+  font-family: 'Superspace Bold', 'Freeman', sans-serif !important;
+}
+
+.font-superspace {
+  font-family: 'Superspace Bold', sans-serif !important;
 }
 
 /* Line clamp utilities */
