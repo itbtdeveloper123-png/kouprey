@@ -4,8 +4,7 @@ import { MapPin, Phone, Mail, Home, Coffee, Info, Star, Settings as Cog, Share2 
 import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
-const DEFAULT_LOGO = 'https://www.kouprey.asia/kouprey/public/uploads/company-logo-1769389302.png';
-const FALLBACK_LOGO = 'https://i.ibb.co/zT8QwG1h/Untitled-1-Recovered-3-Recovered-Recovered.png';
+const FOOTER_LOGO = 'https://i.ibb.co/Wv0j3ZTQ/logo.png';
 
 function FacebookIcon(props) {
   return (
@@ -34,7 +33,7 @@ function TelegramIcon(props) {
 export default function Footer() {
   const { language, settings } = useApp();
 
-  const logoUrl = settings.company_logo ? getImageUrl(settings.company_logo) : DEFAULT_LOGO;
+  const logoUrl = settings.footer_logo ? getImageUrl(settings.footer_logo) : FOOTER_LOGO;
   const companyName = settings.company_name || (language === 'km' ? 'គោព្រៃ' : 'KouPrey');
   const companyAddress = settings.company_address || (language === 'km' ? '120408 សង្កាត់បឹងកក់ 2 ខណ្ឌទួលគោក រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា។' : '120408 Sangkat Boeung Kak 2, Khan Tuol Kouk, Phnom Penh, Cambodia.');
   const companyPhone = settings.company_phone || '+855 93 839 883';
@@ -64,10 +63,11 @@ export default function Footer() {
               <img
                 src={logoUrl}
                 alt={companyName}
-                className="h-9 w-auto object-contain brightness-110"
+                referrerPolicy="no-referrer"
+                className="h-10 w-auto object-contain"
                 onError={(e) => {
-                  if (e.target.src !== FALLBACK_LOGO) {
-                    e.target.src = FALLBACK_LOGO;
+                  if (e.target.src !== FOOTER_LOGO) {
+                    e.target.src = FOOTER_LOGO;
                   }
                 }}
               />

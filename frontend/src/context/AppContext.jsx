@@ -6,6 +6,7 @@ const AppContext = createContext();
 
 const DEFAULT_SETTINGS_KM = {
   company_logo: '/kouprey/public/uploads/company-logo-1769389302.png',
+  footer_logo: 'https://i.ibb.co/Wv0j3ZTQ/logo.png',
   company_name: 'គោព្រៃ',
   company_phone: '+855 93 839 883',
   company_email: 'info@kouprey.asia',
@@ -90,6 +91,7 @@ const DEFAULT_SETTINGS_KM = {
 
 const DEFAULT_SETTINGS_EN = {
   company_logo: '/kouprey/public/uploads/company-logo-1769389302.png',
+  footer_logo: 'https://i.ibb.co/Wv0j3ZTQ/logo.png',
   company_name: 'KouPrey Coffee',
   company_phone: '+855 93 839 883',
   company_email: 'info@kouprey.asia',
