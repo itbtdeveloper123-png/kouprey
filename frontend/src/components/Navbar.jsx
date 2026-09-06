@@ -4,12 +4,15 @@ import { Search } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
+const DEFAULT_LOGO = 'https://www.kouprey.asia/kouprey/public/uploads/company-logo-1769389302.png';
+const FALLBACK_LOGO = 'https://i.ibb.co/KJNYks2/Logo-Koprey-Photoroom.png';
+
 export default function Navbar() {
   const { language, switchLanguage, t, settings, setIsSearchOpen } = useApp();
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
-  const logoUrl = settings.company_logo ? getImageUrl(settings.company_logo) : '';
+  const logoUrl = settings.company_logo ? getImageUrl(settings.company_logo) : DEFAULT_LOGO;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,22 +48,20 @@ export default function Navbar() {
       }`}
     >
       <div className="flex items-center justify-between max-w-6xl mx-auto h-full">
-        {/* Logo */}
+        {/* Logo - Always image, never text */}
         <div className="flex items-center">
           <Link to="/" className="flex items-center transform active:scale-95 transition-transform">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={settings.company_name || 'KouPrey'}
-                className="h-14 w-auto object-contain"
-                style={{ height: '56px' }}
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <span className="font-bold text-2xl text-gray-900 font-freeman">
-                {settings.company_name || 'KouPrey'}
-              </span>
-            )}
+            <img
+              src={logoUrl}
+              alt="KouPrey"
+              className="h-14 w-auto object-contain"
+              style={{ height: '56px' }}
+              onError={(e) => {
+                if (e.target.src !== FALLBACK_LOGO) {
+                  e.target.src = FALLBACK_LOGO;
+                }
+              }}
+            />
           </Link>
         </div>
 

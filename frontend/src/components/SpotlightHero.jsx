@@ -13,19 +13,32 @@ import 'swiper/css/effect-fade';
 export default function SpotlightHero({ products = [] }) {
   const { language, settings } = useApp();
 
-  // Use all available products or top items for spotlight slider (matching product.php $spotlightProducts = $allAvailableProducts)
-  const spotlightProducts = products.length > 0 ? products : [
-    {
-      id: 1,
-      name: language === 'km' ? 'កាហ្វេពិសេស KouPrey Premium' : 'KouPrey Signature Coffee',
-      description: language === 'km' ? 'រសជាតិឈ្ងុយឆ្ងាញ់ដិតជាប់មាត់ ផលិតពីគ្រាប់កាហ្វេធម្មជាតិ ១០០%។' : 'Rich and smooth flavor crafted from 100% natural premium coffee beans.',
-      price: 12.50,
-      avg_rating: 5.0,
-      review_count: 28,
-      featured: 1,
-      image: '/kouprey/public/assets/images/product-medium.png'
-    }
-  ];
+  // If products are not yet loaded, display a clean skeleton placeholder instead of a fake coffee fallback
+  if (!products || products.length === 0) {
+    return (
+      <section className="relative w-full pt-24 pb-12 md:pt-32 md:pb-20 overflow-hidden bg-white">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16 lg:gap-24 animate-pulse">
+            <div className="w-full md:w-1/2 flex justify-center items-center">
+              <div className="w-[280px] h-[280px] md:w-[420px] md:h-[420px] bg-gray-100 rounded-full" />
+            </div>
+            <div className="w-full md:w-1/2 space-y-5 text-center md:text-left">
+              <div className="h-6 w-36 bg-orange-100/60 rounded-full mx-auto md:mx-0" />
+              <div className="h-12 w-3/4 bg-gray-200 rounded-2xl mx-auto md:mx-0" />
+              <div className="h-5 w-40 bg-yellow-100/70 rounded-lg mx-auto md:mx-0" />
+              <div className="h-16 w-full max-w-md bg-gray-100 rounded-xl mx-auto md:mx-0" />
+              <div className="flex gap-4 justify-center md:justify-start">
+                <div className="h-12 w-36 bg-orange-200/80 rounded-full" />
+                <div className="h-12 w-36 bg-gray-100 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const spotlightProducts = products;
 
   return (
     <section className="relative w-full pt-24 pb-12 md:pt-32 md:pb-20 overflow-hidden bg-white">

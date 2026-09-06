@@ -17,18 +17,32 @@ export default function HomePage() {
   // Normalize selected category: strip 'category-' prefix if present
   const cleanSelectedCategory = (searchParams.get('category') || 'all').replace(/^category-/, '');
 
-  const [allProducts, setAllProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [allProducts, setAllProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`kouprey_prods_${language}`);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => allProducts.length === 0);
 
   const ITEMS_PER_PAGE = 9;
 
   // Fetch all products for language
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
+    if (allProducts.length === 0) {
+      setLoading(true);
+    }
     fetchProducts({ lang: language }).then((prods) => {
       if (!isMounted) return;
-      setAllProducts(prods || []);
+      if (prods && prods.length > 0) {
+        setAllProducts(prods);
+        try {
+          localStorage.setItem(`kouprey_prods_${language}`, JSON.stringify(prods));
+        } catch {}
+      }
       setLoading(false);
     });
     return () => { isMounted = false; };
