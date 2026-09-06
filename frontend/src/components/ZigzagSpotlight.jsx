@@ -1,15 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Award, Leaf, Droplets, Check, ArrowRight, Star } from 'lucide-react';
+import { Award, Droplets, Check, ArrowRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination, EffectCreative, FreeMode } from 'swiper/modules';
+import { Autoplay, Pagination, EffectCreative } from 'swiper/modules';
 import { useApp } from '../context/AppContext';
 import { getImageUrl } from '../api/client';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-creative';
-import 'swiper/css/free-mode';
 
 export default function ZigzagSpotlight({ products = [], onSelectCategory }) {
   const { language, settings } = useApp();
@@ -25,17 +24,6 @@ export default function ZigzagSpotlight({ products = [], onSelectCategory }) {
     p => p.base_category_id == 13 || /powder|matcha|ម្សៅ/i.test(p.name || '')
   );
 
-  // Beans / Specialties (base_category_id: 17 / 15 / 21 or other items)
-  let beanProducts = products.filter(
-    p => /bean|coffee|កាហ្វេ/i.test(p.name || '')
-  );
-  if (beanProducts.length === 0) {
-    // Fallback to other specialties if coffee bean category has no direct items yet
-    beanProducts = products.filter(
-      p => p.base_category_id != 19 && p.base_category_id != 13
-    );
-  }
-
   // Helper to ensure enough slides for infinite swiper loop
   const ensureLoopBuffer = (arr, min = 4) => {
     if (arr.length === 0) return [];
@@ -48,7 +36,6 @@ export default function ZigzagSpotlight({ products = [], onSelectCategory }) {
 
   const bufferedSyrups = ensureLoopBuffer(syrupProducts);
   const bufferedPowders = ensureLoopBuffer(powderProducts);
-  const bufferedBeans = ensureLoopBuffer(beanProducts);
 
   const handleExplore = (catId) => {
     if (onSelectCategory) {
@@ -267,154 +254,6 @@ export default function ZigzagSpotlight({ products = [], onSelectCategory }) {
                   <span>{settings.explore_powders || (language === 'km' ? 'ស្វែងរកម្សៅ' : 'Explore Powders')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-          )}
-
-          {/* 3. BEAN / COFFEE SPECIALTIES (Left Carousel, Right Text + SWIPER PRODUCT CARDS) */}
-          {bufferedBeans.length > 0 && (
-            <div className="space-y-10">
-              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16 group">
-                {/* Swiper Column */}
-                <div className="w-full md:w-1/2 relative">
-                  <div className="aspect-[4/3] rounded-3xl relative bg-gradient-to-tr from-amber-50/50 to-orange-50/30 border border-orange-100/40 p-4 overflow-hidden">
-                    <Swiper
-                      modules={[Autoplay, Pagination, EffectCreative]}
-                      effect="creative"
-                      creativeEffect={creativeEffectConfig}
-                      loop={bufferedBeans.length > 1}
-                      speed={900}
-                      grabCursor={true}
-                      simulateTouch={true}
-                      autoplay={{
-                        delay: 5000,
-                        disableOnInteraction: false,
-                        pauseOnMouseEnter: true,
-                      }}
-                      pagination={{
-                        clickable: true,
-                        dynamicBullets: true,
-                      }}
-                      className="category-swiper-bean h-full w-full"
-                    >
-                      {bufferedBeans.map((p, idx) => (
-                        <SwiperSlide key={`${p.id}-${idx}`} className="cursor-pointer pb-12 flex items-center justify-center">
-                          <Link to={`/product/${p.base_product_id || p.id}`} className="w-full h-full flex items-center justify-center relative">
-                            <img
-                              src={getImageUrl(p.image)}
-                              alt={p.name}
-                              className="w-full h-full object-contain object-center transform transition-transform duration-700 group-hover:scale-105 p-3 md:p-6 drop-shadow-xl"
-                              style={{ filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.15))' }}
-                            />
-                            <div className="absolute bottom-14 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                              <span className="bg-black/75 backdrop-blur-xs text-white px-4 py-1.5 rounded-full text-xs md:text-sm font-bold shadow-lg whitespace-nowrap">
-                                {p.name}
-                              </span>
-                            </div>
-                          </Link>
-                        </SwiperSlide>
-                      ))}
-                    </Swiper>
-
-                    {/* Floating Top Badge */}
-                    <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg z-20 pointer-events-none flex items-center gap-2">
-                      <Leaf className="w-4 h-4 text-orange-600" />
-                      <span className="text-orange-600 font-bold text-xs">100% Arabica</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Text Column */}
-                <div className="w-full md:w-1/2 text-center md:text-left">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-freeman">
-                    {settings.bean_collection_title || (language === 'km' ? 'បណ្តុំគ្រាប់កាហ្វេពិសេស' : 'Coffee Bean Collection')}
-                  </h2>
-                  <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-8">
-                    {settings.bean_collection_description || (language === 'km'
-                      ? 'ស្វែងយល់ពីព្រលឹងនៃកាហ្វេរបស់យើង ជាមួយគ្រាប់កាហ្វេគុណភាពពិសេសដែលបានជ្រើសរើសពីកម្ពស់ខ្ពស់ និងលីងយ៉ាងល្អឥតខ្ចោះ។'
-                      : 'Discover the soul of our coffee with our premium beans. Sourced from the finest altitudes and roasted to perfection, each bean tells a story of craftsmanship.')}
-                  </p>
-
-                  <div className="flex flex-wrap gap-3 justify-center md:justify-start mb-8">
-                    <span className="px-4 py-2 bg-orange-50 rounded-xl text-xs md:text-sm font-bold text-orange-700 border border-orange-100">
-                      Freshly Roasted
-                    </span>
-                    <span className="px-4 py-2 bg-orange-50 rounded-xl text-xs md:text-sm font-bold text-orange-700 border border-orange-100">
-                      Artisan Blends
-                    </span>
-                    <span className="px-4 py-2 bg-orange-50 rounded-xl text-xs md:text-sm font-bold text-orange-700 border border-orange-100">
-                      Single Origin
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => handleExplore('all')}
-                    className="px-8 py-3.5 bg-gray-900 text-white rounded-full font-bold hover:bg-orange-600 transition-colors shadow-lg flex items-center gap-2 mx-auto md:mx-0 cursor-pointer text-sm"
-                  >
-                    <span>{settings.explore_beans || (language === 'km' ? 'ស្វែងរកផលិតផល' : 'Explore Products')}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* 4. SWIPER PRODUCT CARDS: Horizontal Drag & Swipe Carousel (Matching product.php lines 1946-1977) */}
-              <div className="relative mt-10 pt-4">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    {language === 'km' ? 'ផលិតផលពាក់ព័ន្ធ (អូសដើម្បីមើលបន្ថែម →)' : 'Related Products (Swipe to explore →)'}
-                  </span>
-                </div>
-
-                <Swiper
-                  modules={[FreeMode, Pagination]}
-                  slidesPerView="auto"
-                  spaceBetween={20}
-                  freeMode={true}
-                  grabCursor={true}
-                  simulateTouch={true}
-                  pagination={{
-                    clickable: true,
-                    dynamicBullets: true,
-                  }}
-                  className="category-product-cards-swiper-bean pb-12 cursor-grab active:cursor-grabbing"
-                >
-                  {products.slice(0, 12).map((p) => (
-                    <SwiperSlide key={p.id} className="!w-[240px] md:!w-[280px] h-auto">
-                      <article className="bg-white rounded-3xl p-4 transition-all duration-300 group cursor-pointer flex flex-col h-full hover:shadow-xl border border-gray-100 relative overflow-hidden">
-                        <Link to={`/product/${p.base_product_id || p.id}`} className="block flex-1 flex flex-col">
-                          <div className="product-image-container relative mb-3 pt-[100%] rounded-2xl bg-gray-50/60 overflow-hidden">
-                            <div className="absolute inset-0 flex items-center justify-center p-3">
-                              <img
-                                src={getImageUrl(p.image)}
-                                alt={p.name}
-                                className="w-full h-full object-contain transform transition-transform duration-500 group-hover:scale-110 drop-shadow-md"
-                              />
-                            </div>
-                          </div>
-                          <div className="flex-1 flex flex-col pt-1">
-                            <div className="flex items-center gap-1 mb-1.5">
-                              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                              <span className="text-xs text-gray-500 font-medium">
-                                {p.avg_rating || 5.0} ({p.review_count || 0})
-                              </span>
-                            </div>
-                            <h4 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug">
-                              {p.name}
-                            </h4>
-                            <div className="mt-auto pt-2 border-t border-gray-50 flex items-center justify-between">
-                              <span className="text-base font-black text-gray-900">
-                                ${parseFloat(p.price || 0).toFixed(2)}
-                              </span>
-                              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-orange-500 group-hover:text-white transition-all shadow-xs">
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      </article>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
               </div>
             </div>
           )}
