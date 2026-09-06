@@ -6,44 +6,84 @@
 
 require_once __DIR__ . '/database.php';
 
-/**
- * Get a single setting value
- */
-function getSetting($key, $default = '', $language = null) {
-    global $pdo;
+// Global memory cache for settings
+$GLOBALS['__SETTINGS_CACHE__'] = [];
+$GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
 
+/**
+ * Load all settings for requested language (and English fallback) in 1 query
+ */
+function loadAllSettingsIntoCache($language = null) {
+    global $pdo;
     if ($language === null) {
         $language = getCurrentLanguage();
     }
 
-    $val = null;
-    try {
-        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = ?");
-        $stmt->execute([$key, $language]);
-        $result = $stmt->fetch();
+    if (isset($GLOBALS['__SETTINGS_CACHE__'][$language]) && !empty($GLOBALS['__SETTINGS_CACHE__'][$language])) {
+        return;
+    }
 
-        if ($result) {
-            $candidate = $result['setting_value'];
-            // If requested language is English, but the database value contains Khmer characters,
-            // we treat it as an incorrect translation/fallback and use the default English value.
-            if ($language === 'en' && preg_match('/[\x{1780}-\x{17FF}]/u', $candidate)) {
-                $val = $default;
-            } else {
-                $val = $candidate;
-            }
-        } else {
-            // Fallback to English if not found
-            if ($language !== 'en') {
-                $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? AND language = 'en'");
-                $stmt->execute([$key]);
-                $result = $stmt->fetch();
-                if ($result) {
-                    $val = $result['setting_value'];
-                }
-            }
+    if (!isset($GLOBALS['__SETTINGS_CACHE__'][$language])) {
+        $GLOBALS['__SETTINGS_CACHE__'][$language] = [];
+    }
+    if (!isset($GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$language])) {
+        $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$language] = [];
+    }
+
+    try {
+        $langs = array_values(array_unique([$language, 'en']));
+        $inClause = implode(',', array_fill(0, count($langs), '?'));
+
+        $stmt = $pdo->prepare("SELECT setting_key, setting_value, category, language FROM settings WHERE language IN ($inClause)");
+        $stmt->execute($langs);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            $lang = $row['language'];
+            $key = $row['setting_key'];
+            $val = $row['setting_value'];
+            $cat = !empty($row['category']) ? $row['category'] : 'general';
+
+            $GLOBALS['__SETTINGS_CACHE__'][$lang][$key] = $val;
+            $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$lang][$cat][$key] = $val;
         }
     } catch (Exception $e) {
-        return $default;
+        error_log("Settings cache error: " . $e->getMessage());
+    }
+}
+
+/**
+ * Clear memory cache (used when settings are saved in admin)
+ */
+function clearSettingsCache() {
+    $GLOBALS['__SETTINGS_CACHE__'] = [];
+    $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
+}
+
+/**
+ * Get a single setting value
+ */
+function getSetting($key, $default = '', $language = null) {
+    if ($language === null) {
+        $language = getCurrentLanguage();
+    }
+
+    loadAllSettingsIntoCache($language);
+
+    $val = null;
+
+    if (isset($GLOBALS['__SETTINGS_CACHE__'][$language][$key])) {
+        $candidate = $GLOBALS['__SETTINGS_CACHE__'][$language][$key];
+        // If requested language is English, but the database value contains Khmer characters,
+        // treat it as incorrect translation/fallback and use default English value.
+        if ($language === 'en' && preg_match('/[\x{1780}-\x{17FF}]/u', $candidate)) {
+            $val = $default;
+        } else {
+            $val = $candidate;
+        }
+    } elseif ($language !== 'en' && isset($GLOBALS['__SETTINGS_CACHE__']['en'][$key])) {
+        // Fallback to English
+        $val = $GLOBALS['__SETTINGS_CACHE__']['en'][$key];
     }
 
     if ($val === null) {
@@ -102,42 +142,26 @@ function setCurrentLanguage($language) {
  * Get multiple settings by category
  */
 function getSettingsByCategory($category, $language = null) {
-    global $pdo;
-
     if ($language === null) {
         $language = getCurrentLanguage();
     }
 
-    try {
-        $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM settings WHERE category = ? AND language = ?");
-        $stmt->execute([$category, $language]);
-        $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    loadAllSettingsIntoCache($language);
 
-        return $results;
-    } catch (Exception $e) {
-        return [];
-    }
+    return $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$language][$category] ?? [];
 }
 
 /**
  * Get all settings
  */
 function getAllSettings($language = null) {
-    global $pdo;
-
     if ($language === null) {
         $language = getCurrentLanguage();
     }
 
-    try {
-        $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM settings WHERE language = ?");
-        $stmt->execute([$language]);
-        $results = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    loadAllSettingsIntoCache($language);
 
-        return $results;
-    } catch (Exception $e) {
-        return [];
-    }
+    return $GLOBALS['__SETTINGS_CACHE__'][$language] ?? [];
 }
 
 /**

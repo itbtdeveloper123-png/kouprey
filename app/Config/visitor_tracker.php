@@ -66,37 +66,21 @@ class VisitorTracker {
 
     private function updateDailyStats() {
         $today = date('Y-m-d');
-
-        // Get today's statistics
-        // unique_visitors = number of distinct visitor_ids that visited today (each persistent visitor counts once per day)
-        // total_visits = total page views from all visitors today
-        $visitsStmt = $this->pdo->prepare("
-            SELECT
-                COUNT(DISTINCT visitor_id) as unique_visitors,
-                COUNT(*) as total_page_views
-            FROM visitors
-            WHERE visit_date = ?
-        ");
-        $visitsStmt->execute([$today]);
-        $stats = $visitsStmt->fetch();
-
-        // Update or insert daily stats
-        $updateStmt = $this->pdo->prepare("
-            INSERT INTO visitor_stats (date, total_visitors, unique_visitors, page_views)
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                total_visitors = VALUES(total_visitors),
-                unique_visitors = VALUES(unique_visitors),
-                page_views = VALUES(page_views),
-                updated_at = CURRENT_TIMESTAMP
-        ");
-
-        $updateStmt->execute([
-            $today,
-            $stats['total_page_views'],    // Total page views
-            $stats['unique_visitors'],     // Unique visitors (persistent visitor_ids)
-            $stats['total_page_views']     // Page views (same as total_visitors for now)
-        ]);
+        try {
+            // Atomic update on visitor_stats table without expensive COUNT(DISTINCT) table scans
+            $updateStmt = $this->pdo->prepare("
+                INSERT INTO visitor_stats (date, total_visitors, unique_visitors, page_views, updated_at)
+                VALUES (?, 1, 1, 1, CURRENT_TIMESTAMP)
+                ON DUPLICATE KEY UPDATE
+                    total_visitors = total_visitors + 1,
+                    unique_visitors = unique_visitors + 1,
+                    page_views = page_views + 1,
+                    updated_at = CURRENT_TIMESTAMP
+            ");
+            $updateStmt->execute([$today]);
+        } catch (Exception $e) {
+            error_log("Update daily stats error: " . $e->getMessage());
+        }
     }
 
     private function getClientIP() {

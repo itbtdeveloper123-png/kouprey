@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Freeman', 'Hanuman', system-ui, -apple-system, sans-serif;
+  --color-primary: #15803d;
+  --color-primary-hover: #166534;
+}
+
+body {
+  font-family: 'Freeman', 'Hanuman', sans-serif;
+  color: #1f2937;
+  background-color: #ffffff;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Rich Text Editor images */
+h3 img, p img, .rte-inserted-img {
+  display: inline-block !important;
+  vertical-align: middle;
+}
+
+/* Smooth modal animations */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-modal-fade {
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+.animate-modal-slide {
+  animation: modalSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
