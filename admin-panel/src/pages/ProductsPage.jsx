@@ -210,6 +210,7 @@ export default function ProductsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState('add'); // 'add' | 'edit'
   const [drawerTab, setDrawerTab] = useState('en'); // 'en' | 'km'
+  const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
   const [productForm, setProductForm] = useState({
     base_product_id: 0,
     price: '',
@@ -246,7 +247,6 @@ export default function ProductsPage() {
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [copyProductSearch, setCopyProductSearch] = useState('');
-  const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
 
   // ──────────────────────────────────────────────
   // DETAILED SPECS MODAL (Gear ⚙️ Button)
@@ -342,7 +342,7 @@ export default function ProductsPage() {
       custom_fields: [],
       related_products: [],
     });
-    setShowDetailedSpecs(false);
+    if (typeof setShowDetailedSpecs === 'function') setShowDetailedSpecs(false);
     setDrawerOpen(true);
   };
 
@@ -383,7 +383,7 @@ export default function ProductsPage() {
       custom_fields: parseCustomFields(product.custom_fields),
       related_products: [],
     });
-    setShowDetailedSpecs(false);
+    if (typeof setShowDetailedSpecs === 'function') setShowDetailedSpecs(false);
     setDrawerOpen(true);
     setDrawerLoading(true);
 
@@ -1430,7 +1430,11 @@ export default function ProductsPage() {
                 <div className="pt-2 border-t border-amber-200/50">
                   <button
                     type="button"
-                    onClick={() => setShowDetailedSpecs(!showDetailedSpecs)}
+                    onClick={() => {
+                      if (typeof setShowDetailedSpecs === 'function') {
+                        setShowDetailedSpecs((prev) => !prev);
+                      }
+                    }}
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-100/70 hover:bg-amber-100 text-amber-900 text-xs font-bold transition cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
