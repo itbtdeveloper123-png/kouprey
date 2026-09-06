@@ -48,7 +48,7 @@ switch ($action) {
                 LEFT JOIN products p ON p.category_id = c.id AND p.enabled = 1
                 WHERE c.language = ?
                 GROUP BY c.id
-                ORDER BY c.sort_order ASC, c.name ASC
+                ORDER BY c.name ASC
             ");
             $catStmt->execute([$language]);
             $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
