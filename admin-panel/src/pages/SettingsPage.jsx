@@ -57,6 +57,7 @@ const InstagramIcon = ({ size = 16, className = "" }) => (
 import { adminApi } from '../api/adminClient';
 import ImageUpload from '../components/ImageUpload';
 import PolicyRichEditor from '../components/PolicyRichEditor';
+import { formatImageUrl } from '../utils/imageUrl';
 
 // All 15 Categories matching admin/settings.php lines 615-631
 const CATEGORIES_METADATA = [
@@ -217,6 +218,7 @@ export default function SettingsPage() {
 
   // File manager state
   const [fileManagerImages, setFileManagerImages] = useState([]);
+  const [fileManagerFolder, setFileManagerFolder] = useState('products');
   const [loadingImages, setLoadingImages] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [convertingWebp, setConvertingWebp] = useState(false);
@@ -284,10 +286,10 @@ export default function SettingsPage() {
   };
 
   // Load file manager images
-  const loadFileManager = async () => {
+  const loadFileManager = async (folder = fileManagerFolder) => {
     setLoadingImages(true);
     try {
-      const res = await adminApi.getFileManagerImages();
+      const res = await adminApi.getFileManagerImages(folder);
       if (res.success) {
         setFileManagerImages(res.images || []);
       }
@@ -305,9 +307,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (activeTab === 'file_manager') {
-      loadFileManager();
+      loadFileManager(fileManagerFolder);
     }
-  }, [activeTab]);
+  }, [activeTab, fileManagerFolder]);
 
   const switchTab = (tab) => {
     setSearchParams({ tab });
@@ -520,7 +522,7 @@ export default function SettingsPage() {
 
   // File Manager Handlers
   const handleCopyUrl = (url) => {
-    const fullUrl = window.location.origin + url;
+    const fullUrl = formatImageUrl(url);
     navigator.clipboard.writeText(fullUrl).then(() => {
       setCopiedUrl(url);
       showToast('បានចម្លង URL ទៅកាន់ Clipboard រួចរាល់!');
@@ -539,11 +541,11 @@ export default function SettingsPage() {
     if (!confirm(`តើអ្នកប្រាកដថាចង់លុបរូបភាព ${selectedFiles.length} ដែលបានជ្រើសរើសទេ?`)) return;
 
     try {
-      const res = await adminApi.deleteFileManager(selectedFiles);
+      const res = await adminApi.deleteFileManager(selectedFiles, fileManagerFolder);
       if (res.success) {
         showToast(`បានលុបរូបភាព ${res.deleted || selectedFiles.length} ដោយជោគជ័យ!`);
         setSelectedFiles([]);
-        loadFileManager();
+        loadFileManager(fileManagerFolder);
       } else {
         showToast(res.error || 'បរាជ័យក្នុងការលុប', 'error');
       }
@@ -555,10 +557,12 @@ export default function SettingsPage() {
   const handleDeleteSingleFile = async (filename) => {
     if (!confirm(`តើអ្នកប្រាកដថាចង់លុបរូបភាព «${filename}» ទេ?`)) return;
     try {
-      const res = await adminApi.deleteFileManager([filename]);
+      const res = await adminApi.deleteFileManager([filename], fileManagerFolder);
       if (res.success) {
         showToast(`បានលុបរូបភាព «${filename}» រួចរាល់!`);
-        loadFileManager();
+        loadFileManager(fileManagerFolder);
+      } else {
+        showToast(res.error || 'Error deleting file', 'error');
       }
     } catch (e) {
       showToast(e.message || 'Error deleting file', 'error');
@@ -569,10 +573,10 @@ export default function SettingsPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     try {
-      const res = await adminApi.uploadFileManager(files);
+      const res = await adminApi.uploadFileManager(files, fileManagerFolder);
       if (res.success) {
         showToast(`បានបញ្ចូលរូបភាព ${res.uploaded} ជោគជ័យ!`);
-        loadFileManager();
+        loadFileManager(fileManagerFolder);
       }
     } catch (e) {
       showToast(e.message || 'Error uploading files', 'error');
@@ -1831,8 +1835,8 @@ export default function SettingsPage() {
                     <FolderOpen size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-base">Product Images Library</h3>
-                    <p className="text-xs text-gray-500">បណ្ណាល័យរូបភាពផលិតផលក្នុង public/assets/images/products/</p>
+                    <h3 className="font-bold text-gray-900 text-base">Hosting Media Library</h3>
+                    <p className="text-xs text-gray-500">បណ្ណាល័យរូបភាពលើ Hosting Server តាម Folder ផ្សេងៗ</p>
                   </div>
                 </div>
 
@@ -1862,7 +1866,7 @@ export default function SettingsPage() {
                     onClick={() => fileUploadInputRef.current?.click()}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition"
                   >
-                    <UploadCloud size={15} /> Upload New Images
+                    <UploadCloud size={15} /> Upload ទៅ Folder នេះ
                   </button>
                   <input
                     ref={fileUploadInputRef}
@@ -1875,10 +1879,39 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* Folder Selector Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-gray-100">
+                {[
+                  { id: 'products', name: 'Products (assets/images/products)' },
+                  { id: 'banner', name: 'Banners (assets/images/banner)' },
+                  { id: 'banners', name: 'Banners (uploads/banners)' },
+                  { id: 'categories', name: 'Categories (assets/images/categories)' },
+                  { id: 'showcase', name: 'Showcase (uploads/showcase)' },
+                  { id: 'related', name: 'Related (uploads/related)' },
+                  { id: 'uploads', name: 'Uploads Root (uploads/)' },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => {
+                      setFileManagerFolder(f.id);
+                      setSelectedFiles([]);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      fileManagerFolder === f.id
+                        ? 'bg-cyan-600 text-white shadow-xs'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {f.name}
+                  </button>
+                ))}
+              </div>
+
               {/* Multi-select hint */}
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-center gap-2">
                 <Info size={16} className="shrink-0 text-blue-600" />
-                <span>ចុចលើរូបភាពណាមួយដើម្បីជ្រើសរើស (Select) ឬចុចប៊ូតុង Copy URL ដើម្បីចម្លង Link រូបភាព។</span>
+                <span>ចុចលើរូបភាពណាមួយដើម្បីជ្រើសរើស (Select) ឬចុចប៊ូតុង Copy URL ដើម្បីចម្លង Link រូបភាព Hosting។</span>
               </div>
 
               {/* Images Grid */}
@@ -1890,7 +1923,7 @@ export default function SettingsPage() {
               ) : fileManagerImages.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">
                   <FolderOpen size={48} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-sm font-medium">មិនមានរូបភាពផលិតផលឡើយ</p>
+                  <p className="text-sm font-medium">មិនមានរូបភាពក្នុង Folder នេះឡើយ</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1907,10 +1940,13 @@ export default function SettingsPage() {
                         {/* Image Thumbnail Container */}
                         <div className="relative aspect-square bg-gray-50 flex items-center justify-center p-3 overflow-hidden">
                           <img
-                            src={img.url}
+                            src={formatImageUrl(img.url)}
                             alt={img.filename}
                             className="w-full h-full object-contain group-hover:scale-105 transition duration-200"
                             loading="lazy"
+                            onError={(e) => {
+                              e.target.src = 'https://placehold.co/150x150?text=No+Img';
+                            }}
                           />
 
                           {/* Hover Copy Overlay */}

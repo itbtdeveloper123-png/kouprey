@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Package,
+  Tags,
   Plus,
   Search,
   Filter,
@@ -9,51 +10,134 @@ import {
   CheckCircle2,
   XCircle,
   Star,
-  Loader2,
-  X,
-  Sparkles,
   Award,
-  AlertCircle
+  Layers,
+  Settings,
+  Eye,
+  EyeOff,
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Upload,
+  Image as ImageIcon,
+  FolderOpen,
+  Copy,
+  ExternalLink,
+  AlertCircle,
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
-import ImageUpload from '../components/ImageUpload';
+import { formatImageUrl } from '../utils/imageUrl';
+import MediaBrowserModal from '../components/MediaBrowserModal';
 
 export default function ProductsPage() {
+  // Top Tabs: 'products' | 'categories'
+  const [activeTab, setActiveTab] = useState('products');
+
+  // Main Data
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [allProductsForRelated, setAllProductsForRelated] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lang, setLang] = useState('km');
+  const [lang, setLang] = useState('km'); // Display language filter
+
+  // Filters & Pagination
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  
-  // Drawer / Modal for Add / Edit
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
-    id: 0,
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+
+  // Toast notification
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // Media Browser Modal state
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [mediaTargetCallback, setMediaTargetCallback] = useState(null);
+  const [mediaModalTitle, setMediaModalTitle] = useState('ជ្រើសរើសរូបភាពពី Hosting Media');
+
+  const openMediaBrowser = (callback, title = 'ជ្រើសរើសរូបភាពពី Hosting Media') => {
+    setMediaTargetCallback(() => callback);
+    setMediaModalTitle(title);
+    setMediaModalOpen(true);
+  };
+
+  // ──────────────────────────────────────────────
+  // PRODUCT DRAWER (Slide-out Add / Edit)
+  // ──────────────────────────────────────────────
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState('add'); // 'add' | 'edit'
+  const [drawerTab, setDrawerTab] = useState('en'); // 'en' | 'km'
+  const [productForm, setProductForm] = useState({
     base_product_id: 0,
-    name: '',
-    category_id: '',
     price: '',
-    original_price: '',
-    short_description: '',
-    detailed_description: '',
+    category_id: '',
     image: '',
     featured: 0,
     best_seller: 0,
     enabled: 1,
-    sort_order: 0,
-    language: 'km',
+    // EN fields
+    name_en: '',
+    description_en: '',
+    weight_en: '',
+    detailed_description_en: '',
+    ingredients_en: '',
+    origin_en: '',
+    brewing_instructions_en: '',
+    tasting_notes_en: '',
+    // KM fields
+    name_km: '',
+    description_km: '',
+    weight_km: '',
+    detailed_description_km: '',
+    ingredients_km: '',
+    origin_km: '',
+    brewing_instructions_km: '',
+    tasting_notes_km: '',
+    // Shared specs
+    roast_level: '',
+    custom_fields: [], // [{ key, value }]
+    related_products: [], // [{ base_id, name, custom_url, custom_image, custom_image_url }]
   });
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [relatedSearch, setRelatedSearch] = useState('');
+  const [savingProduct, setSavingProduct] = useState(false);
+
+  // ──────────────────────────────────────────────
+  // DETAILED SPECS MODAL (Gear ⚙️ Button)
+  // ──────────────────────────────────────────────
+  const [detailedModalOpen, setDetailedModalOpen] = useState(false);
+  const [detailedModalTab, setDetailedModalTab] = useState('en');
+  const [detailedForm, setDetailedForm] = useState(null);
+  const [savingDetailed, setSavingDetailed] = useState(false);
+
+  // ──────────────────────────────────────────────
+  // CATEGORIES MANAGEMENT MODAL
+  // ──────────────────────────────────────────────
+  const [catModalOpen, setCatModalOpen] = useState(false);
+  const [catModalMode, setCatModalMode] = useState('add');
+  const [catModalTab, setCatModalTab] = useState('en');
+  const [catForm, setCatForm] = useState({
+    base_category_id: 0,
+    id: 0,
+    name_en: '',
+    description_en: '',
+    name_km: '',
+    description_km: '',
+    image: '',
+  });
+  const [savingCategory, setSavingCategory] = useState(false);
+
+  // Delete Confirm Dialog
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
-
+  // ──────────────────────────────────────────────
+  // LOAD DATA
+  // ──────────────────────────────────────────────
   const loadData = async () => {
     setLoading(true);
     try {
@@ -61,10 +145,14 @@ export default function ProductsPage() {
         adminApi.getProducts({ lang, search, category_id: selectedCategory }),
         adminApi.getCategories(lang),
       ]);
-      if (prodsRes.success) setProducts(prodsRes.products || []);
-      if (catsRes.success) setCategories(catsRes.categories || []);
+      if (prodsRes.success) {
+        setProducts(prodsRes.products || []);
+      }
+      if (catsRes.success) {
+        setCategories(catsRes.categories || []);
+      }
     } catch (err) {
-      showToast(err.message || 'Failed to load products', 'error');
+      showToast(err.message || 'បរាជ័យក្នុងការទាញយកទិន្នន័យ', 'error');
     } finally {
       setLoading(false);
     }
@@ -74,69 +162,175 @@ export default function ProductsPage() {
     loadData();
   }, [lang, selectedCategory]);
 
-  const handleSearch = (e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
     loadData();
   };
 
-  const openAddModal = () => {
-    setEditingProduct(null);
-    setFormData({
-      id: 0,
+  // ──────────────────────────────────────────────
+  // OPEN ADD PRODUCT DRAWER
+  // ──────────────────────────────────────────────
+  const openAddProduct = () => {
+    setDrawerMode('add');
+    setDrawerTab('en');
+    setProductForm({
       base_product_id: 0,
-      name: '',
-      category_id: categories[0]?.id || '',
       price: '',
-      original_price: '',
-      short_description: '',
-      detailed_description: '',
+      category_id: categories[0]?.id || '',
       image: '',
       featured: 0,
       best_seller: 0,
       enabled: 1,
-      sort_order: 0,
-      language: lang,
+      name_en: '',
+      description_en: '',
+      weight_en: '',
+      detailed_description_en: '',
+      ingredients_en: '',
+      origin_en: '',
+      brewing_instructions_en: '',
+      tasting_notes_en: '',
+      name_km: '',
+      description_km: '',
+      weight_km: '',
+      detailed_description_km: '',
+      ingredients_km: '',
+      origin_km: '',
+      brewing_instructions_km: '',
+      tasting_notes_km: '',
+      roast_level: '',
+      custom_fields: [{ key: 'show_in_collection', value: 'true' }],
+      related_products: [],
     });
-    setModalOpen(true);
+    setDrawerOpen(true);
   };
 
-  const openEditModal = (product) => {
-    setEditingProduct(product);
-    setFormData({
-      id: product.id,
-      base_product_id: product.base_product_id || 0,
-      name: product.name || '',
-      category_id: product.category_id || '',
-      price: product.price || '',
-      original_price: product.original_price || '',
-      short_description: product.short_description || '',
-      detailed_description: product.detailed_description || '',
-      image: product.image || '',
-      featured: Number(product.featured) || 0,
-      best_seller: Number(product.best_seller) || 0,
-      enabled: Number(product.enabled) !== 0 ? 1 : 0,
-      sort_order: product.sort_order || 0,
-      language: product.language || lang,
-    });
-    setModalOpen(true);
+  // ──────────────────────────────────────────────
+  // OPEN EDIT PRODUCT DRAWER
+  // ──────────────────────────────────────────────
+  const openEditProduct = async (product) => {
+    setDrawerMode('edit');
+    setDrawerTab('en');
+    try {
+      const baseId = product.base_product_id || product.id;
+      const res = await adminApi.getProductData(baseId);
+      if (res.success) {
+        const en = res.en || {};
+        const km = res.km || {};
+
+        // Parse custom fields
+        let cfList = [];
+        try {
+          const cfObj = typeof en.custom_fields === 'string' ? JSON.parse(en.custom_fields) : (en.custom_fields || {});
+          cfList = Object.entries(cfObj).map(([k, v]) => ({ key: k, value: String(v) }));
+        } catch {
+          cfList = [];
+        }
+
+        // Parse related
+        const relList = (res.related || []).map((r) => ({
+          base_id: r.related_product_id || `custom_${r.id}`,
+          name: r.product_name || r.custom_name || '',
+          custom_url: r.custom_url || '',
+          custom_image: r.custom_image || '',
+          custom_image_url: r.custom_image_url || '',
+        }));
+
+        setProductForm({
+          base_product_id: baseId,
+          price: en.price || km.price || '',
+          category_id: en.category_id || km.category_id || '',
+          image: en.image || km.image || '',
+          featured: Number(en.featured ?? km.featured ?? 0),
+          best_seller: Number(en.best_seller ?? km.best_seller ?? 0),
+          enabled: Number(en.enabled ?? km.enabled ?? 1),
+          // EN
+          name_en: en.name || '',
+          description_en: en.description || '',
+          weight_en: en.weight || '',
+          detailed_description_en: en.detailed_description || '',
+          ingredients_en: en.ingredients || '',
+          origin_en: en.origin || '',
+          brewing_instructions_en: en.brewing_instructions || '',
+          tasting_notes_en: en.tasting_notes || '',
+          // KM
+          name_km: km.name || '',
+          description_km: km.description || '',
+          weight_km: km.weight || '',
+          detailed_description_km: km.detailed_description || '',
+          ingredients_km: km.ingredients || '',
+          origin_km: km.origin || '',
+          brewing_instructions_km: km.brewing_instructions || '',
+          tasting_notes_km: km.tasting_notes || '',
+          roast_level: en.roast_level || km.roast_level || '',
+          custom_fields: cfList,
+          related_products: relList,
+        });
+        setDrawerOpen(true);
+      }
+    } catch (err) {
+      showToast('បរាជ័យក្នុងការទាញយកទិន្នន័យផលិតផល: ' + err.message, 'error');
+    }
   };
 
-  const handleSave = async (e) => {
+  // ──────────────────────────────────────────────
+  // SAVE PRODUCT (Bilingual Full Save)
+  // ──────────────────────────────────────────────
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      showToast('សូមបញ្ចូលឈ្មោះផលិតផល (Name required)', 'error');
+    if (!productForm.name_en.trim() && !productForm.name_km.trim()) {
+      showToast('សូមបញ្ចូលឈ្មោះផលិតផល (Product name required)', 'error');
       return;
     }
-    setSaving(true);
+    if (!productForm.price || parseFloat(productForm.price) <= 0) {
+      showToast('សូមបញ្ចូលតម្លៃផលិតផលឱ្យបានត្រឹមត្រូវ (Price must be > 0)', 'error');
+      return;
+    }
+
+    setSavingProduct(true);
     try {
-      const res = await adminApi.saveProduct({
-        ...formData,
-        price: parseFloat(formData.price) || 0,
-        original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+      // Reassemble custom fields into object
+      const cfObj = {};
+      productForm.custom_fields.forEach(({ key, value }) => {
+        if (key && key.trim()) {
+          cfObj[key.trim()] = value === 'true' ? true : value === 'false' ? false : value;
+        }
       });
+
+      const payload = {
+        base_product_id: productForm.base_product_id,
+        price: parseFloat(productForm.price),
+        category_id: productForm.category_id || null,
+        image: productForm.image,
+        featured: productForm.featured ? 1 : 0,
+        best_seller: productForm.best_seller ? 1 : 0,
+        enabled: productForm.enabled ? 1 : 0,
+        roast_level: productForm.roast_level,
+        custom_fields: cfObj,
+        // EN
+        name_en: productForm.name_en,
+        description_en: productForm.description_en,
+        weight_en: productForm.weight_en,
+        detailed_description_en: productForm.detailed_description_en,
+        ingredients_en: productForm.ingredients_en,
+        origin_en: productForm.origin_en,
+        brewing_instructions_en: productForm.brewing_instructions_en,
+        tasting_notes_en: productForm.tasting_notes_en,
+        // KM
+        name_km: productForm.name_km,
+        description_km: productForm.description_km,
+        weight_km: productForm.weight_km,
+        detailed_description_km: productForm.detailed_description_km,
+        ingredients_km: productForm.ingredients_km,
+        origin_km: productForm.origin_km,
+        brewing_instructions_km: productForm.brewing_instructions_km,
+        tasting_notes_km: productForm.tasting_notes_km,
+        related_products: productForm.related_products,
+      };
+
+      const res = await adminApi.saveProductFull(payload);
       if (res.success) {
-        showToast(editingProduct ? 'កែប្រែផលិតផលជោគជ័យ!' : 'បានបន្ថែមផលិតផលថ្មីជោគជ័យ!');
-        setModalOpen(false);
+        showToast(drawerMode === 'add' ? 'បានបន្ថែមផលិតផលថ្មីជោគជ័យ!' : 'បានកែប្រែផលិតផលជោគជ័យ!');
+        setDrawerOpen(false);
         loadData();
       } else {
         showToast(res.error || 'បរាជ័យក្នុងការរក្សាទុក', 'error');
@@ -144,279 +338,941 @@ export default function ProductsPage() {
     } catch (err) {
       showToast(err.message || 'Error saving product', 'error');
     } finally {
-      setSaving(false);
+      setSavingProduct(false);
     }
   };
 
-  const handleDelete = async (product) => {
+  // ──────────────────────────────────────────────
+  // DETAILED SPECS MODAL (Gear button)
+  // ──────────────────────────────────────────────
+  const openDetailedModal = async (product) => {
+    try {
+      const baseId = product.base_product_id || product.id;
+      const res = await adminApi.getProductData(baseId);
+      if (res.success) {
+        const en = res.en || {};
+        const km = res.km || {};
+
+        let cfList = [];
+        try {
+          const cfObj = typeof en.custom_fields === 'string' ? JSON.parse(en.custom_fields) : (en.custom_fields || {});
+          cfList = Object.entries(cfObj).map(([k, v]) => ({ key: k, value: String(v) }));
+        } catch {
+          cfList = [];
+        }
+
+        setDetailedForm({
+          base_product_id: baseId,
+          price: en.price || km.price,
+          category_id: en.category_id || km.category_id,
+          image: en.image || km.image,
+          featured: en.featured || km.featured || 0,
+          best_seller: en.best_seller || km.best_seller || 0,
+          enabled: en.enabled || km.enabled || 1,
+          name_en: en.name || '',
+          name_km: km.name || '',
+          description_en: en.description || '',
+          description_km: km.description || '',
+          // Detailed specs
+          detailed_description_en: en.detailed_description || '',
+          ingredients_en: en.ingredients || '',
+          origin_en: en.origin || '',
+          brewing_instructions_en: en.brewing_instructions || '',
+          tasting_notes_en: en.tasting_notes || '',
+          weight_en: en.weight || '',
+          detailed_description_km: km.detailed_description || '',
+          ingredients_km: km.ingredients || '',
+          origin_km: km.origin || '',
+          brewing_instructions_km: km.brewing_instructions || '',
+          tasting_notes_km: km.tasting_notes || '',
+          weight_km: km.weight || '',
+          roast_level: en.roast_level || km.roast_level || '',
+          custom_fields: cfList,
+        });
+        setDetailedModalTab('en');
+        setDetailedModalOpen(true);
+      }
+    } catch (err) {
+      showToast('បរាជ័យក្នុងការទាញយកព័ត៌មានលម្អិត: ' + err.message, 'error');
+    }
+  };
+
+  const handleSaveDetailed = async (e) => {
+    e.preventDefault();
+    if (!detailedForm) return;
+    setSavingDetailed(true);
+    try {
+      const cfObj = {};
+      detailedForm.custom_fields.forEach(({ key, value }) => {
+        if (key && key.trim()) cfObj[key.trim()] = value === 'true' ? true : value === 'false' ? false : value;
+      });
+
+      const payload = {
+        ...detailedForm,
+        custom_fields: cfObj,
+      };
+
+      const res = await adminApi.saveProductFull(payload);
+      if (res.success) {
+        showToast('បានរក្សាទុកព័ត៌មានលម្អិតជោគជ័យ!');
+        setDetailedModalOpen(false);
+        loadData();
+      } else {
+        showToast(res.error || 'បរាជ័យក្នុងការរក្សាទុក', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Error saving specs', 'error');
+    } finally {
+      setSavingDetailed(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // STATUS TOGGLES (⭐ Featured, 🏆 Best Seller, 📦 Collection, 👁️ Enabled)
+  // ──────────────────────────────────────────────
+  const handleToggleStatus = async (product, field) => {
+    try {
+      const baseId = product.base_product_id || product.id;
+      const res = await adminApi.toggleProductStatus(product.id, baseId, field);
+      if (res.success) {
+        setProducts((prev) =>
+          prev.map((p) => {
+            if (p.base_product_id === baseId || p.id === product.id) {
+              if (field === 'featured') return { ...p, featured: res.value };
+              if (field === 'best_seller') return { ...p, best_seller: res.value };
+              if (field === 'enabled') return { ...p, enabled: res.value };
+              if (field === 'collection') return { ...p, show_in_collection: res.value };
+            }
+            return p;
+          })
+        );
+        showToast('បានផ្លាស់ប្តូរស្ថានភាពជោគជ័យ!');
+      }
+    } catch (err) {
+      showToast(err.message || 'បរាជ័យក្នុងការផ្លាស់ប្តូរស្ថានភាព', 'error');
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // DELETE PRODUCT
+  // ──────────────────────────────────────────────
+  const handleDeleteProduct = async (product) => {
     try {
       const res = await adminApi.deleteProduct(product.id, product.base_product_id);
       if (res.success) {
         showToast('បានលុបផលិតផលជោគជ័យ!');
         setDeleteConfirm(null);
         loadData();
-      } else {
-        showToast(res.error || 'លុបបរាជ័យ', 'error');
       }
     } catch (err) {
-      showToast(err.message || 'Error deleting product', 'error');
+      showToast(err.message || 'បរាជ័យក្នុងការលុប', 'error');
     }
   };
 
-  const formatImageUrl = (url) => {
-    if (!url) return '/placeholder-coffee.png';
-    if (url.startsWith('http')) return url;
-    return `https://www.kouprey.asia${url.startsWith('/') ? '' : '/'}${url}`;
+  // ──────────────────────────────────────────────
+  // CATEGORIES MANAGEMENT
+  // ──────────────────────────────────────────────
+  const openAddCategory = () => {
+    setCatModalMode('add');
+    setCatModalTab('en');
+    setCatForm({
+      base_category_id: 0,
+      id: 0,
+      name_en: '',
+      description_en: '',
+      name_km: '',
+      description_km: '',
+      image: '',
+    });
+    setCatModalOpen(true);
   };
 
+  const openEditCategory = async (cat) => {
+    setCatModalMode('edit');
+    setCatModalTab('en');
+    try {
+      const res = await adminApi.getCategoryData(cat.base_category_id, cat.id);
+      if (res.success) {
+        const en = res.en || {};
+        const km = res.km || {};
+        setCatForm({
+          base_category_id: cat.base_category_id || cat.id,
+          id: cat.id,
+          name_en: en.name || '',
+          description_en: en.description || '',
+          name_km: km.name || '',
+          description_km: km.description || '',
+          image: en.image || km.image || '',
+        });
+        setCatModalOpen(true);
+      }
+    } catch (err) {
+      showToast('បរាជ័យក្នុងការទាញយកទិន្នន័យប្រភេទ: ' + err.message, 'error');
+    }
+  };
+
+  const handleSaveCategory = async (e) => {
+    e.preventDefault();
+    if (!catForm.name_en.trim() && !catForm.name_km.trim()) {
+      showToast('សូមបញ្ចូលឈ្មោះប្រភេទ (Category name required)', 'error');
+      return;
+    }
+    setSavingCategory(true);
+    try {
+      const res = await adminApi.saveCategoryFull(catForm);
+      if (res.success) {
+        showToast(catModalMode === 'add' ? 'បានបន្ថែមប្រភេទថ្មីជោគជ័យ!' : 'បានកែប្រែប្រភេទជោគជ័យ!');
+        setCatModalOpen(false);
+        loadData();
+      }
+    } catch (err) {
+      showToast(err.message || 'Error saving category', 'error');
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async (cat) => {
+    try {
+      const res = await adminApi.deleteCategory(cat.id, cat.base_category_id);
+      if (res.success) {
+        showToast('បានលុបប្រភេទផលិតផលជោគជ័យ!');
+        setDeleteConfirm(null);
+        loadData();
+      }
+    } catch (err) {
+      showToast(err.message || 'បរាជ័យក្នុងការលុប', 'error');
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // PAGINATION COMPUTATION
+  // ──────────────────────────────────────────────
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * perPage;
+    return products.slice(start, start + perPage);
+  }, [products, currentPage, perPage]);
+
+  const totalPages = Math.ceil(products.length / perPage) || 1;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-sm font-medium animate-fade-in ${
-            toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold border transition-all animate-bounce ${
+            toast.type === 'error'
+              ? 'bg-red-500 text-white border-red-400'
+              : 'bg-emerald-600 text-white border-emerald-500'
           }`}
         >
-          {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+          {toast.type === 'error' ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs">
+      {/* Main Header with Top Tab Switcher */}
+      <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">កាតាឡុកផលិតផល (Products Catalog)</h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            ចំនួនផលិតផលសរុប: <span className="font-semibold text-emerald-700">{products.length}</span>
+          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2.5">
+            <Package className="text-amber-500" size={28} />
+            <span>ការគ្រប់គ្រងផលិតផល (Product Management)</span>
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            គ្រប់គ្រងកាតាឡុកទំនិញ ប្រភេទ និងរូបភាព Hosting Media ទាំងភាសាខ្មែរ និងអង់គ្លេស
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Language toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs font-semibold">
-            <button
-              onClick={() => setLang('km')}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                lang === 'km' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'
+        {/* Top Tab Switcher (Products vs Categories) */}
+        <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-xl border border-gray-200">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'products'
+                ? 'bg-amber-600 text-white shadow-sm shadow-amber-600/30'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/60'
+            }`}
+          >
+            <Package size={16} />
+            <span>ផលិតផល (Products)</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'products' ? 'bg-amber-700 text-white' : 'bg-gray-200 text-gray-700'
               }`}
             >
-              ភាសាខ្មែរ (KM)
-            </button>
-            <button
-              onClick={() => setLang('en')}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                lang === 'en' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              English (EN)
-            </button>
-          </div>
+              {products.length}
+            </span>
+          </button>
 
           <button
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
+            onClick={() => setActiveTab('categories')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'categories'
+                ? 'bg-amber-600 text-white shadow-sm shadow-amber-600/30'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/60'
+            }`}
           >
-            <Plus size={16} />
-            បន្ថែមផលិតផល (Add Product)
+            <Tags size={16} />
+            <span>ប្រភេទ (Categories)</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'categories' ? 'bg-amber-700 text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              {categories.length}
+            </span>
           </button>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
-        <form onSubmit={handleSearch} className="w-full md:w-96 relative">
-          <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ស្វែងរកតាមឈ្មោះផលិតផល..."
-            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </form>
+      {/* ────────────────────────────────────────────── */}
+      {/* TAB 1: PRODUCTS TABLE                          */}
+      {/* ────────────────────────────────────────────── */}
+      {activeTab === 'products' && (
+        <div className="space-y-4">
+          {/* Action Bar: Filter, Search, Language, Add Product */}
+          <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col lg:flex-row gap-3 items-center justify-between">
+            {/* Search Form */}
+            <form onSubmit={handleSearchSubmit} className="w-full lg:w-80 relative">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="ស្វែងរកតាមឈ្មោះផលិតផល..."
+                className="w-full pl-9 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+              />
+            </form>
 
-        <div className="w-full md:w-auto flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-            <Filter size={15} />
-            <span>ប្រភេទ:</span>
+            {/* Category Filter */}
+            <div className="w-full lg:w-auto flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
+                <Filter size={14} />
+                <span>ប្រភេទ:</span>
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              >
+                <option value="">ទាំងអស់ (All Categories)</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Language display switcher */}
+              <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setLang('km')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    lang === 'km' ? 'bg-white text-amber-700 shadow-xs' : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  🇰🇭 KM
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLang('en')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    lang === 'en' ? 'bg-white text-amber-700 shadow-xs' : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  🇬🇧 EN
+                </button>
+              </div>
+
+              {/* Add New Product Button */}
+              <button
+                type="button"
+                onClick={openAddProduct}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm shadow-amber-500/20 transition-all ml-auto cursor-pointer"
+              >
+                <Plus size={16} />
+                <span>បន្ថែមផលិតផលថ្មី</span>
+              </button>
+            </div>
           </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs sm:text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">ទាំងអស់ (All Categories)</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+
+          {/* Table Container */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-gray-50/80 border-b border-gray-200/80 text-gray-500 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3.5 px-3 w-10 text-center">
+                      <GripVertical size={14} className="mx-auto text-gray-400" />
+                    </th>
+                    <th className="py-3.5 px-3 w-14">ID</th>
+                    <th className="py-3.5 px-3 w-20">រូបភាព</th>
+                    <th className="py-3.5 px-4 min-w-[180px]">ឈ្មោះផលិតផល</th>
+                    <th className="py-3.5 px-4 max-w-xs">ការពិពណ៌នា</th>
+                    <th className="py-3.5 px-3">ប្រភេទ</th>
+                    <th className="py-3.5 px-3">តម្លៃ ($)</th>
+                    <th className="py-3.5 px-3 text-center">Featured</th>
+                    <th className="py-3.5 px-3 text-center">Best Seller</th>
+                    <th className="py-3.5 px-3 text-center">ស្ថានភាព</th>
+                    <th className="py-3.5 px-4 text-center">សកម្មភាព (Actions)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-gray-700">
+                  {loading ? (
+                    <tr>
+                      <td colSpan="11" className="py-12 text-center text-gray-400">
+                        <div className="w-7 h-7 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                        <p className="text-xs">កំពុងផ្ទុកទិន្នន័យផលិតផល...</p>
+                      </td>
+                    </tr>
+                  ) : paginatedProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="py-12 text-center text-gray-400">
+                        <Package size={40} className="mx-auto mb-2 text-gray-300" />
+                        <p className="font-semibold text-gray-600">មិនមានផលិតផលនៅឡើយទេ</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">ចុច "បន្ថែមផលិតផលថ្មី" ដើម្បីបង្កើតផលិតផលដំបូងរបស់អ្នក</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedProducts.map((p) => {
+                      const imgUrl = formatImageUrl(p.image, 'products');
+
+                      return (
+                        <tr key={p.id} className="hover:bg-amber-50/20 transition-colors group">
+                          {/* Drag handle */}
+                          <td className="py-3 px-3 text-center text-gray-300 group-hover:text-gray-400 cursor-grab">
+                            <GripVertical size={14} className="mx-auto" />
+                          </td>
+
+                          {/* ID */}
+                          <td className="py-3 px-3 font-mono font-bold text-gray-500">#{p.id}</td>
+
+                          {/* Thumbnail Image with hover zoom */}
+                          <td className="py-3 px-3">
+                            <div className="w-12 h-12 rounded-xl border border-gray-200 bg-gray-50 p-1 flex items-center justify-center overflow-hidden relative shadow-xs">
+                              <img
+                                src={imgUrl}
+                                alt={p.name}
+                                loading="lazy"
+                                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                                onError={(e) => {
+                                  e.target.src = 'https://placehold.co/100x100?text=No+Img';
+                                }}
+                              />
+                            </div>
+                          </td>
+
+                          {/* Name (Bilingual preview) */}
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-gray-900 text-sm">
+                              {p.name || p.name_km || p.name_en || 'គ្មានឈ្មោះ'}
+                            </div>
+                            <div className="text-[11px] text-gray-400 flex items-center gap-1.5 mt-0.5">
+                              <span className="text-gray-500 font-medium">EN:</span>
+                              <span className="truncate max-w-[140px]">{p.name_en || '-'}</span>
+                              <span>•</span>
+                              <span className="text-gray-500 font-medium">KM:</span>
+                              <span className="truncate max-w-[140px]">{p.name_km || '-'}</span>
+                            </div>
+                          </td>
+
+                          {/* Description */}
+                          <td className="py-3 px-4 max-w-xs truncate text-gray-500" title={p.description}>
+                            {p.description || '-'}
+                          </td>
+
+                          {/* Category Badge */}
+                          <td className="py-3 px-3">
+                            {p.category_name ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                {p.category_name}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 text-[11px]">គ្មានប្រភេទ</span>
+                            )}
+                          </td>
+
+                          {/* Price */}
+                          <td className="py-3 px-3 font-bold text-emerald-600 text-sm">
+                            ${parseFloat(p.price || 0).toFixed(2)}
+                          </td>
+
+                          {/* Featured Badge */}
+                          <td className="py-3 px-3 text-center">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                Number(p.featured) === 1
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              <Star size={11} className={Number(p.featured) === 1 ? 'fill-amber-500 text-amber-500' : ''} />
+                              {Number(p.featured) === 1 ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+
+                          {/* Best Seller Badge */}
+                          <td className="py-3 px-3 text-center">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                Number(p.best_seller) === 1
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              <Award size={11} className={Number(p.best_seller) === 1 ? 'fill-emerald-500 text-emerald-500' : ''} />
+                              {Number(p.best_seller) === 1 ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+
+                          {/* Enabled Badge */}
+                          <td className="py-3 px-3 text-center">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                Number(p.enabled) !== 0
+                                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                  : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              <Eye size={11} />
+                              {Number(p.enabled) !== 0 ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+
+                          {/* Actions matching admin/products.php:
+                              ⭐ Toggle Featured
+                              🏆 Toggle Best Seller
+                              📦 Toggle Collection visibility
+                              ⚙️ Detailed Product Specs modal
+                              ✏️ Edit Product Drawer
+                              👁️ Toggle Enabled
+                              🗑️ Delete Product
+                          */}
+                          <td className="py-3 px-4 text-center">
+                            <div className="inline-flex items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-200/80 shadow-2xs">
+                              {/* Toggle Featured */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(p, 'featured')}
+                                title={Number(p.featured) === 1 ? 'ដកចេញពី Featured' : 'ដាក់ជា Featured'}
+                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                                  Number(p.featured) === 1
+                                    ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+                                    : 'text-gray-400 hover:text-amber-600 hover:bg-gray-100'
+                                }`}
+                              >
+                                <Star size={13} className={Number(p.featured) === 1 ? 'fill-amber-500' : ''} />
+                              </button>
+
+                              {/* Toggle Best Seller */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(p, 'best_seller')}
+                                title={Number(p.best_seller) === 1 ? 'ដកចេញពី Best Seller' : 'ដាក់ជា Best Seller'}
+                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                                  Number(p.best_seller) === 1
+                                    ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
+                                    : 'text-gray-400 hover:text-emerald-600 hover:bg-gray-100'
+                                }`}
+                              >
+                                <Award size={13} className={Number(p.best_seller) === 1 ? 'fill-emerald-500' : ''} />
+                              </button>
+
+                              {/* Toggle Collection */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(p, 'collection')}
+                                title={p.show_in_collection ? 'ដកចេញពី Collection' : 'បង្ហាញក្នុង Collection (Syrup/Powder)'}
+                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                                  p.show_in_collection
+                                    ? 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                                    : 'text-gray-400 hover:text-purple-600 hover:bg-gray-100'
+                                }`}
+                              >
+                                <Layers size={13} />
+                              </button>
+
+                              {/* Detailed Specs Modal (Gear button) */}
+                              <button
+                                type="button"
+                                onClick={() => openDetailedModal(p)}
+                                title="កែប្រែព័ត៌មានលម្អិត (Detailed Product Specs)"
+                                className="w-7 h-7 flex items-center justify-center rounded-lg text-cyan-600 hover:bg-cyan-50 transition-colors"
+                              >
+                                <Settings size={13} />
+                              </button>
+
+                              {/* Edit Drawer */}
+                              <button
+                                type="button"
+                                onClick={() => openEditProduct(p)}
+                                title="កែប្រែផលិតផល (Edit Product)"
+                                className="w-7 h-7 flex items-center justify-center rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+
+                              {/* Toggle Enabled */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(p, 'enabled')}
+                                title={Number(p.enabled) !== 0 ? 'បិទដំណើរការ (Disable)' : 'បើកដំណើរការ (Enable)'}
+                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                                  Number(p.enabled) !== 0
+                                    ? 'text-gray-500 hover:text-gray-800'
+                                    : 'bg-red-50 text-red-500 hover:bg-red-100'
+                                }`}
+                              >
+                                {Number(p.enabled) !== 0 ? <Eye size={13} /> : <EyeOff size={13} />}
+                              </button>
+
+                              {/* Delete Product */}
+                              <button
+                                type="button"
+                                onClick={() => setDeleteConfirm({ type: 'product', item: p })}
+                                title="លុបផលិតផល"
+                                className="w-7 h-7 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination & Per Page Selector */}
+            <div className="px-6 py-3.5 bg-gray-50/80 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+              <div className="flex items-center gap-3">
+                <span>
+                  បង្ហាញ {products.length > 0 ? (currentPage - 1) * perPage + 1 : 0} ដល់{' '}
+                  {Math.min(currentPage * perPage, products.length)} នៃសរុប {products.length} ផលិតផល
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span>បង្ហាញ:</span>
+                  <select
+                    value={perPage}
+                    onChange={(e) => {
+                      setPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-gray-700"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                        currentPage === page
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'bg-white border border-gray-200 hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Products Table */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden shadow-xs">
-        {loading ? (
-          <div className="p-12 text-center text-gray-500 flex flex-col items-center gap-2">
-            <Loader2 className="animate-spin text-emerald-600" size={32} />
-            <span className="text-xs font-medium">កំពុងទាញយកបញ្ជីផលិតផល...</span>
+      {/* ────────────────────────────────────────────── */}
+      {/* TAB 2: CATEGORIES TABLE                        */}
+      {/* ────────────────────────────────────────────── */}
+      {activeTab === 'categories' && (
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Tags className="text-emerald-600" size={18} />
+                <span>គ្រប់គ្រងប្រភេទផលិតផល (Manage Categories)</span>
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">បង្កើត និងកែប្រែប្រភេទផលិតផលសម្រាប់កាតាឡុកទំនិញ</p>
+            </div>
+            <button
+              onClick={openAddCategory}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+            >
+              <Plus size={16} />
+              <span>បន្ថែមប្រភេទថ្មី (Add Category)</span>
+            </button>
           </div>
-        ) : products.length === 0 ? (
-          <div className="p-12 text-center text-gray-400">
-            <Package size={40} className="mx-auto mb-2 opacity-40" />
-            <p className="text-sm font-medium">មិនមានផលិតផលនៅឡើយទេ</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr className="bg-gray-50/80 text-gray-500 border-b border-gray-200 uppercase tracking-wider text-[11px] font-semibold">
-                  <th className="py-3.5 px-4">រូបភាព</th>
-                  <th className="py-3.5 px-4">ឈ្មោះផលិតផល</th>
-                  <th className="py-3.5 px-4">ប្រភេទ</th>
-                  <th className="py-3.5 px-4">តម្លៃ</th>
-                  <th className="py-3.5 px-4">ស្លាក (Badges)</th>
-                  <th className="py-3.5 px-4">ស្ថានភាព</th>
-                  <th className="py-3.5 px-4 text-right">សកម្មភាព</th>
+
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-gray-50/80 border-b border-gray-200/80 text-gray-500 font-bold uppercase tracking-wider">
+                <tr>
+                  <th className="py-3.5 px-4 w-16">ID</th>
+                  <th className="py-3.5 px-4">ឈ្មោះប្រភេទ</th>
+                  <th className="py-3.5 px-4">ការពិពណ៌នា</th>
+                  <th className="py-3.5 px-4 w-20">រូបភាព</th>
+                  <th className="py-3.5 px-4 text-center">ចំនួនផលិតផល</th>
+                  <th className="py-3.5 px-4 text-center w-28">សកម្មភាព</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {products.map((p) => (
-                  <tr key={p.id} className="hover:bg-emerald-50/20 transition">
-                    <td className="py-3 px-4">
-                      <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center">
-                        <img
-                          src={formatImageUrl(p.image)}
-                          alt={p.name}
-                          className="w-full h-full object-contain p-1"
-                          onError={(e) => {
-                            e.target.src = 'https://placehold.co/100x100?text=No+Image';
-                          }}
-                        />
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4 font-semibold text-gray-900 max-w-[220px]">
-                      <div className="truncate">{p.name}</div>
-                      <div className="text-[11px] text-gray-400 font-normal truncate mt-0.5">
-                        {p.short_description || 'No description'}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-600">
-                      <span className="px-2.5 py-1 bg-gray-100 rounded-lg text-xs font-medium text-gray-700">
-                        {p.category_name || 'គ្មានប្រភេទ'}
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-4 font-bold text-emerald-800">
-                      ${Number(p.price).toFixed(2)}
-                      {p.original_price && (
-                        <span className="ml-1.5 text-[11px] line-through text-gray-400 font-normal">
-                          ${Number(p.original_price).toFixed(2)}
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-1">
-                        {Number(p.featured) === 1 && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">
-                            <Sparkles size={10} />
-                            Featured
-                          </span>
-                        )}
-                        {Number(p.best_seller) === 1 && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800">
-                            <Award size={10} />
-                            Best Seller
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      {Number(p.enabled) !== 0 ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-700 font-medium text-xs">
-                          <CheckCircle2 size={14} /> បង្ហាញ
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-gray-400 font-medium text-xs">
-                          <XCircle size={14} /> លាក់
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-4 text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <button
-                          onClick={() => openEditModal(p)}
-                          className="p-1.5 text-gray-600 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 transition cursor-pointer"
-                          title="កែសម្រួល"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(p)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                          title="លុប"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+              <tbody className="divide-y divide-gray-100 text-gray-700">
+                {categories.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-12 text-center text-gray-400">
+                      <Tags size={36} className="mx-auto mb-2 text-gray-300" />
+                      <p className="font-semibold text-gray-600">គ្មានប្រភេទផលិតផលនៅឡើយទេ</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  categories.map((cat) => (
+                    <tr key={cat.id} className="hover:bg-amber-50/20 transition-colors">
+                      <td className="py-3 px-4 font-mono font-bold text-gray-500">#{cat.id}</td>
+                      <td className="py-3 px-4 font-bold text-gray-900 text-sm">{cat.name}</td>
+                      <td className="py-3 px-4 text-gray-500 max-w-sm truncate">{cat.description || '-'}</td>
+                      <td className="py-3 px-4">
+                        <div className="w-10 h-10 rounded-lg border border-gray-200 bg-gray-50 p-1 flex items-center justify-center overflow-hidden shadow-xs">
+                          <img
+                            src={formatImageUrl(cat.image, 'categories')}
+                            alt={cat.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.target.src = 'https://placehold.co/100x100?text=No+Img';
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-100 text-blue-800">
+                          {cat.product_count || 0} ផលិតផល
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            onClick={() => openEditCategory(cat)}
+                            title="កែប្រែ"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm({ type: 'category', item: cat })}
+                            title="លុប"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Add / Edit Modal Drawer */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative animate-fade-in my-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900">
-                {editingProduct ? 'កែប្រែផលិតផល (Edit Product)' : 'បន្ថែមផលិតផលថ្មី (Add Product)'}
-              </h3>
+      {/* ────────────────────────────────────────────── */}
+      {/* SLIDE-OUT PRODUCT DRAWER (Add / Edit)          */}
+      {/* ────────────────────────────────────────────── */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white w-full max-w-2xl h-full shadow-2xl flex flex-col overflow-hidden animate-slide-left border-l border-gray-200">
+            {/* Drawer Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-amber-600/5 to-transparent">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+                  <Package size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg">
+                    {drawerMode === 'add' ? 'បន្ថែមផលិតផលថ្មី (Add New Product)' : 'កែប្រែផលិតផល (Edit Product)'}
+                  </h3>
+                  <p className="text-xs text-gray-500">គាំទ្រការកែប្រែទាំងភាសាអង់គ្លេស និងខ្មែរព្រមគ្នា</p>
+                </div>
+              </div>
               <button
-                onClick={() => setModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+                onClick={() => setDrawerOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="mt-5 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    ឈ្មោះផលិតផល (Product Name) *
+            {/* Language Tabs Bar inside Drawer */}
+            <div className="bg-gray-50 px-6 py-2.5 border-b border-gray-200/80 flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">ភាសាព័ត៌មាន (Content Language)</span>
+              <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setDrawerTab('en')}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    drawerTab === 'en'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span>🇬🇧</span> English (EN)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDrawerTab('km')}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    drawerTab === 'km'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span>🇰🇭</span> ភាសាខ្មែរ (KM)
+                </button>
+              </div>
+            </div>
+
+            {/* Form Content */}
+            <form onSubmit={handleSaveProduct} id="productDrawerForm" className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Bilingual Inputs Pane */}
+              <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-200/60 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                  <Sparkles size={14} className="text-amber-600" />
+                  <span>ព័ត៌មានតាមភាសា: {drawerTab === 'en' ? 'English Content' : 'ខ្លឹមសារភាសាខ្មែរ'}</span>
+                </div>
+
+                {drawerTab === 'en' ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">
+                        Product Name (EN) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={productForm.name_en}
+                        onChange={(e) => setProductForm({ ...productForm, name_en: e.target.value })}
+                        placeholder="e.g. KouPrey Signature Blend"
+                        required
+                        className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">
+                        Short Description (EN)
+                      </label>
+                      <textarea
+                        value={productForm.description_en}
+                        onChange={(e) => setProductForm({ ...productForm, description_en: e.target.value })}
+                        rows={3}
+                        placeholder="Brief summary for product card..."
+                        className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Weight / Size (EN)</label>
+                      <input
+                        type="text"
+                        value={productForm.weight_en}
+                        onChange={(e) => setProductForm({ ...productForm, weight_en: e.target.value })}
+                        placeholder="e.g. 250g or 1kg"
+                        className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">
+                        ឈ្មោះផលិតផល (KM) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={productForm.name_km}
+                        onChange={(e) => setProductForm({ ...productForm, name_km: e.target.value })}
+                        placeholder="ឧ. កាហ្វេគោកព្រៃ ពិសេស"
+                        className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">
+                        ការពិពណ៌នាសង្ខេប (KM)
+                      </label>
+                      <textarea
+                        value={productForm.description_km}
+                        onChange={(e) => setProductForm({ ...productForm, description_km: e.target.value })}
+                        rows={3}
+                        placeholder="សេចក្តីសង្ខេបសម្រាប់បង្ហាញលើកាត..."
+                        className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">ទម្ងន់ / ទំហំ (KM)</label>
+                      <input
+                        type="text"
+                        value={productForm.weight_km}
+                        onChange={(e) => setProductForm({ ...productForm, weight_km: e.target.value })}
+                        placeholder="ឧ. ២៥០ ក្រាម ឬ ១ គីឡូក្រាម"
+                        className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* General Settings: Price & Category */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    តម្លៃ Price ($) <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="ឈ្មោះផលិតផល..."
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                      placeholder="0.00"
+                      required
+                      className="w-full pl-8 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    ប្រភេទ (Category)
-                  </label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">ប្រភេទ (Category)</label>
                   <select
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    value={productForm.category_id}
+                    onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   >
-                    <option value="">ជ្រើសរើសប្រភេទ...</option>
+                    <option value="">គ្មានប្រភេទ (No Category)</option>
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
@@ -424,145 +1280,501 @@ export default function ProductsPage() {
                     ))}
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    ភាសា (Language)
-                  </label>
-                  <select
-                    value={formData.language}
-                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              {/* Product Image Section with Hosting Media Browser */}
+              <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-gray-800">រូបភាពផលិតផល (Product Image)</label>
+                  {/* Button to open Media Browser Modal! */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openMediaBrowser((selectedUrl) => {
+                        setProductForm((prev) => ({ ...prev, image: selectedUrl }));
+                        showToast('បានជ្រើសរើសរូបភាពជោគជ័យ!');
+                      }, 'ជ្រើសរើសរូបភាពផលិតផលពី Hosting Media')
+                    }
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition-all"
                   >
-                    <option value="km">ភាសាខ្មែរ (Khmer)</option>
-                    <option value="en">English</option>
-                  </select>
+                    <FolderOpen size={13} />
+                    <span>រុករករូបភាព Hosting Media</span>
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    តម្លៃលក់ (Price $) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="0.00"
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    តម្លៃដើម (Original Price $)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.original_price}
-                    onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
-                    placeholder="0.00"
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    ការពិពណ៌នាសង្ខេប (Short Description)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.short_description}
-                    onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-                    placeholder="ព័ត៌មានសង្ខេបអំពីផលិតផល..."
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    ការពិពណ៌នាលម្អិត (Detailed Description)
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={formData.detailed_description}
-                    onChange={(e) => setFormData({ ...formData, detailed_description: e.target.value })}
-                    placeholder="ព័ត៌មានលម្អិត បច្ចេកទេស របៀបប្រើប្រាស់..."
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <ImageUpload
-                    value={formData.image}
-                    onChange={(path) => setFormData({ ...formData, image: path })}
-                    type="product"
-                    label="រូបភាពផលិតផល (Product Image)"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                    លំដាប់តម្រៀប (Sort Order)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.sort_order}
-                    onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 flex flex-wrap gap-5 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-medium text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={formData.featured === 1}
-                      onChange={(e) => setFormData({ ...formData, featured: e.target.checked ? 1 : 0 })}
-                      className="w-4 h-4 text-emerald-600 rounded"
+                <div className="flex items-center gap-4">
+                  {/* Thumbnail Preview */}
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img
+                      src={formatImageUrl(productForm.image, 'products')}
+                      alt="Preview"
+                      className="max-h-full max-w-full object-contain"
+                      onError={(e) => {
+                        e.target.src = 'https://placehold.co/100x100?text=No+Img';
+                      }}
                     />
-                    <span>ដាក់ជា Featured (លេចធ្លោ)</span>
-                  </label>
+                  </div>
 
-                  <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-medium text-gray-700">
+                  <div className="flex-1 space-y-2">
                     <input
-                      type="checkbox"
-                      checked={formData.best_seller === 1}
-                      onChange={(e) => setFormData({ ...formData, best_seller: e.target.checked ? 1 : 0 })}
-                      className="w-4 h-4 text-emerald-600 rounded"
+                      type="text"
+                      value={productForm.image}
+                      onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                      placeholder="e.g. /kouprey/public/assets/images/products/coffee.webp"
+                      className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
                     />
-                    <span>ដាក់ជា Best Seller (លក់ដាច់)</span>
-                  </label>
-
-                  <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm font-medium text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={formData.enabled === 1}
-                      onChange={(e) => setFormData({ ...formData, enabled: e.target.checked ? 1 : 0 })}
-                      className="w-4 h-4 text-emerald-600 rounded"
-                    />
-                    <span>បង្ហាញលើគេហទំព័រ (Enabled)</span>
-                  </label>
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg text-xs text-gray-700 cursor-pointer transition">
+                        <Upload size={12} />
+                        <span>Upload ថ្មី</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const res = await adminApi.uploadImage(file, 'product');
+                                if (res.success && res.path) {
+                                  setProductForm((prev) => ({ ...prev, image: res.path }));
+                                  showToast('បានផ្ទុកឡើងរូបភាពជោគជ័យ!');
+                                }
+                              } catch (err) {
+                                showToast('Upload failed: ' + err.message, 'error');
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                      <span className="text-[11px] text-gray-400">ឬជ្រើសរើសពី Hosting Media ខាងលើ</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-5 border-t border-gray-100 flex items-center justify-end gap-3">
+              {/* Status Switches */}
+              <div className="grid grid-cols-3 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(productForm.featured)}
+                    onChange={(e) => setProductForm({ ...productForm, featured: e.target.checked ? 1 : 0 })}
+                    className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                  />
+                  <span className="text-xs font-bold text-gray-800">Featured (លេចធ្លោ)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(productForm.best_seller)}
+                    onChange={(e) => setProductForm({ ...productForm, best_seller: e.target.checked ? 1 : 0 })}
+                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                  />
+                  <span className="text-xs font-bold text-gray-800">Best Seller (លក់ដាច់)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(productForm.enabled)}
+                    onChange={(e) => setProductForm({ ...productForm, enabled: e.target.checked ? 1 : 0 })}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-xs font-bold text-gray-800">Enabled (បង្ហាញលើ Web)</span>
+                </label>
+              </div>
+
+              {/* Custom Fields Editor */}
+              <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-800">Custom Fields (វាលទិន្នន័យបន្ថែម)</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProductForm({
+                        ...productForm,
+                        custom_fields: [...productForm.custom_fields, { key: '', value: '' }],
+                      })
+                    }
+                    className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
+                  >
+                    <Plus size={14} /> បន្ថែមវាល
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {productForm.custom_fields.map((cf, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={cf.key}
+                        onChange={(e) => {
+                          const updated = [...productForm.custom_fields];
+                          updated[idx].key = e.target.value;
+                          setProductForm({ ...productForm, custom_fields: updated });
+                        }}
+                        placeholder="Key (e.g. show_in_collection)"
+                        className="flex-1 px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={cf.value}
+                        onChange={(e) => {
+                          const updated = [...productForm.custom_fields];
+                          updated[idx].value = e.target.value;
+                          setProductForm({ ...productForm, custom_fields: updated });
+                        }}
+                        placeholder="Value (e.g. true)"
+                        className="flex-1 px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = productForm.custom_fields.filter((_, i) => i !== idx);
+                          setProductForm({ ...productForm, custom_fields: updated });
+                        }}
+                        className="w-7 h-7 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </form>
+
+            {/* Drawer Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                បោះបង់ (Cancel)
+              </button>
+              <button
+                type="submit"
+                form="productDrawerForm"
+                disabled={savingProduct}
+                className="flex items-center gap-2 px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {savingProduct && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                <span>{drawerMode === 'add' ? 'បន្ថែមផលិតផល (Add Product)' : 'ធ្វើបច្ចុប្បន្នភាព (Update Product)'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────── */}
+      {/* DETAILED SPECS MODAL (Gear button)             */}
+      {/* ────────────────────────────────────────────── */}
+      {detailedModalOpen && detailedForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-900 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-cyan-500 text-white flex items-center justify-center shadow">
+                  <Settings size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base">ព័ត៌មានលម្អិតផលិតផល (Detailed Product Information)</h3>
+                  <p className="text-xs text-gray-400">
+                    {detailedForm.name_en || detailedForm.name_km} (#{detailedForm.base_product_id})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDetailedModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Language Switcher */}
+            <div className="bg-gray-100 px-6 py-2.5 border-b border-gray-200 flex items-center justify-center">
+              <div className="flex bg-white p-1 rounded-xl shadow-2xs">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition"
+                  onClick={() => setDetailedModalTab('en')}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    detailedModalTab === 'en' ? 'bg-cyan-600 text-white shadow-xs' : 'text-gray-600'
+                  }`}
+                >
+                  🇬🇧 English (EN)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailedModalTab('km')}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    detailedModalTab === 'km' ? 'bg-cyan-600 text-white shadow-xs' : 'text-gray-600'
+                  }`}
+                >
+                  🇰🇭 ភាសាខ្មែរ (KM)
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleSaveDetailed} id="detailedSpecsForm" className="flex-1 overflow-y-auto p-6 space-y-4">
+              {detailedModalTab === 'en' ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Detailed Description (EN)</label>
+                    <textarea
+                      rows={3}
+                      value={detailedForm.detailed_description_en}
+                      onChange={(e) => setDetailedForm({ ...detailedForm, detailed_description_en: e.target.value })}
+                      placeholder="Rich description..."
+                      className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Ingredients (EN)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.ingredients_en}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, ingredients_en: e.target.value })}
+                        placeholder="e.g. 100% Arabica Beans"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Origin (EN)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.origin_en}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, origin_en: e.target.value })}
+                        placeholder="e.g. Mondulkiri, Cambodia"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Brewing Instructions (EN)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.brewing_instructions_en}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, brewing_instructions_en: e.target.value })}
+                        placeholder="e.g. Pour over, 92°C water"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Tasting Notes (EN)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.tasting_notes_en}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, tasting_notes_en: e.target.value })}
+                        placeholder="e.g. Caramel, nutty, chocolate"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">ការពិពណ៌នាលម្អិត (KM)</label>
+                    <textarea
+                      rows={3}
+                      value={detailedForm.detailed_description_km}
+                      onChange={(e) => setDetailedForm({ ...detailedForm, detailed_description_km: e.target.value })}
+                      placeholder="ការពិពណ៌នាលម្អិត..."
+                      className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">គ្រឿងផ្សំ (KM)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.ingredients_km}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, ingredients_km: e.target.value })}
+                        placeholder="ឧ. គ្រាប់កាហ្វេអារ៉ាប៊ីកា ១០០%"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">ប្រភពដើម (KM)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.origin_km}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, origin_km: e.target.value })}
+                        placeholder="ឧ. ខេត្តមណ្ឌលគិរី"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">ការណែនាំឆុង (KM)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.brewing_instructions_km}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, brewing_instructions_km: e.target.value })}
+                        placeholder="ឧ. ទឹកក្តៅ ៩២ អង្សាសេ"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">កំណត់ចំណាំរសជាតិ (KM)</label>
+                      <input
+                        type="text"
+                        value={detailedForm.tasting_notes_km}
+                        onChange={(e) => setDetailedForm({ ...detailedForm, tasting_notes_km: e.target.value })}
+                        placeholder="ឧ. ក្លិនការ៉ាមែល ផ្អែមឈ្ងុយ"
+                        className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Roast Level Dropdown */}
+              <div className="pt-2">
+                <label className="block text-xs font-bold text-gray-700 mb-1">កម្រិតលីង (Roast Level)</label>
+                <select
+                  value={detailedForm.roast_level}
+                  onChange={(e) => setDetailedForm({ ...detailedForm, roast_level: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                >
+                  <option value="">ជ្រើសរើស Roast Level</option>
+                  <option value="Light">Light</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Medium-Dark">Medium-Dark</option>
+                  <option value="Dark">Dark</option>
+                </select>
+              </div>
+            </form>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDetailedModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-200"
+              >
+                បោះបង់
+              </button>
+              <button
+                type="submit"
+                form="detailedSpecsForm"
+                disabled={savingDetailed}
+                className="flex items-center gap-2 px-6 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-md"
+              >
+                {savingDetailed && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                <span>រក្សាទុកព័ត៌មានលម្អិត</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────── */}
+      {/* CATEGORY ADD / EDIT MODAL                     */}
+      {/* ────────────────────────────────────────────── */}
+      {catModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-emerald-600 text-white">
+              <h3 className="font-bold text-base">
+                {catModalMode === 'add' ? 'បន្ថែមប្រភេទថ្មី (Add Category)' : 'កែប្រែប្រភេទ (Edit Category)'}
+              </h3>
+              <button onClick={() => setCatModalOpen(false)} className="text-white hover:text-gray-200">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Category Name (EN) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={catForm.name_en}
+                    onChange={(e) => setCatForm({ ...catForm, name_en: e.target.value })}
+                    placeholder="e.g. Whole Bean Coffee"
+                    required
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    ឈ្មោះប្រភេទ (KM) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={catForm.name_km}
+                    onChange={(e) => setCatForm({ ...catForm, name_km: e.target.value })}
+                    placeholder="ឧ. គ្រាប់កាហ្វេសុទ្ធ"
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Description (EN)</label>
+                <textarea
+                  rows={2}
+                  value={catForm.description_en}
+                  onChange={(e) => setCatForm({ ...catForm, description_en: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">ការពិពណ៌នា (KM)</label>
+                <textarea
+                  rows={2}
+                  value={catForm.description_km}
+                  onChange={(e) => setCatForm({ ...catForm, description_km: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-gray-700">រូបភាពប្រភេទ (Category Image)</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openMediaBrowser((url) => {
+                        setCatForm((prev) => ({ ...prev, image: url }));
+                      }, 'ជ្រើសរើសរូបភាពប្រភេទពី Hosting')
+                    }
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1"
+                  >
+                    <FolderOpen size={13} /> រុករក Hosting Media
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={catForm.image}
+                  onChange={(e) => setCatForm({ ...catForm, image: e.target.value })}
+                  placeholder="/kouprey/public/assets/images/categories/..."
+                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl font-mono"
+                />
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCatModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100"
                 >
                   បោះបង់
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-2 disabled:opacity-60"
+                  disabled={savingCategory}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer"
                 >
-                  {saving && <Loader2 size={16} className="animate-spin" />}
-                  <span>{editingProduct ? 'រក្សាទុកការកែប្រែ' : 'បង្កើតផលិតផល'}</span>
+                  {savingCategory ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកប្រភេទ'}
                 </button>
               </div>
             </form>
@@ -570,34 +1782,58 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* ────────────────────────────────────────────── */}
+      {/* DELETE CONFIRMATION DIALOG                     */}
+      {/* ────────────────────────────────────────────── */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl animate-fade-in text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-200 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3">
               <Trash2 size={24} />
             </div>
-            <h3 className="text-base font-bold text-gray-900">តើអ្នកពិតជាចង់លុបផលិតផលនេះមែនទេ?</h3>
-            <p className="text-xs sm:text-sm text-gray-500 mt-2">
-              ផលិតផល «<span className="font-semibold text-gray-800">{deleteConfirm.name}</span>» នឹងត្រូវលុបទាំងពីរភាសា (ខ្មែរ និង អង់គ្លេស)។ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។
+            <h4 className="font-bold text-gray-900 text-base mb-1">
+              តើអ្នកពិតជាចង់លុប {deleteConfirm.type === 'product' ? 'ផលិតផល' : 'ប្រភេទ'} នេះមែនទេ?
+            </h4>
+            <p className="text-xs text-gray-500 mb-6">
+              សកម្មភាពនេះនឹងលុបទិន្នន័យទាំងពីរភាសា (EN & KM) ហើយមិនអាចត្រឡប់ក្រោយវិញបានឡើយ។
             </p>
-            <div className="flex items-center justify-center gap-3 mt-6">
+            <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100"
               >
-                បោះបង់
+                បោះបង់ (Cancel)
               </button>
               <button
-                onClick={() => handleDelete(deleteConfirm)}
-                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-xs cursor-pointer"
+                onClick={() => {
+                  if (deleteConfirm.type === 'product') {
+                    handleDeleteProduct(deleteConfirm.item);
+                  } else {
+                    handleDeleteCategory(deleteConfirm.item);
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md cursor-pointer"
               >
-                យល់ព្រមលុប
+                យល់ព្រមលុប (Yes, Delete)
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* ────────────────────────────────────────────── */}
+      {/* REUSABLE MEDIA BROWSER MODAL (Hosting Media)  */}
+      {/* ────────────────────────────────────────────── */}
+      <MediaBrowserModal
+        isOpen={mediaModalOpen}
+        title={mediaModalTitle}
+        onClose={() => setMediaModalOpen(false)}
+        onSelectImage={(url) => {
+          if (mediaTargetCallback) {
+            mediaTargetCallback(url);
+          }
+        }}
+      />
     </div>
   );
 }

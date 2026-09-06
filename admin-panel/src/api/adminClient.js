@@ -64,8 +64,20 @@ export const adminApi = {
   getProducts: (params = {}) =>
     request('get_all_products', { params }),
 
+  getProductData: (base_product_id) =>
+    request('get_product_data', { params: { base_product_id } }),
+
   saveProduct: (product) =>
     request('save_product', { method: 'POST', body: product }),
+
+  saveProductFull: (productData) =>
+    request('save_product_full', { method: 'POST', body: productData }),
+
+  toggleProductStatus: (id, base_product_id, field) =>
+    request('toggle_product_status', { method: 'POST', body: { id, base_product_id, field } }),
+
+  reorderProducts: (order) =>
+    request('reorder_products', { method: 'POST', body: { order } }),
 
   deleteProduct: (id, base_product_id) =>
     request('delete_product', { method: 'POST', body: { id, base_product_id } }),
@@ -74,11 +86,17 @@ export const adminApi = {
   getCategories: (lang = 'km') =>
     request('get_categories', { params: { lang } }),
 
+  getCategoryData: (base_category_id, id) =>
+    request('get_category_data', { params: { base_category_id, id } }),
+
   saveCategory: (category) =>
     request('save_category', { method: 'POST', body: category }),
 
-  deleteCategory: (id) =>
-    request('delete_category', { method: 'POST', body: { id } }),
+  saveCategoryFull: (categoryData) =>
+    request('save_category_full', { method: 'POST', body: categoryData }),
+
+  deleteCategory: (id, base_category_id) =>
+    request('delete_category', { method: 'POST', body: { id, base_category_id } }),
 
   // Reviews
   getReviews: () =>
@@ -139,22 +157,25 @@ export const adminApi = {
     });
   },
 
-  // File Manager
-  getFileManagerImages: () => request('get_file_manager_images'),
+  // File Manager (Multi-folder Hosting Media)
+  getFileManagerImages: (folder = 'products') =>
+    request('get_file_manager_images', { params: { folder } }),
 
-  deleteFileManager: (filenames) =>
+  deleteFileManager: (filenames, folder = 'products') =>
     request('delete_file_manager', {
       method: 'POST',
-      body: { filenames: Array.isArray(filenames) ? filenames : [filenames] },
+      body: { filenames: Array.isArray(filenames) ? filenames : [filenames], folder },
     }),
 
-  uploadFileManager: async (files) => {
+  uploadFileManager: async (files, folder = 'products') => {
     const formData = new FormData();
     Array.from(files).forEach((f) => formData.append('images[]', f));
+    formData.append('folder', folder);
     return request('upload_file_manager', {
       method: 'POST',
       body: formData,
       isFormData: true,
+      params: { folder },
     });
   },
 

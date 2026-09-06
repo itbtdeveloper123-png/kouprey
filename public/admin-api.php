@@ -122,34 +122,388 @@ switch ($action) {
         try {
             $lang = $_GET['lang'] ?? 'km';
             $search = trim($_GET['search'] ?? '');
-            $catId = $_GET['category_id'] ?? null;
+            $catId = !empty($_GET['category_id']) ? intval($_GET['category_id']) : null;
 
-            $where = ["p.language = ?"];
-            $params = [$lang];
+            $sql = "
+                SELECT
+                    COALESCE(p_curr.id, p_other.id) as id,
+                    bp.base_product_id,
+                    COALESCE(p_curr.name, p_other.name) as name,
+                    p_en.name as name_en,
+                    p_km.name as name_km,
+                    COALESCE(p_curr.description, p_other.description) as description,
+                    p_en.description as description_en,
+                    p_km.description as description_km,
+                    COALESCE(p_curr.price, p_other.price, 0) as price,
+                    COALESCE(p_curr.featured, p_other.featured, 0) as featured,
+                    COALESCE(p_curr.best_seller, p_other.best_seller, 0) as best_seller,
+                    COALESCE(p_curr.enabled, p_other.enabled, 1) as enabled,
+                    COALESCE(p_curr.image, p_other.image, '') as image,
+                    COALESCE(p_curr.category_id, p_other.category_id) as category_id,
+                    c.name as category_name,
+                    c.base_category_id,
+                    COALESCE(p_curr.custom_fields, p_other.custom_fields, '{}') as custom_fields,
+                    COALESCE(p_curr.sort_order, p_other.sort_order, 0) as sort_order,
+                    COALESCE(p_curr.weight, p_other.weight, '') as weight,
+                    COALESCE(p_curr.roast_level, p_other.roast_level, '') as roast_level,
+                    COALESCE(p_curr.detailed_description, p_other.detailed_description, '') as detailed_description,
+                    COALESCE(p_curr.ingredients, p_other.ingredients, '') as ingredients,
+                    COALESCE(p_curr.origin, p_other.origin, '') as origin,
+                    COALESCE(p_curr.brewing_instructions, p_other.brewing_instructions, '') as brewing_instructions,
+                    COALESCE(p_curr.tasting_notes, p_other.tasting_notes, '') as tasting_notes,
+                    COALESCE(rs.avg_rating, 0) as avg_rating,
+                    COALESCE(rs.review_count, 0) as review_count
+                FROM (
+                    SELECT DISTINCT base_product_id
+                    FROM products
+                    WHERE base_product_id IS NOT NULL AND base_product_id > 0
+                ) bp
+                LEFT JOIN products p_curr ON bp.base_product_id = p_curr.base_product_id AND p_curr.language = ?
+                LEFT JOIN products p_other ON bp.base_product_id = p_other.base_product_id AND p_other.language != ?
+                LEFT JOIN products p_en ON bp.base_product_id = p_en.base_product_id AND p_en.language = 'en'
+                LEFT JOIN products p_km ON bp.base_product_id = p_km.base_product_id AND p_km.language = 'km'
+                LEFT JOIN categories c ON COALESCE(p_curr.category_id, p_other.category_id) = c.id
+                LEFT JOIN (
+                    SELECT pr.base_product_id, AVG(r.rating) avg_rating, COUNT(r.id) review_count
+                    FROM reviews r JOIN products pr ON r.product_id = pr.id
+                    GROUP BY pr.base_product_id
+                ) rs ON bp.base_product_id = rs.base_product_id
+            ";
 
-            if ($catId) { $where[] = "p.category_id = ?"; $params[] = $catId; }
+            $where = [];
+            $params = [$lang, $lang];
+
+            if ($catId) {
+                $where[] = "(p_curr.category_id = ? OR p_other.category_id = ?)";
+                $params[] = $catId;
+                $params[] = $catId;
+            }
             if ($search) {
-                $where[] = "(p.name LIKE ? OR p.short_description LIKE ?)";
-                $params[] = "%$search%"; $params[] = "%$search%";
+                $where[] = "(p_curr.name LIKE ? OR p_curr.description LIKE ? OR p_other.name LIKE ? OR p_other.description LIKE ?)";
+                $searchPattern = "%$search%";
+                $params[] = $searchPattern;
+                $params[] = $searchPattern;
+                $params[] = $searchPattern;
+                $params[] = $searchPattern;
             }
 
-            $sql = "SELECT p.*, c.name as category_name, c.base_category_id,
-                        COALESCE(rs.avg_rating,0) as avg_rating, COALESCE(rs.review_count,0) as review_count
-                    FROM products p
-                    LEFT JOIN categories c ON p.category_id = c.id
-                    LEFT JOIN (
-                        SELECT pr.base_product_id, AVG(r.rating) avg_rating, COUNT(r.id) review_count
-                        FROM reviews r JOIN products pr ON r.product_id = pr.id
-                        GROUP BY pr.base_product_id
-                    ) rs ON p.base_product_id = rs.base_product_id
-                    WHERE " . implode(' AND ', $where) . "
-                    ORDER BY p.sort_order ASC, p.id DESC";
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(' AND ', $where);
+            }
+
+            $sql .= " ORDER BY COALESCE(p_curr.sort_order, p_other.sort_order, 0) ASC, bp.base_product_id DESC";
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($products as &$p) {
+                $cf = json_decode($p['custom_fields'] ?? '{}', true);
+                if (!is_array($cf)) $cf = [];
+                $p['show_in_collection'] = $cf['show_in_collection'] ?? true;
+                $p['parsed_custom_fields'] = $cf;
+            }
+            unset($p);
+
             echo json_encode(['success' => true, 'count' => count($products), 'products' => $products], JSON_UNESCAPED_UNICODE);
         } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'get_product_data':
+        try {
+            $base_product_id = intval($_GET['base_product_id'] ?? $_POST['base_product_id'] ?? 0);
+            if (!$base_product_id) {
+                echo json_encode(['success' => false, 'error' => 'base_product_id required']);
+                break;
+            }
+            
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR id = ?) AND language = 'en'");
+            $stmt->execute([$base_product_id, $base_product_id]);
+            $en = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR id = ?) AND language = 'km'");
+            $stmt->execute([$base_product_id, $base_product_id]);
+            $km = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+            if (!$en && !$km) {
+                $s = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+                $s->execute([$base_product_id]);
+                $single = $s->fetch(PDO::FETCH_ASSOC);
+                if ($single) {
+                    if ($single['language'] === 'en') $en = $single;
+                    else $km = $single;
+                }
+            }
+
+            $stmt = $pdo->prepare("
+                SELECT pr.*, p.name as product_name, p.price, p.image
+                FROM product_related pr
+                LEFT JOIN products p ON pr.related_product_id = p.id AND p.language = 'en'
+                WHERE pr.product_id = ?
+                ORDER BY pr.sort_order ASC, pr.id ASC
+            ");
+            $stmt->execute([$base_product_id]);
+            $related = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            echo json_encode([
+                'success' => true,
+                'base_product_id' => $base_product_id,
+                'en' => $en,
+                'km' => $km,
+                'related' => $related
+            ], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'save_product_full':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $base_product_id = intval($data['base_product_id'] ?? 0);
+            $is_new = ($base_product_id <= 0);
+
+            if ($is_new) {
+                $maxBase = $pdo->query("SELECT COALESCE(MAX(base_product_id), 0) FROM products")->fetchColumn();
+                $base_product_id = $maxBase + 1;
+            }
+
+            $price = floatval($data['price'] ?? 0);
+            $base_category_id = !empty($data['base_category_id']) ? intval($data['base_category_id']) : null;
+            $category_id = !empty($data['category_id']) ? intval($data['category_id']) : null;
+
+            if ($category_id && !$base_category_id) {
+                $catStmt = $pdo->prepare("SELECT base_category_id FROM categories WHERE id = ?");
+                $catStmt->execute([$category_id]);
+                $c = $catStmt->fetch();
+                if ($c && !empty($c['base_category_id'])) {
+                    $base_category_id = intval($c['base_category_id']);
+                }
+            }
+
+            $getCatIdForLang = function($base_cat_id, $lang) use ($pdo) {
+                if (!$base_cat_id) return null;
+                $s = $pdo->prepare("SELECT id FROM categories WHERE base_category_id = ? AND language = ? LIMIT 1");
+                $s->execute([$base_cat_id, $lang]);
+                $r = $s->fetch();
+                return $r ? $r['id'] : null;
+            };
+
+            $featured = !empty($data['featured']) ? 1 : 0;
+            $best_seller = !empty($data['best_seller']) ? 1 : 0;
+            $enabled = isset($data['enabled']) ? intval($data['enabled']) : 1;
+            $image = trim($data['image'] ?? '');
+            $roast_level = trim($data['roast_level'] ?? '');
+
+            $custom_fields = $data['custom_fields'] ?? [];
+            if (!is_array($custom_fields)) {
+                $custom_fields = json_decode($custom_fields, true) ?: [];
+            }
+            if (isset($data['show_in_collection'])) {
+                $custom_fields['show_in_collection'] = (bool)$data['show_in_collection'];
+            }
+            $custom_fields_json = json_encode($custom_fields, JSON_UNESCAPED_UNICODE);
+
+            $en_name = trim($data['name_en'] ?? $data['name'] ?? '');
+            $en_desc = trim($data['description_en'] ?? $data['description'] ?? '');
+            $en_detailed = trim($data['detailed_description_en'] ?? '');
+            $en_ingredients = trim($data['ingredients_en'] ?? '');
+            $en_origin = trim($data['origin_en'] ?? '');
+            $en_brewing = trim($data['brewing_instructions_en'] ?? '');
+            $en_tasting = trim($data['tasting_notes_en'] ?? '');
+            $en_weight = trim($data['weight_en'] ?? '');
+
+            $km_name = trim($data['name_km'] ?? '') ?: $en_name;
+            $km_desc = trim($data['description_km'] ?? '') ?: $en_desc;
+            $km_detailed = trim($data['detailed_description_km'] ?? '') ?: $en_detailed;
+            $km_ingredients = trim($data['ingredients_km'] ?? '') ?: $en_ingredients;
+            $km_origin = trim($data['origin_km'] ?? '') ?: $en_origin;
+            $km_brewing = trim($data['brewing_instructions_km'] ?? '') ?: $en_brewing;
+            $km_tasting = trim($data['tasting_notes_km'] ?? '') ?: $en_tasting;
+            $km_weight = trim($data['weight_km'] ?? '') ?: $en_weight;
+
+            $cat_id_en = $getCatIdForLang($base_category_id, 'en');
+            $cat_id_km = $getCatIdForLang($base_category_id, 'km');
+
+            // Upsert EN
+            $stmt = $pdo->prepare("SELECT id, image FROM products WHERE base_product_id = ? AND language = 'en'");
+            $stmt->execute([$base_product_id]);
+            $row_en = $stmt->fetch();
+            $final_image = $image ?: ($row_en['image'] ?? '');
+
+            if ($row_en) {
+                $up = $pdo->prepare("
+                    UPDATE products SET
+                        name = ?, description = ?, price = ?, category_id = ?, featured = ?, best_seller = ?, enabled = ?,
+                        image = ?, detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?,
+                        tasting_notes = ?, weight = ?, roast_level = ?, custom_fields = ?
+                    WHERE id = ?
+                ");
+                $up->execute([
+                    $en_name, $en_desc, $price, $cat_id_en, $featured, $best_seller, $enabled,
+                    $final_image, $en_detailed, $en_ingredients, $en_origin, $en_brewing,
+                    $en_tasting, $en_weight, $roast_level, $custom_fields_json, $row_en['id']
+                ]);
+            } else {
+                $ins = $pdo->prepare("
+                    INSERT INTO products (
+                        name, description, price, category_id, featured, best_seller, enabled,
+                        image, detailed_description, ingredients, origin, brewing_instructions,
+                        tasting_notes, weight, roast_level, custom_fields, language, base_product_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'en', ?)
+                ");
+                $ins->execute([
+                    $en_name, $en_desc, $price, $cat_id_en, $featured, $best_seller, $enabled,
+                    $final_image, $en_detailed, $en_ingredients, $en_origin, $en_brewing,
+                    $en_tasting, $en_weight, $roast_level, $custom_fields_json, $base_product_id
+                ]);
+            }
+
+            // Upsert KM
+            $stmt = $pdo->prepare("SELECT id FROM products WHERE base_product_id = ? AND language = 'km'");
+            $stmt->execute([$base_product_id]);
+            $row_km = $stmt->fetch();
+
+            if ($row_km) {
+                $up = $pdo->prepare("
+                    UPDATE products SET
+                        name = ?, description = ?, price = ?, category_id = ?, featured = ?, best_seller = ?, enabled = ?,
+                        image = ?, detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?,
+                        tasting_notes = ?, weight = ?, roast_level = ?, custom_fields = ?
+                    WHERE id = ?
+                ");
+                $up->execute([
+                    $km_name, $km_desc, $price, $cat_id_km, $featured, $best_seller, $enabled,
+                    $final_image, $km_detailed, $km_ingredients, $km_origin, $km_brewing,
+                    $km_tasting, $km_weight, $roast_level, $custom_fields_json, $row_km['id']
+                ]);
+            } else {
+                $ins = $pdo->prepare("
+                    INSERT INTO products (
+                        name, description, price, category_id, featured, best_seller, enabled,
+                        image, detailed_description, ingredients, origin, brewing_instructions,
+                        tasting_notes, weight, roast_level, custom_fields, language, base_product_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'km', ?)
+                ");
+                $ins->execute([
+                    $km_name, $km_desc, $price, $cat_id_km, $featured, $best_seller, $enabled,
+                    $final_image, $km_detailed, $km_ingredients, $km_origin, $km_brewing,
+                    $km_tasting, $km_weight, $roast_level, $custom_fields_json, $base_product_id
+                ]);
+            }
+
+            // Process related products if provided
+            if (isset($data['related_products'])) {
+                $pdo->prepare("DELETE FROM product_related WHERE product_id = ?")->execute([$base_product_id]);
+                $relItems = is_array($data['related_products']) ? $data['related_products'] : json_decode($data['related_products'], true);
+                if (is_array($relItems)) {
+                    $sort = 0;
+                    foreach ($relItems as $rel) {
+                        $sort++;
+                        $rel_base_id = $rel['base_id'] ?? $rel['base_product_id'] ?? $rel['related_product_id'] ?? null;
+                        $custom_url = $rel['custom_url'] ?? '';
+                        $custom_name = $rel['custom_name'] ?? $rel['name'] ?? '';
+                        $custom_image = $rel['custom_image'] ?? '';
+                        $custom_image_url = $rel['custom_image_url'] ?? '';
+
+                        if ($rel_base_id && strpos((string)$rel_base_id, 'custom_') === 0) {
+                            $pdo->prepare("
+                                INSERT INTO product_related (product_id, related_product_id, custom_image, custom_image_url, custom_url, custom_name, sort_order)
+                                VALUES (?, NULL, ?, ?, ?, ?, ?)
+                            ")->execute([$base_product_id, $custom_image, $custom_image_url, $custom_url, $custom_name, $sort]);
+                        } else if ($rel_base_id) {
+                            $relStmt = $pdo->prepare("SELECT id FROM products WHERE base_product_id = ? AND language = 'en' LIMIT 1");
+                            $relStmt->execute([$rel_base_id]);
+                            $relProduct = $relStmt->fetch();
+                            if ($relProduct) {
+                                $pdo->prepare("
+                                    INSERT INTO product_related (product_id, related_product_id, custom_image, custom_image_url, custom_url, sort_order)
+                                    VALUES (?, ?, ?, ?, ?, ?)
+                                ")->execute([$base_product_id, $relProduct['id'], $custom_image, $custom_image_url, $custom_url, $sort]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'is_new' => $is_new]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'toggle_product_status':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $id = intval($data['id'] ?? 0);
+            $base_product_id = intval($data['base_product_id'] ?? 0);
+            $field = trim($data['field'] ?? '');
+
+            if (!$base_product_id && $id) {
+                $stmt = $pdo->prepare("SELECT base_product_id FROM products WHERE id = ?");
+                $stmt->execute([$id]);
+                $base_product_id = $stmt->fetchColumn() ?: 0;
+            }
+
+            if (!$base_product_id) {
+                echo json_encode(['success' => false, 'error' => 'Product not found']);
+                break;
+            }
+
+            if ($field === 'featured') {
+                $stmt = $pdo->prepare("UPDATE products SET featured = CASE WHEN featured = 1 THEN 0 ELSE 1 END WHERE base_product_id = ?");
+                $stmt->execute([$base_product_id]);
+                $newVal = $pdo->query("SELECT featured FROM products WHERE base_product_id = {$base_product_id} LIMIT 1")->fetchColumn();
+                echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'featured', 'value' => (int)$newVal]);
+            } elseif ($field === 'best_seller') {
+                $stmt = $pdo->prepare("UPDATE products SET best_seller = CASE WHEN best_seller = 1 THEN 0 ELSE 1 END WHERE base_product_id = ?");
+                $stmt->execute([$base_product_id]);
+                $newVal = $pdo->query("SELECT best_seller FROM products WHERE base_product_id = {$base_product_id} LIMIT 1")->fetchColumn();
+                echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'best_seller', 'value' => (int)$newVal]);
+            } elseif ($field === 'enabled') {
+                $stmt = $pdo->prepare("UPDATE products SET enabled = CASE WHEN enabled = 1 THEN 0 ELSE 1 END WHERE base_product_id = ?");
+                $stmt->execute([$base_product_id]);
+                $newVal = $pdo->query("SELECT enabled FROM products WHERE base_product_id = {$base_product_id} LIMIT 1")->fetchColumn();
+                echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'enabled', 'value' => (int)$newVal]);
+            } elseif ($field === 'collection') {
+                $stmt = $pdo->prepare("SELECT custom_fields FROM products WHERE base_product_id = ? LIMIT 1");
+                $stmt->execute([$base_product_id]);
+                $cf = json_decode($stmt->fetchColumn() ?: '{}', true) ?: [];
+                $cur = $cf['show_in_collection'] ?? true;
+                $cf['show_in_collection'] = !$cur;
+                $newJson = json_encode($cf, JSON_UNESCAPED_UNICODE);
+                $pdo->prepare("UPDATE products SET custom_fields = ? WHERE base_product_id = ?")->execute([$newJson, $base_product_id]);
+                echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'collection', 'value' => $cf['show_in_collection']]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Invalid field']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'reorder_products':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $order = $data['order'] ?? [];
+            if (is_array($order)) {
+                $pdo->beginTransaction();
+                foreach ($order as $item) {
+                    $baseId = intval($item['base_product_id'] ?? 0);
+                    $sort = intval($item['sort_order'] ?? 0);
+                    if ($baseId > 0) {
+                        $pdo->prepare("UPDATE products SET sort_order = ? WHERE base_product_id = ?")->execute([$sort, $baseId]);
+                    }
+                }
+                $pdo->commit();
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Invalid order array']);
+            }
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         break;
@@ -207,10 +561,19 @@ switch ($action) {
             $id = intval($data['id'] ?? 0);
             if ($base_product_id) {
                 $pdo->prepare("DELETE FROM products WHERE base_product_id = ?")->execute([$base_product_id]);
+                $pdo->prepare("DELETE FROM product_related WHERE product_id = ?")->execute([$base_product_id]);
                 echo json_encode(['success' => true, 'deleted' => 'all_languages']);
             } elseif ($id) {
-                $pdo->prepare("DELETE FROM products WHERE id = ?")->execute([$id]);
-                echo json_encode(['success' => true, 'deleted' => 'single']);
+                $stmt = $pdo->prepare("SELECT base_product_id FROM products WHERE id = ?");
+                $stmt->execute([$id]);
+                $bp = $stmt->fetchColumn();
+                if ($bp) {
+                    $pdo->prepare("DELETE FROM products WHERE base_product_id = ?")->execute([$bp]);
+                    $pdo->prepare("DELETE FROM product_related WHERE product_id = ?")->execute([$bp]);
+                } else {
+                    $pdo->prepare("DELETE FROM products WHERE id = ?")->execute([$id]);
+                }
+                echo json_encode(['success' => true, 'deleted' => 'all_languages']);
             } else {
                 echo json_encode(['success' => false, 'error' => 'No id provided']);
             }
@@ -223,9 +586,103 @@ switch ($action) {
     case 'get_categories':
         try {
             $lang = $_GET['lang'] ?? 'km';
-            $stmt = $pdo->prepare("SELECT * FROM categories WHERE language = ? ORDER BY name ASC");
+            $stmt = $pdo->prepare("
+                SELECT c.*, COALESCE(pc.product_count, 0) as product_count
+                FROM categories c
+                LEFT JOIN (
+                    SELECT category_id, COUNT(*) as product_count
+                    FROM products
+                    GROUP BY category_id
+                ) pc ON c.id = pc.category_id
+                WHERE c.language = ?
+                ORDER BY c.name ASC
+            ");
             $stmt->execute([$lang]);
-            echo json_encode(['success' => true, 'categories' => $stmt->fetchAll()], JSON_UNESCAPED_UNICODE);
+            echo json_encode(['success' => true, 'categories' => $stmt->fetchAll(PDO::FETCH_ASSOC)], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'get_category_data':
+        try {
+            $base_category_id = intval($_GET['base_category_id'] ?? $_POST['base_category_id'] ?? 0);
+            $id = intval($_GET['id'] ?? $_POST['id'] ?? 0);
+            if (!$base_category_id && $id) {
+                $stmt = $pdo->prepare("SELECT base_category_id FROM categories WHERE id = ?");
+                $stmt->execute([$id]);
+                $base_category_id = $stmt->fetchColumn() ?: 0;
+            }
+
+            $en = null; $km = null;
+            if ($base_category_id) {
+                $s = $pdo->prepare("SELECT * FROM categories WHERE base_category_id = ? AND language = 'en'");
+                $s->execute([$base_category_id]);
+                $en = $s->fetch(PDO::FETCH_ASSOC);
+
+                $s = $pdo->prepare("SELECT * FROM categories WHERE base_category_id = ? AND language = 'km'");
+                $s->execute([$base_category_id]);
+                $km = $s->fetch(PDO::FETCH_ASSOC);
+            }
+
+            echo json_encode([
+                'success' => true,
+                'base_category_id' => $base_category_id,
+                'en' => $en,
+                'km' => $km
+            ], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'save_category_full':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $base_category_id = intval($data['base_category_id'] ?? 0);
+            $name_en = trim($data['name_en'] ?? $data['name'] ?? '');
+            $name_km = trim($data['name_km'] ?? '') ?: $name_en;
+            $description_en = trim($data['description_en'] ?? $data['description'] ?? '');
+            $description_km = trim($data['description_km'] ?? '') ?: $description_en;
+            $image = trim($data['image'] ?? '');
+
+            if ($base_category_id <= 0) {
+                // New category
+                $stmt = $pdo->prepare("INSERT INTO categories (name, description, image, language, base_category_id) VALUES (?, ?, ?, 'en', NULL)");
+                $stmt->execute([$name_en, $description_en, $image]);
+                $base_category_id = $pdo->lastInsertId();
+
+                $pdo->prepare("UPDATE categories SET base_category_id = ? WHERE id = ?")->execute([$base_category_id, $base_category_id]);
+
+                $stmt = $pdo->prepare("INSERT INTO categories (name, description, image, language, base_category_id) VALUES (?, ?, ?, 'km', ?)");
+                $stmt->execute([$name_km, $description_km, $image, $base_category_id]);
+
+                echo json_encode(['success' => true, 'action' => 'created', 'base_category_id' => $base_category_id]);
+            } else {
+                // Update English
+                $stmt = $pdo->prepare("SELECT id FROM categories WHERE base_category_id = ? AND language = 'en'");
+                $stmt->execute([$base_category_id]);
+                $en_id = $stmt->fetchColumn();
+
+                if ($en_id) {
+                    $pdo->prepare("UPDATE categories SET name = ?, description = ?, image = ? WHERE id = ?")->execute([$name_en, $description_en, $image, $en_id]);
+                } else {
+                    $pdo->prepare("INSERT INTO categories (name, description, image, language, base_category_id) VALUES (?, ?, ?, 'en', ?)")->execute([$name_en, $description_en, $image, $base_category_id]);
+                }
+
+                // Update Khmer
+                $stmt = $pdo->prepare("SELECT id FROM categories WHERE base_category_id = ? AND language = 'km'");
+                $stmt->execute([$base_category_id]);
+                $km_id = $stmt->fetchColumn();
+
+                if ($km_id) {
+                    $pdo->prepare("UPDATE categories SET name = ?, description = ?, image = ? WHERE id = ?")->execute([$name_km, $description_km, $image, $km_id]);
+                } else {
+                    $pdo->prepare("INSERT INTO categories (name, description, image, language, base_category_id) VALUES (?, ?, ?, 'km', ?)")->execute([$name_km, $description_km, $image, $base_category_id]);
+                }
+
+                echo json_encode(['success' => true, 'action' => 'updated', 'base_category_id' => $base_category_id]);
+            }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -240,6 +697,8 @@ switch ($action) {
                 'language' => $data['language'] ?? 'km',
                 'description' => trim($data['description'] ?? ''),
             ];
+            if (!empty($data['image'])) $fields['image'] = trim($data['image']);
+
             if ($id > 0) {
                 $set = implode(', ', array_map(fn($k) => "$k = ?", array_keys($fields)));
                 $pdo->prepare("UPDATE categories SET $set WHERE id = ?")->execute([...array_values($fields), $id]);
@@ -261,8 +720,25 @@ switch ($action) {
         try {
             $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
             $id = intval($data['id'] ?? 0);
-            $pdo->prepare("DELETE FROM categories WHERE id = ?")->execute([$id]);
-            echo json_encode(['success' => true]);
+            $base_category_id = intval($data['base_category_id'] ?? 0);
+
+            if (!$base_category_id && $id) {
+                $stmt = $pdo->prepare("SELECT base_category_id FROM categories WHERE id = ?");
+                $stmt->execute([$id]);
+                $base_category_id = $stmt->fetchColumn() ?: 0;
+            }
+
+            if ($base_category_id) {
+                $pdo->prepare("UPDATE products SET category_id = NULL WHERE category_id IN (SELECT id FROM categories WHERE base_category_id = ?)")->execute([$base_category_id]);
+                $pdo->prepare("DELETE FROM categories WHERE base_category_id = ?")->execute([$base_category_id]);
+                echo json_encode(['success' => true, 'deleted' => 'all_languages']);
+            } elseif ($id) {
+                $pdo->prepare("UPDATE products SET category_id = NULL WHERE category_id = ?")->execute([$id]);
+                $pdo->prepare("DELETE FROM categories WHERE id = ?")->execute([$id]);
+                echo json_encode(['success' => true, 'deleted' => 'single']);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'No category ID provided']);
+            }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -585,26 +1061,58 @@ switch ($action) {
         }
         break;
 
-    // ── FILE MANAGER ───────────────────────────
+    // ── FILE MANAGER (Multi-folder Hosting Support) ──────────
     case 'get_file_manager_images':
         try {
-            $dir = __DIR__ . '/assets/images/products/';
-            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            $folder = $_GET['folder'] ?? 'products';
+            
+            $folderMap = [
+                'products'   => ['dir' => __DIR__ . '/assets/images/products/', 'url' => '/kouprey/public/assets/images/products/', 'name' => 'Products'],
+                'banner'     => ['dir' => __DIR__ . '/assets/images/banner/', 'url' => '/kouprey/public/assets/images/banner/', 'name' => 'Banners (Assets)'],
+                'banners'    => ['dir' => __DIR__ . '/uploads/banners/', 'url' => '/kouprey/public/uploads/banners/', 'name' => 'Banners (Uploads)'],
+                'categories' => ['dir' => __DIR__ . '/assets/images/categories/', 'url' => '/kouprey/public/assets/images/categories/', 'name' => 'Categories'],
+                'uploads'    => ['dir' => __DIR__ . '/uploads/', 'url' => '/kouprey/public/uploads/', 'name' => 'Uploads Root'],
+                'showcase'   => ['dir' => __DIR__ . '/uploads/showcase/', 'url' => '/kouprey/public/uploads/showcase/', 'name' => 'Showcase'],
+                'related'    => ['dir' => __DIR__ . '/uploads/related/', 'url' => '/kouprey/public/uploads/related/', 'name' => 'Related Products'],
+            ];
+
+            $availableFolders = [
+                ['id' => 'products', 'label' => 'Products (assets/images/products)'],
+                ['id' => 'banner', 'label' => 'Banners (assets/images/banner)'],
+                ['id' => 'banners', 'label' => 'Banners (uploads/banners)'],
+                ['id' => 'categories', 'label' => 'Categories (assets/images/categories)'],
+                ['id' => 'showcase', 'label' => 'Showcase (uploads/showcase)'],
+                ['id' => 'related', 'label' => 'Related (uploads/related)'],
+                ['id' => 'uploads', 'label' => 'Uploads Root (uploads/)'],
+            ];
+
+            $targetConfig = $folderMap[$folder] ?? $folderMap['products'];
+            $dir = $targetConfig['dir'];
+            $urlPrefix = $targetConfig['url'];
+
+            if (!is_dir($dir)) @mkdir($dir, 0755, true);
+
             $files = glob($dir . '*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}', GLOB_BRACE) ?: [];
             usort($files, fn($a, $b) => filemtime($b) - filemtime($a));
 
-            $items = array_map(function($path) {
+            $items = array_map(function($path) use ($urlPrefix, $folder) {
                 $basename = basename($path);
                 return [
                     'filename' => $basename,
-                    'url'      => '/kouprey/public/assets/images/products/' . $basename,
+                    'url'      => $urlPrefix . $basename,
                     'size'     => round(filesize($path) / 1024, 1) . ' KB',
                     'bytes'    => filesize($path),
                     'time'     => filemtime($path),
+                    'folder'   => $folder
                 ];
             }, $files);
 
-            echo json_encode(['success' => true, 'images' => $items], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            echo json_encode([
+                'success' => true,
+                'current_folder' => $folder,
+                'available_folders' => $availableFolders,
+                'images' => $items
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -613,10 +1121,21 @@ switch ($action) {
     case 'delete_file_manager':
         try {
             $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $folder = $data['folder'] ?? $_GET['folder'] ?? 'products';
             $filenames = $data['filenames'] ?? [];
             if (!empty($data['filename'])) $filenames[] = $data['filename'];
 
-            $dir = __DIR__ . '/assets/images/products/';
+            $folderMap = [
+                'products'   => __DIR__ . '/assets/images/products/',
+                'banner'     => __DIR__ . '/assets/images/banner/',
+                'banners'    => __DIR__ . '/uploads/banners/',
+                'categories' => __DIR__ . '/assets/images/categories/',
+                'uploads'    => __DIR__ . '/uploads/',
+                'showcase'   => __DIR__ . '/uploads/showcase/',
+                'related'    => __DIR__ . '/uploads/related/',
+            ];
+            $dir = $folderMap[$folder] ?? $folderMap['products'];
+
             $deleted = 0;
             foreach ($filenames as $fn) {
                 $safe = basename($fn);
@@ -637,8 +1156,21 @@ switch ($action) {
                 echo json_encode(['success' => false, 'error' => 'No files uploaded']);
                 break;
             }
-            $dir = __DIR__ . '/assets/images/products/';
-            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            $folder = $_POST['folder'] ?? $_GET['folder'] ?? 'products';
+            $folderMap = [
+                'products'   => ['dir' => __DIR__ . '/assets/images/products/', 'url' => '/kouprey/public/assets/images/products/'],
+                'banner'     => ['dir' => __DIR__ . '/assets/images/banner/', 'url' => '/kouprey/public/assets/images/banner/'],
+                'banners'    => ['dir' => __DIR__ . '/uploads/banners/', 'url' => '/kouprey/public/uploads/banners/'],
+                'categories' => ['dir' => __DIR__ . '/assets/images/categories/', 'url' => '/kouprey/public/assets/images/categories/'],
+                'uploads'    => ['dir' => __DIR__ . '/uploads/', 'url' => '/kouprey/public/uploads/'],
+                'showcase'   => ['dir' => __DIR__ . '/uploads/showcase/', 'url' => '/kouprey/public/uploads/showcase/'],
+                'related'    => ['dir' => __DIR__ . '/uploads/related/', 'url' => '/kouprey/public/uploads/related/'],
+            ];
+            $target = $folderMap[$folder] ?? $folderMap['products'];
+            $dir = $target['dir'];
+            $urlPrefix = $target['url'];
+
+            if (!is_dir($dir)) @mkdir($dir, 0755, true);
 
             $files = $_FILES['images'] ?? $_FILES['file'];
             $names = is_array($files['name']) ? $files['name'] : [$files['name']];
@@ -646,18 +1178,24 @@ switch ($action) {
             $errs  = is_array($files['error']) ? $files['error'] : [$files['error']];
 
             $uploaded = 0;
+            $uploadedFiles = [];
             foreach ($names as $i => $name) {
                 if ($errs[$i] === 0) {
                     $ext = pathinfo($name, PATHINFO_EXTENSION);
                     $safe = preg_replace('/[^a-zA-Z0-9._-]/', '', basename($name));
                     if (empty($safe) || $safe === '.' || $safe === '..') $safe = uniqid() . '.' . $ext;
-                    $target = $dir . $safe;
-                    if (move_uploaded_file($tmps[$i], $target)) {
+                    $dest = $dir . $safe;
+                    if (move_uploaded_file($tmps[$i], $dest)) {
                         $uploaded++;
+                        $uploadedFiles[] = [
+                            'filename' => $safe,
+                            'url' => $urlPrefix . $safe,
+                            'folder' => $folder
+                        ];
                     }
                 }
             }
-            echo json_encode(['success' => true, 'uploaded' => $uploaded]);
+            echo json_encode(['success' => true, 'uploaded' => $uploaded, 'files' => $uploadedFiles]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
