@@ -166,10 +166,19 @@ switch ($action) {
 
     case 'get_product_detail':
     case 'get_product_modal_data':
-        $baseProductId = $_GET['base_product_id'] ?? $_GET['id'] ?? 0;
+        $baseProductId = $_GET['base_id'] ?? $_GET['base_product_id'] ?? $_GET['id'] ?? 0;
         
         // Try getting by base_product_id
         $productResult = $controller->getProductByBaseId($baseProductId, $language);
+        
+        // If not found, check if it was a primary key id
+        if ((!$productResult['success'] || !$productResult['product']) && $baseProductId) {
+            $pkResult = $controller->getProductById($baseProductId);
+            if ($pkResult['success'] && !empty($pkResult['product']['base_product_id'])) {
+                $baseProductId = $pkResult['product']['base_product_id'];
+                $productResult = $controller->getProductByBaseId($baseProductId, $language);
+            }
+        }
         
         if (!$productResult['success'] || !$productResult['product']) {
             echo json_encode(['success' => false, 'error' => 'Product not found']);
