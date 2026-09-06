@@ -30,12 +30,9 @@ export function formatImageUrl(url, defaultFolder = 'products') {
 
   // Absolute HTTP/HTTPS URLs
   if (clean.startsWith('http://') || clean.startsWith('https://')) {
-    // In local dev, if an absolute URL points to kouprey.asia, convert to local proxy path to avoid TLS renegotiation / CORS
-    if (isLocal && (clean.includes('kouprey.asia/kouprey/public/') || clean.includes('kouprey.asia/uploads/'))) {
-      const match = clean.match(/https?:\/\/[^\/]+(\/.*)/);
-      if (match && match[1]) {
-        return match[1];
-      }
+    // If it has /kouprey/public/uploads/, rewrite to direct /uploads/ to avoid 52s stall
+    if (clean.includes('/kouprey/public/uploads/')) {
+      return clean.replace('/kouprey/public/uploads/', '/uploads/');
     }
     return clean;
   }
@@ -45,68 +42,70 @@ export function formatImageUrl(url, defaultFolder = 'products') {
     return `https:${clean}`;
   }
 
-  // When running locally on Vite dev server, use relative path so Vite proxies /kouprey and /uploads smoothly
-  const prefix = isLocal ? '' : HOSTING_ORIGIN;
-
   // CRITICAL: Any uploads path (e.g. /kouprey/public/uploads/... or /uploads/...)
-  // MUST be routed directly as /uploads/ because /kouprey/public/uploads/ triggers
-  // a 52-second rewrite loop / stall on the hosting server, while /uploads/ loads in 1.3s!
+  // MUST be routed directly as https://www.kouprey.asia/uploads/... because
+  // /kouprey/public/uploads/ triggers a 52-second rewrite loop on the hosting server,
+  // while direct /uploads/ loads in 1.3 seconds!
   if (clean.includes('/uploads/')) {
     const uploadSubpath = clean.substring(clean.indexOf('/uploads/'));
-    return `${prefix}${uploadSubpath}`;
+    return `${HOSTING_ORIGIN}${uploadSubpath}`;
   }
   if (clean.startsWith('uploads/')) {
-    return `${prefix}/${clean}`;
+    return `${HOSTING_ORIGIN}/${clean}`;
   }
 
-  // Already prefixed with /kouprey/public/ (for assets)
+  // Already prefixed with /kouprey/public/ (assets)
   if (clean.startsWith('/kouprey/public/')) {
-    return `${prefix}${clean}`;
+    return `${HOSTING_ORIGIN}${clean}`;
   }
   if (clean.startsWith('kouprey/public/')) {
-    return `${prefix}/${clean}`;
+    return `${HOSTING_ORIGIN}/${clean}`;
   }
 
   // Assets path
   if (clean.startsWith('/assets/')) {
-    return `${prefix}/kouprey/public${clean}`;
+    return `${HOSTING_ORIGIN}/kouprey/public${clean}`;
   }
   if (clean.startsWith('assets/')) {
-    return `${prefix}/kouprey/public/${clean}`;
+    return `${HOSTING_ORIGIN}/kouprey/public/${clean}`;
   }
 
   // Just a filename (e.g. "coffee-blend.png")
   if (!clean.includes('/')) {
     if (defaultFolder === 'banner' || defaultFolder === 'banners') {
-      return `${prefix}/uploads/banners/${clean}`;
+      return `${HOSTING_ORIGIN}/uploads/banners/${clean}`;
     }
     if (defaultFolder === 'categories') {
-      return `${prefix}/kouprey/public/assets/images/categories/${clean}`;
+      return `${HOSTING_ORIGIN}/kouprey/public/assets/images/categories/${clean}`;
     }
     if (defaultFolder === 'showcase') {
-      return `${prefix}/uploads/showcase/${clean}`;
+      return `${HOSTING_ORIGIN}/uploads/showcase/${clean}`;
     }
     if (defaultFolder === 'related') {
-      return `${prefix}/uploads/related/${clean}`;
+      return `${HOSTING_ORIGIN}/uploads/related/${clean}`;
     }
     if (defaultFolder === 'uploads') {
-      return `${prefix}/uploads/${clean}`;
+      return `${HOSTING_ORIGIN}/uploads/${clean}`;
     }
-    return `${prefix}/kouprey/public/assets/images/products/${clean}`;
+    return `${HOSTING_ORIGIN}/kouprey/public/assets/images/products/${clean}`;
   }
 
   // Fallback for any other relative path
   const normalized = clean.startsWith('/') ? clean : `/${clean}`;
-  return `${prefix}/kouprey/public${normalized}`;
+  return `${HOSTING_ORIGIN}/kouprey/public${normalized}`;
 }
 
 /**
  * Robust image error handler with automatic fallback attempts
- * Tries relative proxy, alternate folders, and finally inline SVG placeholder
  */
 export function handleImageError(e, fallbackUrl = '') {
   const target = e.currentTarget || e.target;
   if (!target) return;
+
+  // Ensure no-referrer on target element so Apache hotlink protection doesn't block it
+  if (!target.getAttribute('referrerpolicy')) {
+    target.setAttribute('referrerpolicy', 'no-referrer');
+  }
 
   const currentSrc = target.getAttribute('src') || target.src || '';
 
@@ -119,34 +118,24 @@ export function handleImageError(e, fallbackUrl = '') {
   if (currentSrc.includes('/kouprey/public/uploads/')) {
     const filename = currentSrc.split('/kouprey/public/uploads/')[1];
     if (filename) {
-      target.src = `/uploads/${filename}`;
+      target.src = `${HOSTING_ORIGIN}/uploads/${filename}`;
       return;
     }
   }
 
-  // Step 2: If failed with /uploads/ on localhost, try direct https://www.kouprey.asia/uploads/...
-  if (currentSrc.includes('/uploads/') && !currentSrc.includes('www.kouprey.asia')) {
-    const filename = currentSrc.split('/uploads/')[1];
-    if (filename) {
-      target.src = `https://www.kouprey.asia/uploads/${filename}`;
-      return;
-    }
-  }
-
-  // Step 3: If failed with absolute https://www.kouprey.asia/kouprey/public/assets/..., try relative
-  if (currentSrc.includes('www.kouprey.asia/kouprey/public/')) {
-    const rel = currentSrc.substring(currentSrc.indexOf('/kouprey/public/'));
-    target.src = rel;
+  // Step 2: If failed with /uploads/ without domain, add domain
+  if (currentSrc.startsWith('/uploads/')) {
+    target.src = `${HOSTING_ORIGIN}${currentSrc}`;
     return;
   }
 
-  // Step 4: Try explicit fallbackUrl if provided
+  // Step 3: Try explicit fallbackUrl if provided
   if (fallbackUrl && currentSrc !== fallbackUrl) {
     target.src = fallbackUrl;
     return;
   }
 
-  // Step 5: Final fallback to self-contained SVG placeholder (never fails over network!)
+  // Step 4: Final fallback to self-contained SVG placeholder (never fails over network!)
   target.src = PLACEHOLDER_IMAGE;
 }
 

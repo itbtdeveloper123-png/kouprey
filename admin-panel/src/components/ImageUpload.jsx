@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
 import { formatImageUrl, handleImageError } from '../utils/imageUrl';
+import { compressImageClient } from '../utils/imageCompressor';
 
 export default function ImageUpload({ value, onChange, type = 'product', label = 'រូបភាព (Image)' }) {
   const [uploading, setUploading] = useState(false);
@@ -9,17 +10,21 @@ export default function ImageUpload({ value, onChange, type = 'product', label =
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
-  const handleFile = async (file) => {
-    if (!file) return;
+  const handleFile = async (rawFile) => {
+    if (!rawFile) return;
     setError('');
-    const previewUrl = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(rawFile);
     setLocalPreview(previewUrl);
     setUploading(true);
 
     try {
+      const file = await compressImageClient(rawFile);
       const res = await adminApi.uploadImage(file, type);
       if (res.success && res.path) {
-        onChange(res.path);
+        const cleanPath = res.path.includes('/uploads/')
+          ? res.path.substring(res.path.indexOf('/uploads/'))
+          : res.path;
+        onChange(cleanPath);
       } else {
         setError(res.error || 'Upload failed');
         setLocalPreview('');

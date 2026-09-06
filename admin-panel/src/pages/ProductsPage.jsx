@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
 import { formatImageUrl, handleImageError } from '../utils/imageUrl';
+import { compressImageClient } from '../utils/imageCompressor';
 import MediaBrowserModal from '../components/MediaBrowserModal';
 
 // ──────────────────────────────────────────────
@@ -943,6 +944,7 @@ export default function ProductsPage() {
                                 src={imgUrl}
                                 alt={p.name}
                                 loading="lazy"
+                                referrerPolicy="no-referrer"
                                 className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
                                 onError={handleImageError}
                               />
@@ -1657,6 +1659,7 @@ export default function ProductsPage() {
                       key={imagePreview || productForm.image || 'empty-preview'}
                       src={imagePreview || formatImageUrl(productForm.image, 'products')}
                       alt="Preview"
+                      referrerPolicy="no-referrer"
                       className="max-h-full max-w-full object-contain"
                       onError={handleImageError}
                     />
@@ -1670,7 +1673,7 @@ export default function ProductsPage() {
                         setImagePreview('');
                         setProductForm({ ...productForm, image: e.target.value });
                       }}
-                      placeholder="e.g. /kouprey/public/assets/images/products/coffee.webp"
+                      placeholder="e.g. /uploads/product-coffee.jpg"
                       className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
                     />
                     <div className="flex items-center gap-2">
@@ -1687,15 +1690,19 @@ export default function ProductsPage() {
                           disabled={uploadingImage}
                           className="hidden"
                           onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const localUrl = URL.createObjectURL(file);
+                            const rawFile = e.target.files?.[0];
+                            if (rawFile) {
+                              const localUrl = URL.createObjectURL(rawFile);
                               setImagePreview(localUrl);
                               setUploadingImage(true);
                               try {
+                                const file = await compressImageClient(rawFile);
                                 const res = await adminApi.uploadImage(file, 'product');
                                 if (res.success && res.path) {
-                                  setProductForm((prev) => ({ ...prev, image: res.path }));
+                                  const cleanPath = res.path.includes('/uploads/')
+                                    ? res.path.substring(res.path.indexOf('/uploads/'))
+                                    : res.path;
+                                  setProductForm((prev) => ({ ...prev, image: cleanPath }));
                                   showToast('បានផ្ទុកឡើងរូបភាពជោគជ័យ!');
                                 } else {
                                   showToast(res.error || 'Upload failed', 'error');
@@ -1706,6 +1713,7 @@ export default function ProductsPage() {
                                 setImagePreview('');
                               } finally {
                                 setUploadingImage(false);
+                                e.target.value = '';
                               }
                             }
                           }}
