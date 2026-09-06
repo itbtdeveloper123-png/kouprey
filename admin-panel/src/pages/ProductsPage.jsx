@@ -26,11 +26,148 @@ import {
   ExternalLink,
   AlertCircle,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Table as TableIcon,
+  FileText,
+  ListPlus,
+  ArrowRightLeft,
+  Check
 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
 import { formatImageUrl } from '../utils/imageUrl';
 import MediaBrowserModal from '../components/MediaBrowserModal';
+
+// ──────────────────────────────────────────────
+// CUSTOM FIELDS HELPERS (100% Parity with admin/products.php)
+// ──────────────────────────────────────────────
+function parseCustomFields(raw) {
+  if (!raw) return [];
+  let obj = raw;
+  if (typeof raw === 'string') {
+    try {
+      obj = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return [];
+
+  return Object.entries(obj).map(([key, item], index) => {
+    if (item && typeof item === 'object' && !Array.isArray(item) && (item.name || item.type || item.value)) {
+      const nameEn = typeof item.name === 'object' ? (item.name?.en || '') : (item.name || '');
+      const nameKm = typeof item.name === 'object' ? (item.name?.km || '') : '';
+      const type = item.type === 'table' ? 'table' : 'text';
+
+      let valueEn = '';
+      let valueKm = '';
+      let tableRows = [];
+
+      if (type === 'table' && Array.isArray(item.value)) {
+        tableRows = item.value.map((row, rIdx) => {
+          const lblEn = typeof row.label === 'object' ? (row.label?.en || '') : (row.label || '');
+          const lblKm = typeof row.label === 'object' ? (row.label?.km || '') : '';
+          let valPairs = [];
+          if (Array.isArray(row.value)) {
+            valPairs = row.value.map((vp) => ({
+              en: typeof vp === 'object' ? (vp?.en || '') : String(vp || ''),
+              km: typeof vp === 'object' ? (vp?.km || '') : '',
+            }));
+          } else if (row.value) {
+            valPairs = [{ en: String(row.value), km: '' }];
+          }
+          if (valPairs.length === 0) {
+            valPairs = [{ en: '', km: '' }];
+          }
+          return {
+            id: `row_${rIdx}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            label_en: lblEn,
+            label_km: lblKm,
+            values: valPairs,
+          };
+        });
+      } else if (typeof item.value === 'object' && item.value !== null) {
+        valueEn = item.value.en || '';
+        valueKm = item.value.km || '';
+      } else {
+        valueEn = String(item.value || '');
+        valueKm = '';
+      }
+
+      return {
+        id: key,
+        name_en: nameEn,
+        name_km: nameKm,
+        type,
+        value_en: valueEn,
+        value_km: valueKm,
+        table_rows: tableRows,
+        is_simple: false,
+      };
+    } else {
+      // Legacy simple boolean / string flags like show_in_collection
+      return {
+        id: key,
+        name_en: key,
+        name_km: '',
+        type: 'simple',
+        value_en: String(item),
+        value_km: '',
+        table_rows: [],
+        is_simple: true,
+      };
+    }
+  });
+}
+
+function serializeCustomFields(cfList) {
+  const result = {};
+  (cfList || []).forEach((field, index) => {
+    if (field.is_simple) {
+      const k = (field.name_en || field.id || '').trim();
+      if (k) {
+        result[k] = field.value_en === 'true' ? true : field.value_en === 'false' ? false : field.value_en;
+      }
+      return;
+    }
+
+    const fieldId = field.id || `field_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`;
+    const nameEn = (field.name_en || '').trim();
+    const nameKm = (field.name_km || '').trim();
+
+    if (!nameEn && !nameKm && !field.value_en && !field.value_km && (!field.table_rows || field.table_rows.length === 0)) {
+      return;
+    }
+
+    const nameObj = {
+      en: nameEn,
+      km: nameKm || nameEn,
+    };
+
+    if (field.type === 'table') {
+      const rows = (field.table_rows || []).map((r) => ({
+        label: { en: (r.label_en || '').trim(), km: (r.label_km || '').trim() },
+        value: (r.values || []).map((v) => ({ en: (v.en || '').trim(), km: (v.km || '').trim() })),
+      }));
+      result[fieldId] = {
+        name: nameObj,
+        type: 'table',
+        value: rows,
+      };
+    } else {
+      result[fieldId] = {
+        name: nameObj,
+        type: 'text',
+        value: {
+          en: (field.value_en || '').trim(),
+          km: (field.value_km || '').trim(),
+        },
+      };
+    }
+  });
+  return result;
+}
 
 export default function ProductsPage() {
   // Top Tabs: 'products' | 'categories'
@@ -106,6 +243,10 @@ export default function ProductsPage() {
   });
   const [relatedSearch, setRelatedSearch] = useState('');
   const [savingProduct, setSavingProduct] = useState(false);
+  const [drawerLoading, setDrawerLoading] = useState(false);
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [copyProductSearch, setCopyProductSearch] = useState('');
+  const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
 
   // ──────────────────────────────────────────────
   // DETAILED SPECS MODAL (Gear ⚙️ Button)
@@ -198,35 +339,64 @@ export default function ProductsPage() {
       brewing_instructions_km: '',
       tasting_notes_km: '',
       roast_level: '',
-      custom_fields: [{ key: 'show_in_collection', value: 'true' }],
+      custom_fields: [],
       related_products: [],
     });
+    setShowDetailedSpecs(false);
     setDrawerOpen(true);
   };
 
   // ──────────────────────────────────────────────
-  // OPEN EDIT PRODUCT DRAWER
+  // OPEN EDIT PRODUCT DRAWER (Instant 0ms with SWR)
   // ──────────────────────────────────────────────
   const openEditProduct = async (product) => {
     setDrawerMode('edit');
     setDrawerTab('en');
+    const baseId = product.base_product_id || product.id;
+
+    // 1. INSTANT OPEN (0ms): Prefill from row data immediately!
+    setProductForm({
+      base_product_id: baseId,
+      price: product.price || '',
+      category_id: product.category_id || '',
+      image: product.image || '',
+      featured: Number(product.featured || 0),
+      best_seller: Number(product.best_seller || 0),
+      enabled: Number(product.enabled ?? 1),
+      name_en: product.name || '',
+      description_en: product.description || '',
+      weight_en: product.weight || '',
+      detailed_description_en: product.detailed_description || '',
+      ingredients_en: product.ingredients || '',
+      origin_en: product.origin || '',
+      brewing_instructions_en: product.brewing_instructions || '',
+      tasting_notes_en: product.tasting_notes || '',
+      name_km: product.name || '',
+      description_km: product.description || '',
+      weight_km: product.weight || '',
+      detailed_description_km: product.detailed_description || '',
+      ingredients_km: product.ingredients || '',
+      origin_km: product.origin || '',
+      brewing_instructions_km: product.brewing_instructions || '',
+      tasting_notes_km: product.tasting_notes || '',
+      roast_level: product.roast_level || '',
+      custom_fields: parseCustomFields(product.custom_fields),
+      related_products: [],
+    });
+    setShowDetailedSpecs(false);
+    setDrawerOpen(true);
+    setDrawerLoading(true);
+
+    // 2. Fetch full bilingual & related data in background
     try {
-      const baseId = product.base_product_id || product.id;
       const res = await adminApi.getProductData(baseId);
       if (res.success) {
         const en = res.en || {};
         const km = res.km || {};
 
-        // Parse custom fields
-        let cfList = [];
-        try {
-          const cfObj = typeof en.custom_fields === 'string' ? JSON.parse(en.custom_fields) : (en.custom_fields || {});
-          cfList = Object.entries(cfObj).map(([k, v]) => ({ key: k, value: String(v) }));
-        } catch {
-          cfList = [];
-        }
+        const cfRaw = en.custom_fields || km.custom_fields || product.custom_fields || '{}';
+        const cfList = parseCustomFields(cfRaw);
 
-        // Parse related
         const relList = (res.related || []).map((r) => ({
           base_id: r.related_product_id || `custom_${r.id}`,
           name: r.product_name || r.custom_name || '',
@@ -235,45 +405,47 @@ export default function ProductsPage() {
           custom_image_url: r.custom_image_url || '',
         }));
 
-        setProductForm({
+        setProductForm((prev) => ({
+          ...prev,
           base_product_id: baseId,
-          price: en.price || km.price || '',
-          category_id: en.category_id || km.category_id || '',
-          image: en.image || km.image || '',
-          featured: Number(en.featured ?? km.featured ?? 0),
-          best_seller: Number(en.best_seller ?? km.best_seller ?? 0),
-          enabled: Number(en.enabled ?? km.enabled ?? 1),
+          price: en.price || km.price || prev.price || '',
+          category_id: en.category_id || km.category_id || prev.category_id || '',
+          image: en.image || km.image || prev.image || '',
+          featured: Number(en.featured ?? km.featured ?? prev.featured),
+          best_seller: Number(en.best_seller ?? km.best_seller ?? prev.best_seller),
+          enabled: Number(en.enabled ?? km.enabled ?? prev.enabled),
           // EN
-          name_en: en.name || '',
-          description_en: en.description || '',
-          weight_en: en.weight || '',
-          detailed_description_en: en.detailed_description || '',
-          ingredients_en: en.ingredients || '',
-          origin_en: en.origin || '',
-          brewing_instructions_en: en.brewing_instructions || '',
-          tasting_notes_en: en.tasting_notes || '',
+          name_en: en.name || prev.name_en || '',
+          description_en: en.description || prev.description_en || '',
+          weight_en: en.weight || prev.weight_en || '',
+          detailed_description_en: en.detailed_description || prev.detailed_description_en || '',
+          ingredients_en: en.ingredients || prev.ingredients_en || '',
+          origin_en: en.origin || prev.origin_en || '',
+          brewing_instructions_en: en.brewing_instructions || prev.brewing_instructions_en || '',
+          tasting_notes_en: en.tasting_notes || prev.tasting_notes_en || '',
           // KM
-          name_km: km.name || '',
-          description_km: km.description || '',
-          weight_km: km.weight || '',
-          detailed_description_km: km.detailed_description || '',
-          ingredients_km: km.ingredients || '',
-          origin_km: km.origin || '',
-          brewing_instructions_km: km.brewing_instructions || '',
-          tasting_notes_km: km.tasting_notes || '',
-          roast_level: en.roast_level || km.roast_level || '',
+          name_km: km.name || prev.name_km || '',
+          description_km: km.description || prev.description_km || '',
+          weight_km: km.weight || prev.weight_km || '',
+          detailed_description_km: km.detailed_description || prev.detailed_description_km || '',
+          ingredients_km: km.ingredients || prev.ingredients_km || '',
+          origin_km: km.origin || prev.origin_km || '',
+          brewing_instructions_km: km.brewing_instructions || prev.brewing_instructions_km || '',
+          tasting_notes_km: km.tasting_notes || prev.tasting_notes_km || '',
+          roast_level: en.roast_level || km.roast_level || prev.roast_level || '',
           custom_fields: cfList,
           related_products: relList,
-        });
-        setDrawerOpen(true);
+        }));
       }
     } catch (err) {
-      showToast('បរាជ័យក្នុងការទាញយកទិន្នន័យផលិតផល: ' + err.message, 'error');
+      console.warn('Could not fetch extra product data:', err);
+    } finally {
+      setDrawerLoading(false);
     }
   };
 
   // ──────────────────────────────────────────────
-  // SAVE PRODUCT (Bilingual Full Save)
+  // SAVE PRODUCT (Bilingual Full Save with Custom Fields)
   // ──────────────────────────────────────────────
   const handleSaveProduct = async (e) => {
     e.preventDefault();
@@ -288,13 +460,8 @@ export default function ProductsPage() {
 
     setSavingProduct(true);
     try {
-      // Reassemble custom fields into object
-      const cfObj = {};
-      productForm.custom_fields.forEach(({ key, value }) => {
-        if (key && key.trim()) {
-          cfObj[key.trim()] = value === 'true' ? true : value === 'false' ? false : value;
-        }
-      });
+      // Reassemble custom fields into structured object
+      const cfObj = serializeCustomFields(productForm.custom_fields);
 
       const payload = {
         base_product_id: productForm.base_product_id,
@@ -353,13 +520,8 @@ export default function ProductsPage() {
         const en = res.en || {};
         const km = res.km || {};
 
-        let cfList = [];
-        try {
-          const cfObj = typeof en.custom_fields === 'string' ? JSON.parse(en.custom_fields) : (en.custom_fields || {});
-          cfList = Object.entries(cfObj).map(([k, v]) => ({ key: k, value: String(v) }));
-        } catch {
-          cfList = [];
-        }
+        const cfRaw = en.custom_fields || km.custom_fields || product.custom_fields || '{}';
+        const cfList = parseCustomFields(cfRaw);
 
         setDetailedForm({
           base_product_id: baseId,
@@ -402,10 +564,7 @@ export default function ProductsPage() {
     if (!detailedForm) return;
     setSavingDetailed(true);
     try {
-      const cfObj = {};
-      detailedForm.custom_fields.forEach(({ key, value }) => {
-        if (key && key.trim()) cfObj[key.trim()] = value === 'true' ? true : value === 'false' ? false : value;
-      });
+      const cfObj = serializeCustomFields(detailedForm.custom_fields);
 
       const payload = {
         ...detailedForm,
@@ -416,7 +575,7 @@ export default function ProductsPage() {
       if (res.success) {
         showToast('បានរក្សាទុកព័ត៌មានលម្អិតជោគជ័យ!');
         setDetailedModalOpen(false);
-        loadData();
+        loadData(true);
       } else {
         showToast(res.error || 'បរាជ័យក្នុងការរក្សាទុក', 'error');
       }
@@ -429,26 +588,45 @@ export default function ProductsPage() {
 
   // ──────────────────────────────────────────────
   // STATUS TOGGLES (⭐ Featured, 🏆 Best Seller, 📦 Collection, 👁️ Enabled)
+  // OPTIMISTIC UPDATE: Responds in 0ms!
   // ──────────────────────────────────────────────
   const handleToggleStatus = async (product, field) => {
+    const baseId = product.base_product_id || product.id;
+    const curVal = field === 'collection' ? product.show_in_collection : product[field];
+    const newVal = (curVal == 1 || curVal === true) ? 0 : 1;
+
+    // 1. Instant UI toggle (0ms)
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.base_product_id === baseId || p.id === product.id) {
+          if (field === 'featured') return { ...p, featured: newVal };
+          if (field === 'best_seller') return { ...p, best_seller: newVal };
+          if (field === 'enabled') return { ...p, enabled: newVal };
+          if (field === 'collection') return { ...p, show_in_collection: Boolean(newVal) };
+        }
+        return p;
+      })
+    );
+
+    // 2. Perform backend toggle in background
     try {
-      const baseId = product.base_product_id || product.id;
       const res = await adminApi.toggleProductStatus(product.id, baseId, field);
-      if (res.success) {
-        setProducts((prev) =>
-          prev.map((p) => {
-            if (p.base_product_id === baseId || p.id === product.id) {
-              if (field === 'featured') return { ...p, featured: res.value };
-              if (field === 'best_seller') return { ...p, best_seller: res.value };
-              if (field === 'enabled') return { ...p, enabled: res.value };
-              if (field === 'collection') return { ...p, show_in_collection: res.value };
-            }
-            return p;
-          })
-        );
-        showToast('បានផ្លាស់ប្តូរស្ថានភាពជោគជ័យ!');
+      if (!res.success) {
+        throw new Error(res.error || 'បរាជ័យក្នុងការផ្លាស់ប្តូរស្ថានភាព');
       }
     } catch (err) {
+      // Revert if failed
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (p.base_product_id === baseId || p.id === product.id) {
+            if (field === 'featured') return { ...p, featured: curVal };
+            if (field === 'best_seller') return { ...p, best_seller: curVal };
+            if (field === 'enabled') return { ...p, enabled: curVal };
+            if (field === 'collection') return { ...p, show_in_collection: curVal };
+          }
+          return p;
+        })
+      );
       showToast(err.message || 'បរាជ័យក្នុងការផ្លាស់ប្តូរស្ថានភាព', 'error');
     }
   };
@@ -1099,7 +1277,7 @@ export default function ProductsPage() {
       {/* ────────────────────────────────────────────── */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white w-full max-w-2xl h-full shadow-2xl flex flex-col overflow-hidden animate-slide-left border-l border-gray-200">
+          <div className="bg-white w-full max-w-3xl lg:max-w-4xl h-full shadow-2xl flex flex-col overflow-hidden animate-slide-left border-l border-gray-200">
             {/* Drawer Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-amber-600/5 to-transparent">
               <div className="flex items-center gap-3">
@@ -1107,10 +1285,17 @@ export default function ProductsPage() {
                   <Package size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">
-                    {drawerMode === 'add' ? 'បន្ថែមផលិតផលថ្មី (Add New Product)' : 'កែប្រែផលិតផល (Edit Product)'}
-                  </h3>
-                  <p className="text-xs text-gray-500">គាំទ្រការកែប្រែទាំងភាសាអង់គ្លេស និងខ្មែរព្រមគ្នា</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-gray-900 text-lg">
+                      {drawerMode === 'add' ? 'បន្ថែមផលិតផលថ្មី (Add New Product)' : 'កែប្រែផលិតផល (Edit Product)'}
+                    </h3>
+                    {drawerLoading && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 animate-pulse">
+                        <RotateCcw size={10} className="animate-spin" /> កំពុងផ្ទុកទិន្នន័យ...
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">គាំទ្រការកែប្រែទិន្នន័យទំនិញ ភាសាអង់គ្លេស និងខ្មែរព្រមគ្នា ដូច admin/products.php</p>
                 </div>
               </div>
               <button
@@ -1128,7 +1313,7 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={() => setDrawerTab('en')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     drawerTab === 'en'
                       ? 'bg-amber-600 text-white shadow-xs'
                       : 'text-gray-600 hover:text-gray-900'
@@ -1139,7 +1324,7 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={() => setDrawerTab('km')}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     drawerTab === 'km'
                       ? 'bg-amber-600 text-white shadow-xs'
                       : 'text-gray-600 hover:text-gray-900'
@@ -1154,9 +1339,14 @@ export default function ProductsPage() {
             <form onSubmit={handleSaveProduct} id="productDrawerForm" className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Bilingual Inputs Pane */}
               <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-200/60 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                  <Sparkles size={14} className="text-amber-600" />
-                  <span>ព័ត៌មានតាមភាសា: {drawerTab === 'en' ? 'English Content' : 'ខ្លឹមសារភាសាខ្មែរ'}</span>
+                <div className="flex items-center justify-between text-xs font-bold text-amber-900">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-amber-600" />
+                    <span>ព័ត៌មានតាមភាសា: {drawerTab === 'en' ? 'English Content (EN)' : 'ខ្លឹមសារភាសាខ្មែរ (KM)'}</span>
+                  </div>
+                  <span className="text-[11px] text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md">
+                    {drawerTab === 'en' ? 'EN Mode' : 'KM Mode'}
+                  </span>
                 </div>
 
                 {drawerTab === 'en' ? (
@@ -1181,7 +1371,7 @@ export default function ProductsPage() {
                       <textarea
                         value={productForm.description_en}
                         onChange={(e) => setProductForm({ ...productForm, description_en: e.target.value })}
-                        rows={3}
+                        rows={2}
                         placeholder="Brief summary for product card..."
                         className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                       />
@@ -1192,7 +1382,7 @@ export default function ProductsPage() {
                         type="text"
                         value={productForm.weight_en}
                         onChange={(e) => setProductForm({ ...productForm, weight_en: e.target.value })}
-                        placeholder="e.g. 250g or 1kg"
+                        placeholder="e.g. 750ml, 250g or 1kg"
                         className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                       />
                     </div>
@@ -1218,7 +1408,7 @@ export default function ProductsPage() {
                       <textarea
                         value={productForm.description_km}
                         onChange={(e) => setProductForm({ ...productForm, description_km: e.target.value })}
-                        rows={3}
+                        rows={2}
                         placeholder="សេចក្តីសង្ខេបសម្រាប់បង្ហាញលើកាត..."
                         className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                       />
@@ -1229,16 +1419,151 @@ export default function ProductsPage() {
                         type="text"
                         value={productForm.weight_km}
                         onChange={(e) => setProductForm({ ...productForm, weight_km: e.target.value })}
-                        placeholder="ឧ. ២៥០ ក្រាម ឬ ១ គីឡូក្រាម"
+                        placeholder="ឧ. ៧៥០ មីលីលីត្រ, ២៥០ ក្រាម ឬ ១ គីឡូក្រាម"
                         className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                       />
                     </div>
                   </div>
                 )}
+
+                {/* Collapsible Detailed Specifications (Parity with admin/products.php) */}
+                <div className="pt-2 border-t border-amber-200/50">
+                  <button
+                    type="button"
+                    onClick={() => setShowDetailedSpecs(!showDetailedSpecs)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-100/70 hover:bg-amber-100 text-amber-900 text-xs font-bold transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings size={13} className="text-amber-700" />
+                      <span>លក្ខណៈបច្ចេកទេសលម្អិត (Detailed Specifications & Notes)</span>
+                    </div>
+                    {showDetailedSpecs ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+
+                  {showDetailedSpecs && (
+                    <div className="mt-3 p-3 bg-white rounded-xl border border-amber-200/70 space-y-3">
+                      {drawerTab === 'en' ? (
+                        <>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Detailed Description (EN)</label>
+                            <textarea
+                              value={productForm.detailed_description_en}
+                              onChange={(e) => setProductForm({ ...productForm, detailed_description_en: e.target.value })}
+                              rows={3}
+                              placeholder="Full story, details, tasting notes..."
+                              className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">Ingredients (EN)</label>
+                              <textarea
+                                value={productForm.ingredients_en}
+                                onChange={(e) => setProductForm({ ...productForm, ingredients_en: e.target.value })}
+                                rows={2}
+                                placeholder="e.g. 100% Arabica beans..."
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">Brewing Instructions (EN)</label>
+                              <textarea
+                                value={productForm.brewing_instructions_en}
+                                onChange={(e) => setProductForm({ ...productForm, brewing_instructions_en: e.target.value })}
+                                rows={2}
+                                placeholder="e.g. 15g coffee per 250ml..."
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">Origin (EN)</label>
+                              <input
+                                type="text"
+                                value={productForm.origin_en}
+                                onChange={(e) => setProductForm({ ...productForm, origin_en: e.target.value })}
+                                placeholder="e.g. Mondulkiri, Cambodia"
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">Tasting Notes (EN)</label>
+                              <input
+                                type="text"
+                                value={productForm.tasting_notes_en}
+                                onChange={(e) => setProductForm({ ...productForm, tasting_notes_en: e.target.value })}
+                                placeholder="e.g. Caramel, Chocolate, Floral"
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">ការពិពណ៌នាលម្អិត (KM)</label>
+                            <textarea
+                              value={productForm.detailed_description_km}
+                              onChange={(e) => setProductForm({ ...productForm, detailed_description_km: e.target.value })}
+                              rows={3}
+                              placeholder="ព័ត៌មានលម្អិតបន្ថែមអំពីរឿងរ៉ាវផលិតផល..."
+                              className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">គ្រឿងផ្សំ (KM)</label>
+                              <textarea
+                                value={productForm.ingredients_km}
+                                onChange={(e) => setProductForm({ ...productForm, ingredients_km: e.target.value })}
+                                rows={2}
+                                placeholder="គ្រឿងផ្សំសំខាន់ៗ..."
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">ការណែនាំអំពីការឆុង (KM)</label>
+                              <textarea
+                                value={productForm.brewing_instructions_km}
+                                onChange={(e) => setProductForm({ ...productForm, brewing_instructions_km: e.target.value })}
+                                rows={2}
+                                placeholder="របៀបឆុង ឬលាយភេសជ្ជៈ..."
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">ប្រភពដើម (KM)</label>
+                              <input
+                                type="text"
+                                value={productForm.origin_km}
+                                onChange={(e) => setProductForm({ ...productForm, origin_km: e.target.value })}
+                                placeholder="ឧ. ខេត្តមណ្ឌលគិរី"
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-700 mb-1">កំណត់ចំណាំរសជាតិ (KM)</label>
+                              <input
+                                type="text"
+                                value={productForm.tasting_notes_km}
+                                onChange={(e) => setProductForm({ ...productForm, tasting_notes_km: e.target.value })}
+                                placeholder="ឧ. ការ៉ាមែល, សូកូឡា, ផ្អែមស្រទន់"
+                                className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* General Settings: Price & Category */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* General Settings: Price, Category, Roast Level */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">
                     តម្លៃ Price ($) <span className="text-red-500">*</span>
@@ -1272,13 +1597,30 @@ export default function ProductsPage() {
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">កម្រិតលីង (Roast Level)</label>
+                  <select
+                    value={productForm.roast_level}
+                    onChange={(e) => setProductForm({ ...productForm, roast_level: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  >
+                    <option value="">គ្មាន / មិនជ្រើសរើស</option>
+                    <option value="Light">Light Roast</option>
+                    <option value="Medium-Light">Medium-Light</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Medium-Dark">Medium-Dark</option>
+                    <option value="Dark">Dark Roast</option>
+                    <option value="French">French (Very Dark)</option>
+                    <option value="Unroasted">Unroasted / Green</option>
+                  </select>
+                </div>
               </div>
 
               {/* Product Image Section with Hosting Media Browser */}
               <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-200/80 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold text-gray-800">រូបភាពផលិតផល (Product Image)</label>
-                  {/* Button to open Media Browser Modal! */}
                   <button
                     type="button"
                     onClick={() =>
@@ -1287,7 +1629,7 @@ export default function ProductsPage() {
                         showToast('បានជ្រើសរើសរូបភាពជោគជ័យ!');
                       }, 'ជ្រើសរើសរូបភាពផលិតផលពី Hosting Media')
                     }
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                   >
                     <FolderOpen size={13} />
                     <span>រុករករូបភាព Hosting Media</span>
@@ -1378,62 +1720,499 @@ export default function ProductsPage() {
                 </label>
               </div>
 
-              {/* Custom Fields Editor */}
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-800">Custom Fields (វាលទិន្នន័យបន្ថែម)</label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setProductForm({
-                        ...productForm,
-                        custom_fields: [...productForm.custom_fields, { key: '', value: '' }],
-                      })
-                    }
-                    className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
-                  >
-                    <Plus size={14} /> បន្ថែមវាល
-                  </button>
+              {/* ────────────────────────────────────────────── */}
+              {/* CUSTOM FIELDS SECTION (100% Identical to admin/products.php) */}
+              {/* ────────────────────────────────────────────── */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <ListPlus size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900">Custom Fields (វាលទិន្នន័យបន្ថែម)</h4>
+                      <p className="text-[11px] text-gray-400">គាំទ្រទាំងប្រភេទ Text និង Nutrition Table (តារាងអាហារូបត្ថម្ភ) ដូច admin/products.php</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Add Text Field */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newField = {
+                          id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`,
+                          name_en: '',
+                          name_km: '',
+                          type: 'text',
+                          value_en: '',
+                          value_km: '',
+                          table_rows: [],
+                          is_simple: false,
+                        };
+                        setProductForm({
+                          ...productForm,
+                          custom_fields: [...productForm.custom_fields, newField],
+                        });
+                      }}
+                      className="px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg flex items-center gap-1 cursor-pointer transition"
+                    >
+                      <Plus size={13} /> Text
+                    </button>
+
+                    {/* Add Table Field */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newField = {
+                          id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`,
+                          name_en: 'Nutrition Facts',
+                          name_km: 'អាហារូបត្ថម្ភ',
+                          type: 'table',
+                          value_en: '',
+                          value_km: '',
+                          table_rows: [
+                            {
+                              id: `row_0_${Date.now()}`,
+                              label_en: 'Energy',
+                              label_km: 'ថាមពល',
+                              values: [{ en: '', km: '' }, { en: '', km: '' }],
+                            },
+                          ],
+                          is_simple: false,
+                        };
+                        setProductForm({
+                          ...productForm,
+                          custom_fields: [...productForm.custom_fields, newField],
+                        });
+                      }}
+                      className="px-2.5 py-1 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg flex items-center gap-1 cursor-pointer transition"
+                    >
+                      <TableIcon size={13} /> Nutrition Table
+                    </button>
+
+                    {/* Copy Custom Fields */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCopyProductSearch('');
+                        setCopyModalOpen(true);
+                      }}
+                      className="px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg flex items-center gap-1 cursor-pointer transition"
+                      title="ចម្លង Custom Fields ពីផលិតផលផ្សេង"
+                    >
+                      <Copy size={13} /> ចម្លង (Copy)
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  {productForm.custom_fields.map((cf, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={cf.key}
-                        onChange={(e) => {
-                          const updated = [...productForm.custom_fields];
-                          updated[idx].key = e.target.value;
-                          setProductForm({ ...productForm, custom_fields: updated });
-                        }}
-                        placeholder="Key (e.g. show_in_collection)"
-                        className="flex-1 px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
-                      />
-                      <input
-                        type="text"
-                        value={cf.value}
-                        onChange={(e) => {
-                          const updated = [...productForm.custom_fields];
-                          updated[idx].value = e.target.value;
-                          setProductForm({ ...productForm, custom_fields: updated });
-                        }}
-                        placeholder="Value (e.g. true)"
-                        className="flex-1 px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = productForm.custom_fields.filter((_, i) => i !== idx);
-                          setProductForm({ ...productForm, custom_fields: updated });
-                        }}
-                        className="w-7 h-7 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg"
+                {/* Custom Fields List */}
+                {productForm.custom_fields.length === 0 ? (
+                  <div className="py-6 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                    <p className="text-xs text-gray-500 font-medium">មិនទាន់មាន Custom Fields នៅឡើយទេ</p>
+                    <p className="text-[11px] text-gray-400 mt-1">ចុចប៊ូតុងខាងលើដើម្បីបន្ថែមវាលថ្មី (Text ឬ Nutrition Table) ឬចម្លងពីផលិតផលផ្សេង</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {productForm.custom_fields.map((cf, idx) => (
+                      <div
+                        key={cf.id || idx}
+                        className="bg-gray-50/80 rounded-xl border border-gray-200 p-3.5 space-y-3 relative group hover:border-gray-300 transition"
                       >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
+                        {/* Field Header */}
+                        <div className="flex items-center justify-between pb-2 border-b border-gray-200/80 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                              #{idx + 1}
+                            </span>
+                            <span className="font-mono text-[11px] text-gray-500 font-bold truncate max-w-[150px]">
+                              {cf.id}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                cf.type === 'table'
+                                  ? 'bg-purple-100 text-purple-700'
+                                  : cf.is_simple
+                                  ? 'bg-gray-100 text-gray-700'
+                                  : 'bg-emerald-100 text-emerald-700'
+                              }`}
+                            >
+                              {cf.type === 'table' ? 'Nutrition Table' : cf.is_simple ? 'Flag' : 'Text Field'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {/* Switch Type */}
+                            {!cf.is_simple && (
+                              <select
+                                value={cf.type}
+                                onChange={(e) => {
+                                  const updated = [...productForm.custom_fields];
+                                  const newType = e.target.value;
+                                  updated[idx].type = newType;
+                                  if (newType === 'table' && (!updated[idx].table_rows || updated[idx].table_rows.length === 0)) {
+                                    updated[idx].table_rows = [
+                                      {
+                                        id: `row_0_${Date.now()}`,
+                                        label_en: '',
+                                        label_km: '',
+                                        values: [{ en: '', km: '' }],
+                                      },
+                                    ];
+                                  }
+                                  setProductForm({ ...productForm, custom_fields: updated });
+                                }}
+                                className="text-[11px] bg-white border border-gray-200 rounded px-2 py-0.5 text-gray-700"
+                              >
+                                <option value="text">Text (អត្ថបទ)</option>
+                                <option value="table">Nutrition Table</option>
+                              </select>
+                            )}
+
+                            {/* Remove Field */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = productForm.custom_fields.filter((_, i) => i !== idx);
+                                setProductForm({ ...productForm, custom_fields: updated });
+                              }}
+                              className="w-6 h-6 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition"
+                              title="លុបវាលនេះ"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Legacy Simple Field */}
+                        {cf.is_simple ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={cf.name_en || cf.id}
+                              onChange={(e) => {
+                                const updated = [...productForm.custom_fields];
+                                updated[idx].name_en = e.target.value;
+                                setProductForm({ ...productForm, custom_fields: updated });
+                              }}
+                              placeholder="Key"
+                              className="w-1/3 px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg font-mono"
+                            />
+                            <input
+                              type="text"
+                              value={cf.value_en}
+                              onChange={(e) => {
+                                const updated = [...productForm.custom_fields];
+                                updated[idx].value_en = e.target.value;
+                                setProductForm({ ...productForm, custom_fields: updated });
+                              }}
+                              placeholder="Value"
+                              className="flex-1 px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg font-mono"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            {/* Field Name (Bilingual) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                                  Field Name (English)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={cf.name_en}
+                                  onChange={(e) => {
+                                    const updated = [...productForm.custom_fields];
+                                    updated[idx].name_en = e.target.value;
+                                    setProductForm({ ...productForm, custom_fields: updated });
+                                  }}
+                                  placeholder="e.g. Ingredients: or Shelf life:"
+                                  className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                                  ឈ្មោះវាល (ភាសាខ្មែរ)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={cf.name_km}
+                                  onChange={(e) => {
+                                    const updated = [...productForm.custom_fields];
+                                    updated[idx].name_km = e.target.value;
+                                    setProductForm({ ...productForm, custom_fields: updated });
+                                  }}
+                                  placeholder="ឧ. គ្រឿងផ្សំសំខាន់ៗ៖ ឬ អាយុកាល៖"
+                                  className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Field Value: TEXT TYPE */}
+                            {cf.type === 'text' && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                                    Value (English)
+                                  </label>
+                                  <textarea
+                                    value={cf.value_en}
+                                    onChange={(e) => {
+                                      const updated = [...productForm.custom_fields];
+                                      updated[idx].value_en = e.target.value;
+                                      setProductForm({ ...productForm, custom_fields: updated });
+                                    }}
+                                    rows={2}
+                                    placeholder="Enter description or content in English..."
+                                    className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                                    តម្លៃ / ការពិពណ៌នា (ភាសាខ្មែរ)
+                                  </label>
+                                  <textarea
+                                    value={cf.value_km}
+                                    onChange={(e) => {
+                                      const updated = [...productForm.custom_fields];
+                                      updated[idx].value_km = e.target.value;
+                                      setProductForm({ ...productForm, custom_fields: updated });
+                                    }}
+                                    rows={2}
+                                    placeholder="បញ្ចូលការពិពណ៌នាជាភាសាខ្មែរ..."
+                                    className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Field Value: NUTRITION TABLE TYPE */}
+                            {cf.type === 'table' && (
+                              <div className="bg-white rounded-xl border border-purple-200/80 p-3 space-y-3">
+                                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                                  <span className="text-[11px] font-bold text-purple-900 flex items-center gap-1.5">
+                                    <TableIcon size={12} className="text-purple-600" />
+                                    <span>Nutrition Table Rows (ជួរទិន្នន័យតារាង)</span>
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = [...productForm.custom_fields];
+                                      const rows = updated[idx].table_rows || [];
+                                      updated[idx].table_rows = [
+                                        ...rows,
+                                        {
+                                          id: `row_${rows.length}_${Date.now()}`,
+                                          label_en: '',
+                                          label_km: '',
+                                          values: [{ en: '', km: '' }, { en: '', km: '' }],
+                                        },
+                                      ];
+                                      setProductForm({ ...productForm, custom_fields: updated });
+                                    }}
+                                    className="px-2 py-0.5 text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded flex items-center gap-1 cursor-pointer transition"
+                                  >
+                                    <Plus size={11} /> បន្ថែមជួរ (Add Row)
+                                  </button>
+                                </div>
+
+                                {/* Rows */}
+                                <div className="space-y-2">
+                                  {(cf.table_rows || []).map((row, rIdx) => (
+                                    <div
+                                      key={row.id || rIdx}
+                                      className="p-2 bg-gray-50 rounded-lg border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs"
+                                    >
+                                      {/* Row Labels */}
+                                      <div className="flex items-center gap-1 flex-1 w-full sm:w-auto">
+                                        <input
+                                          type="text"
+                                          value={row.label_en}
+                                          onChange={(e) => {
+                                            const updated = [...productForm.custom_fields];
+                                            updated[idx].table_rows[rIdx].label_en = e.target.value;
+                                            setProductForm({ ...productForm, custom_fields: updated });
+                                          }}
+                                          placeholder="Label EN (e.g. Energy)"
+                                          className="flex-1 px-2 py-1 text-xs bg-white border border-gray-200 rounded"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={row.label_km}
+                                          onChange={(e) => {
+                                            const updated = [...productForm.custom_fields];
+                                            updated[idx].table_rows[rIdx].label_km = e.target.value;
+                                            setProductForm({ ...productForm, custom_fields: updated });
+                                          }}
+                                          placeholder="Label KM (e.g. ថាមពល)"
+                                          className="flex-1 px-2 py-1 text-xs bg-white border border-gray-200 rounded"
+                                        />
+                                      </div>
+
+                                      {/* Value pairs */}
+                                      <div className="flex items-center gap-1 flex-1 w-full sm:w-auto flex-wrap">
+                                        {(row.values || []).map((vp, vIdx) => (
+                                          <div key={vIdx} className="flex items-center gap-1">
+                                            <input
+                                              type="text"
+                                              value={vp.en}
+                                              onChange={(e) => {
+                                                const updated = [...productForm.custom_fields];
+                                                updated[idx].table_rows[rIdx].values[vIdx].en = e.target.value;
+                                                setProductForm({ ...productForm, custom_fields: updated });
+                                              }}
+                                              placeholder={`Val ${vIdx + 1} (e.g. 867KJ)`}
+                                              className="w-24 px-2 py-1 text-xs bg-white border border-gray-200 rounded font-mono"
+                                            />
+                                            {row.values.length > 1 && (
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const updated = [...productForm.custom_fields];
+                                                  updated[idx].table_rows[rIdx].values = row.values.filter(
+                                                    (_, i) => i !== vIdx
+                                                  );
+                                                  setProductForm({ ...productForm, custom_fields: updated });
+                                                }}
+                                                className="text-gray-400 hover:text-red-500 p-0.5"
+                                                title="Remove column"
+                                              >
+                                                <X size={11} />
+                                              </button>
+                                            )}
+                                          </div>
+                                        ))}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = [...productForm.custom_fields];
+                                            updated[idx].table_rows[rIdx].values.push({ en: '', km: '' });
+                                            setProductForm({ ...productForm, custom_fields: updated });
+                                          }}
+                                          className="px-1.5 py-0.5 text-[10px] text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-100"
+                                          title="Add value column (e.g. NRV%)"
+                                        >
+                                          + Col
+                                        </button>
+                                      </div>
+
+                                      {/* Remove Row Button */}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updated = [...productForm.custom_fields];
+                                          updated[idx].table_rows = updated[idx].table_rows.filter(
+                                            (_, i) => i !== rIdx
+                                          );
+                                          setProductForm({ ...productForm, custom_fields: updated });
+                                        }}
+                                        className="text-red-400 hover:text-red-600 p-1 self-end sm:self-center"
+                                        title="Remove row"
+                                      >
+                                        <X size={13} />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ────────────────────────────────────────────── */}
+              {/* RELATED PRODUCTS SECTION                       */}
+              {/* ────────────────────────────────────────────── */}
+              <div className="bg-white p-4 rounded-2xl border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package size={14} className="text-blue-600" />
+                    <label className="text-xs font-bold text-gray-800">ផលិតផលពាក់ព័ន្ធ (Related Products)</label>
+                  </div>
+                  <span className="text-[11px] text-gray-400">
+                    {productForm.related_products.length} ផលិតផលដែលបានជ្រើស
+                  </span>
                 </div>
+
+                {/* Search & Add */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={relatedSearch}
+                    onChange={(e) => setRelatedSearch(e.target.value)}
+                    placeholder="ស្វែងរកឈ្មោះផលិតផលដើម្បីភ្ជាប់ពាក់ព័ន្ធ..."
+                    className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  {relatedSearch.trim() && (
+                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-gray-100">
+                      {products
+                        .filter((p) => {
+                          const name = (p.name || '').toLowerCase();
+                          const q = relatedSearch.toLowerCase();
+                          const isSelf = (p.base_product_id || p.id) === productForm.base_product_id;
+                          const isAlready = productForm.related_products.some(
+                            (r) => r.base_id == (p.base_product_id || p.id)
+                          );
+                          return !isSelf && !isAlready && name.includes(q);
+                        })
+                        .slice(0, 8)
+                        .map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              const newRel = {
+                                base_id: p.base_product_id || p.id,
+                                name: p.name,
+                                custom_url: '',
+                                custom_image: p.image || '',
+                                custom_image_url: '',
+                              };
+                              setProductForm({
+                                ...productForm,
+                                related_products: [...productForm.related_products, newRel],
+                              });
+                              setRelatedSearch('');
+                            }}
+                            className="w-full px-3 py-2 text-left hover:bg-amber-50/50 flex items-center justify-between text-xs transition"
+                          >
+                            <span className="font-medium text-gray-800">{p.name}</span>
+                            <span className="text-gray-400 text-[11px]">${Number(p.price).toFixed(2)}</span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Related Products Chips */}
+                {productForm.related_products.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {productForm.related_products.map((rel, rIdx) => (
+                      <div
+                        key={rIdx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs font-medium"
+                      >
+                        <span>{rel.name || `Product #${rel.base_id}`}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = productForm.related_products.filter((_, i) => i !== rIdx);
+                            setProductForm({ ...productForm, related_products: updated });
+                          }}
+                          className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-blue-200 text-blue-700 transition"
+                        >
+                          <X size={11} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-gray-400">មិនទាន់មានផលិតផលពាក់ព័ន្ធត្រូវបានជ្រើសរើសនៅឡើយ</p>
+                )}
               </div>
             </form>
 
@@ -1454,6 +2233,116 @@ export default function ProductsPage() {
               >
                 {savingProduct && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                 <span>{drawerMode === 'add' ? 'បន្ថែមផលិតផល (Add Product)' : 'ធ្វើបច្ចុប្បន្នភាព (Update Product)'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────── */}
+      {/* COPY CUSTOM FIELDS MODAL                       */}
+      {/* ────────────────────────────────────────────── */}
+      {copyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 animate-scale-up">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-500/10 to-transparent">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                  <Copy size={16} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 text-sm">ចម្លង Custom Fields ពីផលិតផលផ្សេង</h4>
+                  <p className="text-[11px] text-gray-500">ជ្រើសរើសផលិតផលដើម្បីចម្លងវាលទិន្នន័យ (Copy Fields)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCopyModalOpen(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={copyProductSearch}
+                  onChange={(e) => setCopyProductSearch(e.target.value)}
+                  placeholder="ស្វែងរកតាមឈ្មោះផលិតផល..."
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+
+              <div className="max-h-64 overflow-y-auto space-y-1 divide-y divide-gray-50">
+                {products
+                  .filter((p) => {
+                    const isSelf = (p.base_product_id || p.id) === productForm.base_product_id;
+                    const matches = (p.name || '').toLowerCase().includes(copyProductSearch.toLowerCase());
+                    return !isSelf && matches;
+                  })
+                  .map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-2.5 rounded-xl hover:bg-blue-50/50 flex items-center justify-between transition"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={formatImageUrl(p.image, 'products')}
+                          alt={p.name}
+                          className="w-8 h-8 rounded-lg object-contain bg-gray-100 border border-gray-200 p-0.5"
+                          onError={(e) => {
+                            e.target.src = 'https://placehold.co/50x50?text=No+Img';
+                          }}
+                        />
+                        <div>
+                          <p className="text-xs font-bold text-gray-800">{p.name}</p>
+                          <p className="text-[10px] text-gray-400">ID #{p.base_product_id || p.id} • ${Number(p.price).toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const baseId = p.base_product_id || p.id;
+                            const res = await adminApi.getProductData(baseId);
+                            if (res.success) {
+                              const cfRaw = res.en?.custom_fields || res.km?.custom_fields || p.custom_fields || '{}';
+                              const parsed = parseCustomFields(cfRaw);
+                              if (parsed.length === 0) {
+                                showToast('ផលិតផលនេះគ្មាន Custom Fields សម្រាប់ចម្លងទេ', 'error');
+                                return;
+                              }
+                              setProductForm((prev) => ({
+                                ...prev,
+                                custom_fields: parsed,
+                              }));
+                              setCopyModalOpen(false);
+                              showToast(`បានចម្លង ${parsed.length} Custom Fields ពី "${p.name}" ជោគជ័យ!`);
+                            }
+                          } catch (err) {
+                            showToast('បរាជ័យក្នុងការចម្លង: ' + err.message, 'error');
+                          }
+                        }}
+                        className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer transition flex items-center gap-1"
+                      >
+                        <Copy size={11} /> ចម្លង
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setCopyModalOpen(false)}
+                className="px-4 py-1.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-200 transition cursor-pointer"
+              >
+                បិទ (Close)
               </button>
             </div>
           </div>

@@ -78,7 +78,10 @@ export default function HomePage() {
 
     const elem = document.getElementById('products');
     if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const rect = elem.getBoundingClientRect();
+      if (rect.top < -100 || rect.top > window.innerHeight) {
+        elem.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
     }
   };
 
@@ -88,10 +91,12 @@ export default function HomePage() {
     params.set('page', page.toString());
     setSearchParams(params);
 
-    // Smooth scroll to products anchor
     const elem = document.getElementById('products');
     if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const rect = elem.getBoundingClientRect();
+      if (rect.top < -100 || rect.top > window.innerHeight) {
+        elem.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
     }
   };
 

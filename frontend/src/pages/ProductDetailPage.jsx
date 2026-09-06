@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { fetchProductDetail, getImageUrl } from '../api/client';
 import ProductCard from '../components/ProductCard';
@@ -25,14 +25,24 @@ import {
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const initialProduct = location.state?.product || null;
   const { language, settings, t, setReviewProduct } = useApp();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const [data, setData] = useState(() => {
+    if (initialProduct) {
+      return { success: true, product: initialProduct, reviews: [], related_products: [] };
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(() => !initialProduct);
   const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
+    if (!data) {
+      setLoading(true);
+    }
     fetchProductDetail(id, language).then((res) => {
       if (!isMounted) return;
       if (res && res.success) {

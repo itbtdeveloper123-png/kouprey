@@ -16,7 +16,7 @@ export default function ProductCard({ product }) {
   const originalPrice = Number(product.original_price || product.old_price) || 0;
 
   const handleClick = () => {
-    navigate(`/product/${product.base_product_id || product.id}`);
+    navigate(`/product/${product.base_product_id || product.id}`, { state: { product } });
   };
 
   const handleQuickView = (e) => {
