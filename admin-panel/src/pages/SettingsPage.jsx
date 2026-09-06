@@ -56,6 +56,7 @@ const InstagramIcon = ({ size = 16, className = "" }) => (
 );
 import { adminApi } from '../api/adminClient';
 import ImageUpload from '../components/ImageUpload';
+import PolicyRichEditor from '../components/PolicyRichEditor';
 
 // All 15 Categories matching admin/settings.php lines 615-631
 const CATEGORIES_METADATA = [
@@ -343,6 +344,83 @@ export default function SettingsPage() {
       };
     });
   };
+
+  // Preview frame document generator matching admin/settings.php previewFrame exactly
+  const previewSrcDoc = useMemo(() => {
+    const isPrivacy = activePolicyPreview.startsWith('privacy_policy');
+    const isKm = activePolicyPreview.endsWith('_km');
+    const targetKey = isPrivacy ? 'privacy_policy' : 'terms_of_service';
+    const lang = isKm ? 'km' : 'en';
+
+    const content = getVal('policies', targetKey, lang) || '<p style="color:#999;text-align:center;margin-top:160px;">ចុចប៊ូតុង <strong>Preview</strong> ដើម្បីមើលទិដ្ឋភាពជាក់ស្តែង</p>';
+    const title = isPrivacy
+      ? (isKm ? getVal('policies', 'privacy_policy_title', 'km', 'គោលការណ៍ឯកជនភាព') : getVal('policies', 'privacy_policy_title', 'en', 'Privacy Policy'))
+      : (isKm ? getVal('policies', 'terms_of_service_title', 'km', 'លក្ខខណ្ឌប្រើប្រាស់') : getVal('policies', 'terms_of_service_title', 'en', 'Terms of Service'));
+    const desc = isPrivacy
+      ? (isKm ? getVal('policies', 'privacy_policy_desc', 'km') : getVal('policies', 'privacy_policy_desc', 'en'))
+      : (isKm ? getVal('policies', 'terms_of_service_desc', 'km') : getVal('policies', 'terms_of_service_desc', 'en'));
+
+    const borderColor = isPrivacy ? '#3B82F6' : '#10B981';
+
+    return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Hanuman', serif;
+      font-size: 15px;
+      line-height: 1.9;
+      color: #333;
+      padding: 24px;
+      background: #fff;
+      margin: 0;
+    }
+    .preview-header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .preview-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1E3A5F;
+      margin: 0 0 0.4rem;
+    }
+    .preview-desc {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin: 0;
+      line-height: 1.6;
+    }
+    h1 { font-size: 1.7rem; color: #1E3A5F; margin-bottom: 1rem; }
+    h2 { font-size: 1.35rem; color: #1E3A5F; margin: 1.4rem 0 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+    h3 { font-size: 1.15rem; color: #374151; margin: 1.1rem 0 0.5rem; }
+    p { margin-bottom: 0.8rem; color: #4B5563; }
+    ul, ol { margin-bottom: 0.8rem; padding-left: 1.5rem; }
+    li { padding: 0.2rem 0; color: #4B5563; }
+    strong, b { font-weight: 700; }
+    .content-section {
+      border-left: 4px solid ${borderColor};
+      padding-left: 1.25rem;
+      margin: 1.25rem 0;
+    }
+    img { max-width: 100%; height: auto; border-radius: 8px; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    table td, table th { border: 1px solid #ddd; padding: 8px 12px; }
+    hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+  <div class="content-section">
+    ${content}
+  </div>
+</body>
+</html>`;
+  }, [activePolicyPreview, groupedSettings]);
 
   const handleSaveCategory = async (category) => {
     setSaving(true);
@@ -1439,205 +1517,272 @@ export default function SettingsPage() {
           {/* ───────────────────────────────────────────────────────── */}
           {activeTab === 'policies' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Column: Form & Editors (7 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Column: Form & Rich Editors (7 cols) */}
                 <div className="lg:col-span-7 space-y-6">
-                  {/* Privacy Policy Full Content */}
-                  <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                      <div className="flex items-center gap-2">
-                        <span className="badge bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-bold">Privacy Policy</span>
-                        <span className="text-xs text-gray-500">Full Content</span>
+                  {/* Privacy Policy Card */}
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+                    <div className="bg-gray-50/90 px-5 py-3.5 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1.5">
+                          <ShieldCheck size={14} />
+                          Privacy Policy
+                        </span>
+                        <span className="text-xs text-gray-500 hidden sm:inline">
+                          Privacy Policy content (Side-by-side EN & KM)
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setActivePolicyPreview('privacy_policy_en')}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition ${
-                            activePolicyPreview === 'privacy_policy_en' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 text-gray-600'
+                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition flex items-center gap-1.5 ${
+                            activePolicyPreview === 'privacy_policy_en'
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                           }`}
                         >
-                          <Eye size={12} className="inline mr-1" /> Preview EN
+                          <Eye size={13} /> Preview (EN)
                         </button>
                         <button
                           type="button"
                           onClick={() => setActivePolicyPreview('privacy_policy_km')}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition ${
-                            activePolicyPreview === 'privacy_policy_km' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 text-gray-600'
+                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition flex items-center gap-1.5 ${
+                            activePolicyPreview === 'privacy_policy_km'
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
                           }`}
                         >
-                          <Eye size={12} className="inline mr-1" /> Preview KM
+                          <Eye size={13} /> Preview (KM)
                         </button>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs font-semibold text-gray-600 mb-1 block">English Version</span>
-                        <textarea
-                          rows={10}
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <PolicyRichEditor
+                          id="privacy_policy_en_editor"
+                          label="English Version"
+                          labelColor="text-gray-700"
                           value={getVal('policies', 'privacy_policy', 'en')}
-                          onChange={(e) => setVal('policies', 'privacy_policy', 'en', e.target.value)}
+                          onChange={(val) => setVal('policies', 'privacy_policy', 'en', val)}
                           placeholder="Privacy policy content in English..."
-                          className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+                          minHeight="260px"
                         />
-                      </div>
-                      <div>
-                        <span className="text-xs font-semibold text-blue-700 mb-1 block">Khmer Version (ភាសាខ្មែរ)</span>
-                        <textarea
-                          rows={10}
+                        <PolicyRichEditor
+                          id="privacy_policy_km_editor"
+                          label="Khmer Version (ភាសាខ្មែរ)"
+                          labelColor="text-blue-700"
                           value={getVal('policies', 'privacy_policy', 'km')}
-                          onChange={(e) => setVal('policies', 'privacy_policy', 'km', e.target.value)}
+                          onChange={(val) => setVal('policies', 'privacy_policy', 'km', val)}
                           placeholder="ខ្លឹមសារគោលការណ៍ឯកជនភាពជាភាសាខ្មែរ..."
-                          className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+                          minHeight="260px"
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Terms of Service Full Content */}
-                  <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                      <div className="flex items-center gap-2">
-                        <span className="badge bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Terms of Service</span>
-                        <span className="text-xs text-gray-500">Full Content</span>
+                  {/* Terms of Service Card */}
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+                    <div className="bg-gray-50/90 px-5 py-3.5 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+                          <FileText size={14} />
+                          Terms of Service
+                        </span>
+                        <span className="text-xs text-gray-500 hidden sm:inline">
+                          Terms of Service content (Side-by-side EN & KM)
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setActivePolicyPreview('terms_of_service_en')}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition ${
-                            activePolicyPreview === 'terms_of_service_en' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-600'
+                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition flex items-center gap-1.5 ${
+                            activePolicyPreview === 'terms_of_service_en'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                           }`}
                         >
-                          <Eye size={12} className="inline mr-1" /> Preview EN
+                          <Eye size={13} /> Preview (EN)
                         </button>
                         <button
                           type="button"
                           onClick={() => setActivePolicyPreview('terms_of_service_km')}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition ${
-                            activePolicyPreview === 'terms_of_service_km' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-600'
+                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition flex items-center gap-1.5 ${
+                            activePolicyPreview === 'terms_of_service_km'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                              : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
                           }`}
                         >
-                          <Eye size={12} className="inline mr-1" /> Preview KM
+                          <Eye size={13} /> Preview (KM)
                         </button>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs font-semibold text-gray-600 mb-1 block">English Version</span>
-                        <textarea
-                          rows={10}
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <PolicyRichEditor
+                          id="terms_of_service_en_editor"
+                          label="English Version"
+                          labelColor="text-gray-700"
                           value={getVal('policies', 'terms_of_service', 'en')}
-                          onChange={(e) => setVal('policies', 'terms_of_service', 'en', e.target.value)}
+                          onChange={(val) => setVal('policies', 'terms_of_service', 'en', val)}
                           placeholder="Terms of service content in English..."
-                          className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+                          minHeight="260px"
                         />
-                      </div>
-                      <div>
-                        <span className="text-xs font-semibold text-emerald-700 mb-1 block">Khmer Version (ភាសាខ្មែរ)</span>
-                        <textarea
-                          rows={10}
+                        <PolicyRichEditor
+                          id="terms_of_service_km_editor"
+                          label="Khmer Version (ភាសាខ្មែរ)"
+                          labelColor="text-emerald-700"
                           value={getVal('policies', 'terms_of_service', 'km')}
-                          onChange={(e) => setVal('policies', 'terms_of_service', 'km', e.target.value)}
+                          onChange={(val) => setVal('policies', 'terms_of_service', 'km', val)}
                           placeholder="ខ្លឹមសារលក្ខខណ្ឌប្រើប្រាស់ជាភាសាខ្មែរ..."
-                          className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+                          minHeight="260px"
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Header Titles & Descriptions */}
-                  <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
-                    <h3 className="font-bold text-gray-900 text-base pb-3 border-b border-gray-100 flex items-center gap-2">
-                      <ShieldCheck size={18} className="text-rose-600" />
-                      <span>Page Titles & Header Descriptions (ចំណងជើង និងអត្ថបទក្បាលទំព័រ)</span>
-                    </h3>
+                  {/* Page Titles & Header Descriptions */}
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+                    <div className="bg-gray-50/90 px-5 py-3.5 border-b border-gray-200 flex items-center gap-2">
+                      <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-gray-200 text-gray-800 border border-gray-300 flex items-center gap-1.5">
+                        <Sparkles size={14} className="text-amber-600" />
+                        Page Titles & Header Descriptions
+                      </span>
+                      <span className="text-xs text-gray-500 hidden sm:inline">
+                        Edit titles and short descriptions shown in the header of legal pages
+                      </span>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Privacy Policy Header */}
-                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-3">
-                        <span className="text-xs font-bold text-gray-800">Privacy Policy Header</span>
-                        <div>
-                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Title (EN / KM)</span>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
-                            <input
-                              type="text"
-                              value={getVal('policies', 'privacy_policy_title', 'en')}
-                              onChange={(e) => setVal('policies', 'privacy_policy_title', 'en', e.target.value)}
-                              placeholder="Privacy Policy"
-                              className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
-                            <input
-                              type="text"
-                              value={getVal('policies', 'privacy_policy_title', 'km')}
-                              onChange={(e) => setVal('policies', 'privacy_policy_title', 'km', e.target.value)}
-                              placeholder="គោលការណ៍ឯកជនភាព"
-                              className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
-                          </div>
+                    <div className="p-5 space-y-6">
+                      {/* Privacy Policy Header block */}
+                      <div className="pb-5 border-b border-gray-100 last:border-b-0 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                          <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                            Privacy Policy Header (ក្បាលទំព័រគោលការណ៍ឯកជនភាព)
+                          </h4>
                         </div>
-                        <div>
-                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Description (EN / KM)</span>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
-                            <textarea
-                              rows={2}
-                              value={getVal('policies', 'privacy_policy_desc', 'en')}
-                              onChange={(e) => setVal('policies', 'privacy_policy_desc', 'en', e.target.value)}
-                              placeholder="Short description EN..."
-                              className="p-2 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
-                            <textarea
-                              rows={2}
-                              value={getVal('policies', 'privacy_policy_desc', 'km')}
-                              onChange={(e) => setVal('policies', 'privacy_policy_desc', 'km', e.target.value)}
-                              placeholder="ការពិពណ៌នាសង្ខេប KM..."
-                              className="p-2 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* English */}
+                          <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200 space-y-3">
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-gray-200 text-gray-700">
+                              English
+                            </span>
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Title (English)</label>
+                              <input
+                                type="text"
+                                value={getVal('policies', 'privacy_policy_title', 'en')}
+                                onChange={(e) => setVal('policies', 'privacy_policy_title', 'en', e.target.value)}
+                                placeholder="Privacy Policy"
+                                className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Description (English)</label>
+                              <textarea
+                                rows={2}
+                                value={getVal('policies', 'privacy_policy_desc', 'en')}
+                                onChange={(e) => setVal('policies', 'privacy_policy_desc', 'en', e.target.value)}
+                                placeholder="We respect your privacy and are committed to protecting your personal information."
+                                className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Khmer */}
+                          <div className="p-3.5 rounded-xl bg-blue-50/40 border border-blue-100 space-y-3">
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-blue-200 text-blue-800">
+                              ភាសាខ្មែរ (Khmer)
+                            </span>
+                            <div>
+                              <label className="text-[11px] font-semibold text-blue-900 mb-1 block">ចំណងជើង (ភាសាខ្មែរ)</label>
+                              <input
+                                type="text"
+                                value={getVal('policies', 'privacy_policy_title', 'km')}
+                                onChange={(e) => setVal('policies', 'privacy_policy_title', 'km', e.target.value)}
+                                placeholder="គោលការណ៍ឯកជនភាព"
+                                className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-serif"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-semibold text-blue-900 mb-1 block">ការពិពណ៌នាសង្ខេប (ភាសាខ្មែរ)</label>
+                              <textarea
+                                rows={2}
+                                value={getVal('policies', 'privacy_policy_desc', 'km')}
+                                onChange={(e) => setVal('policies', 'privacy_policy_desc', 'km', e.target.value)}
+                                placeholder="យើងគោរពភាពឯកជនរបស់អ្នក និងប្តេជ្ញាការពារព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក។"
+                                className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-serif"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Terms of Service Header */}
-                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-3">
-                        <span className="text-xs font-bold text-gray-800">Terms of Service Header</span>
-                        <div>
-                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Title (EN / KM)</span>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
-                            <input
-                              type="text"
-                              value={getVal('policies', 'terms_of_service_title', 'en')}
-                              onChange={(e) => setVal('policies', 'terms_of_service_title', 'en', e.target.value)}
-                              placeholder="Terms of Service"
-                              className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
-                            <input
-                              type="text"
-                              value={getVal('policies', 'terms_of_service_title', 'km')}
-                              onChange={(e) => setVal('policies', 'terms_of_service_title', 'km', e.target.value)}
-                              placeholder="លក្ខខណ្ឌប្រើប្រាស់"
-                              className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
-                          </div>
+                      {/* Terms of Service Header block */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                          <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                            Terms of Service Header (ក្បាលទំព័រលក្ខខណ្ឌប្រើប្រាស់)
+                          </h4>
                         </div>
-                        <div>
-                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Description (EN / KM)</span>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
-                            <textarea
-                              rows={2}
-                              value={getVal('policies', 'terms_of_service_desc', 'en')}
-                              onChange={(e) => setVal('policies', 'terms_of_service_desc', 'en', e.target.value)}
-                              placeholder="Short description EN..."
-                              className="p-2 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
-                            <textarea
-                              rows={2}
-                              value={getVal('policies', 'terms_of_service_desc', 'km')}
-                              onChange={(e) => setVal('policies', 'terms_of_service_desc', 'km', e.target.value)}
-                              placeholder="ការពិពណ៌នាសង្ខេប KM..."
-                              className="p-2 text-xs rounded-lg border border-gray-200 bg-white"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* English */}
+                          <div className="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200 space-y-3">
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-gray-200 text-gray-700">
+                              English
+                            </span>
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Title (English)</label>
+                              <input
+                                type="text"
+                                value={getVal('policies', 'terms_of_service_title', 'en')}
+                                onChange={(e) => setVal('policies', 'terms_of_service_title', 'en', e.target.value)}
+                                placeholder="Terms of Service"
+                                className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Description (English)</label>
+                              <textarea
+                                rows={2}
+                                value={getVal('policies', 'terms_of_service_desc', 'en')}
+                                onChange={(e) => setVal('policies', 'terms_of_service_desc', 'en', e.target.value)}
+                                placeholder="Please read these Terms of Service carefully before using our services."
+                                className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Khmer */}
+                          <div className="p-3.5 rounded-xl bg-emerald-50/40 border border-emerald-100 space-y-3">
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-200 text-emerald-800">
+                              ភាសាខ្មែរ (Khmer)
+                            </span>
+                            <div>
+                              <label className="text-[11px] font-semibold text-emerald-900 mb-1 block">ចំណងជើង (ភាសាខ្មែរ)</label>
+                              <input
+                                type="text"
+                                value={getVal('policies', 'terms_of_service_title', 'km')}
+                                onChange={(e) => setVal('policies', 'terms_of_service_title', 'km', e.target.value)}
+                                placeholder="លក្ខខណ្ឌប្រើប្រាស់"
+                                className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-serif"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-semibold text-emerald-900 mb-1 block">ការពិពណ៌នាសង្ខេប (ភាសាខ្មែរ)</label>
+                              <textarea
+                                rows={2}
+                                value={getVal('policies', 'terms_of_service_desc', 'km')}
+                                onChange={(e) => setVal('policies', 'terms_of_service_desc', 'km', e.target.value)}
+                                placeholder="សូមអានលក្ខខណ្ឌប្រើប្រាស់ទាំងនេះដោយយកចិត្តទុកដាក់ មុនពេលប្រើប្រាស់សេវាកម្មរបស់យើង។"
+                                className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-serif"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1645,54 +1790,29 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Right Column: Front-End Preview (5 cols) */}
+                {/* Right Column: Front-End Preview (5 cols) matching admin/settings.php previewFrame */}
                 <div className="lg:col-span-5">
-                  <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs sticky top-24 overflow-hidden">
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-md sticky top-24 overflow-hidden">
                     <div className="bg-gray-900 text-white px-4 py-3 flex items-center justify-between">
-                      <span className="text-xs font-bold flex items-center gap-1.5">
-                        <Eye size={14} /> Front-End Live Preview
-                      </span>
-                      <span className="text-[11px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full font-mono">
-                        {activePolicyPreview.replace('_', ' ').toUpperCase()}
+                      <div className="flex items-center gap-2">
+                        <Eye size={15} className="text-blue-400" />
+                        <span className="text-sm font-bold tracking-tight">Front-End Live Preview</span>
+                      </div>
+                      <span className="text-xs bg-gray-800 text-gray-200 border border-gray-700 px-2.5 py-0.5 rounded-full font-medium font-sans">
+                        {activePolicyPreview === 'privacy_policy_km' && 'Privacy Policy (KM)'}
+                        {activePolicyPreview === 'privacy_policy_en' && 'Privacy Policy (EN)'}
+                        {activePolicyPreview === 'terms_of_service_km' && 'Terms of Service (KM)'}
+                        {activePolicyPreview === 'terms_of_service_en' && 'Terms of Service (EN)'}
                       </span>
                     </div>
 
-                    <div className="p-5 max-h-[620px] overflow-y-auto space-y-4 bg-white text-gray-800">
-                      {/* Simulated Page Header */}
-                      <div className="border-b pb-4">
-                        <h4 className="text-lg font-bold text-gray-900 font-sans">
-                          {activePolicyPreview.includes('privacy')
-                            ? (activePolicyPreview.endsWith('km')
-                                ? getVal('policies', 'privacy_policy_title', 'km', 'គោលការណ៍ឯកជនភាព')
-                                : getVal('policies', 'privacy_policy_title', 'en', 'Privacy Policy'))
-                            : (activePolicyPreview.endsWith('km')
-                                ? getVal('policies', 'terms_of_service_title', 'km', 'លក្ខខណ្ឌប្រើប្រាស់')
-                                : getVal('policies', 'terms_of_service_title', 'en', 'Terms of Service'))}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {activePolicyPreview.includes('privacy')
-                            ? (activePolicyPreview.endsWith('km')
-                                ? getVal('policies', 'privacy_policy_desc', 'km')
-                                : getVal('policies', 'privacy_policy_desc', 'en'))
-                            : (activePolicyPreview.endsWith('km')
-                                ? getVal('policies', 'terms_of_service_desc', 'km')
-                                : getVal('policies', 'terms_of_service_desc', 'en'))}
-                        </p>
-                      </div>
-
-                      {/* Simulated Content with left color border */}
-                      <div
-                        className={`border-l-4 pl-4 py-1 text-xs leading-relaxed whitespace-pre-wrap ${
-                          activePolicyPreview.includes('privacy') ? 'border-blue-500' : 'border-emerald-500'
-                        }`}
-                      >
-                        {(activePolicyPreview === 'privacy_policy_km' && getVal('policies', 'privacy_policy', 'km')) ||
-                         (activePolicyPreview === 'privacy_policy_en' && getVal('policies', 'privacy_policy', 'en')) ||
-                         (activePolicyPreview === 'terms_of_service_km' && getVal('policies', 'terms_of_service', 'km')) ||
-                         (activePolicyPreview === 'terms_of_service_en' && getVal('policies', 'terms_of_service', 'en')) ||
-                         'ចុចប៊ូតុង Preview ខាងឆ្វេង ដើម្បីមើលទិដ្ឋភាពជាក់ស្តែង'}
-                      </div>
-                    </div>
+                    <iframe
+                      key={activePolicyPreview}
+                      srcDoc={previewSrcDoc}
+                      title="Front-End Preview Frame"
+                      className="w-full border-none bg-white"
+                      style={{ height: '620px' }}
+                    />
                   </div>
                 </div>
               </div>
