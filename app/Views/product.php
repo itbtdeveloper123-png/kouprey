@@ -247,9 +247,31 @@ if (isset($_GET['ajax_pagination'])) {
                 </div>
             </article>
         <?php endforeach; else: ?>
-            <div class="col-span-full text-center py-12">
-                <i class="fas fa-coffee text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-500 text-lg">No products available at the moment.</p>
+            <div class="col-span-full flex flex-col items-center justify-center py-12 px-4 text-center">
+                <div class="relative max-w-md w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-100/80 bg-white p-6 md:p-8 transform transition-transform hover:scale-[1.02] duration-500">
+                    <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gradient-to-b from-amber-50/50 to-orange-50/30 flex items-center justify-center">
+                        <img src="/kouprey/public/assets/images/coming-soon.jpg" 
+                             alt="Coming Soon" 
+                             onerror="this.src='assets/images/coming-soon.jpg'"
+                             class="w-full h-full object-contain filter drop-shadow-md">
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/70 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <?php echo $currentLanguage == 'km' ? 'នឹងមកដល់ឆាប់ៗនេះ' : 'Coming Soon'; ?>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2 font-freeman">
+                        <?php echo $currentLanguage == 'km' ? 'ផលិតផលថ្មីៗកំពុងរៀបចំ' : 'New Products on the Way'; ?>
+                    </h3>
+                    <p class="text-gray-500 text-sm md:text-base max-w-sm mx-auto leading-relaxed">
+                        <?php echo $currentLanguage == 'km' ? 'យើងកំពុងរៀបចំបន្ថែមនូវមុខទំនិញថ្មីៗសម្រាប់ប្រភេទទំនិញនេះ។ សូមរង់ចាំតាមដានទាំងអស់គ្នា!' : 'We are currently brewing exciting new items for this category. Stay tuned!'; ?>
+                    </p>
+                    <div class="mt-6">
+                        <button onclick="clearAllFilters()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:bg-orange-600 transition-colors shadow-md active:scale-95">
+                            <i class="fas fa-th-large text-xs"></i>
+                            <span><?php echo $currentLanguage == 'km' ? 'មើលផលិតផលទាំងអស់' : 'View All Products'; ?></span>
+                        </button>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
     </div>
@@ -2196,9 +2218,31 @@ $topProducts = array_slice($topProducts, 0, 6);
 							endforeach;
 						else:
 						?>
-							<div class="col-span-full text-center py-12">
-								<i class="fas fa-coffee text-gray-300 text-6xl mb-4"></i>
-								<p class="text-gray-500 text-lg">No products available at the moment.</p>
+							<div class="col-span-full flex flex-col items-center justify-center py-12 px-4 text-center">
+								<div class="relative max-w-md w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-100/80 bg-white p-6 md:p-8 transform transition-transform hover:scale-[1.02] duration-500">
+									<div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gradient-to-b from-amber-50/50 to-orange-50/30 flex items-center justify-center">
+										<img src="/kouprey/public/assets/images/coming-soon.jpg" 
+											 alt="Coming Soon" 
+											 onerror="this.src='assets/images/coming-soon.jpg'"
+											 class="w-full h-full object-contain filter drop-shadow-md">
+									</div>
+									<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/70 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
+										<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+										<?php echo $currentLanguage == 'km' ? 'នឹងមកដល់ឆាប់ៗនេះ' : 'Coming Soon'; ?>
+									</div>
+									<h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2 font-freeman">
+										<?php echo $currentLanguage == 'km' ? 'ផលិតផលថ្មីៗកំពុងរៀបចំ' : 'New Products on the Way'; ?>
+									</h3>
+									<p class="text-gray-500 text-sm md:text-base max-w-sm mx-auto leading-relaxed">
+										<?php echo $currentLanguage == 'km' ? 'យើងកំពុងរៀបចំបន្ថែមនូវមុខទំនិញថ្មីៗសម្រាប់ប្រភេទទំនិញនេះ។ សូមរង់ចាំតាមដានទាំងអស់គ្នា!' : 'We are currently brewing exciting new items for this category. Stay tuned!'; ?>
+									</p>
+									<div class="mt-6">
+										<button onclick="clearAllFilters()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:bg-orange-600 transition-colors shadow-md active:scale-95">
+											<i class="fas fa-th-large text-xs"></i>
+											<span><?php echo $currentLanguage == 'km' ? 'មើលផលិតផលទាំងអស់' : 'View All Products'; ?></span>
+										</button>
+									</div>
+								</div>
 							</div>
 						<?php endif; ?>
 					</div>
@@ -2942,8 +2986,8 @@ $topProducts = array_slice($topProducts, 0, 6);
                                 <!-- Company Info -->
                                 <div class="col-span-1 md:col-span-2">
                                         <div class="flex items-center mb-4">
-                                                <img src="https://i.ibb.co/Wv0j3ZTQ/logo.png" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-8 w-auto mr-3 object-contain">
-                                                <span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
+                                                <img src="https://i.ibb.co/Wv0j3ZTQ/logo.png" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-14 md:h-16 w-auto mr-4 object-contain filter drop-shadow-md">
+                                                <span class="text-2xl md:text-3xl font-extrabold text-white tracking-wide"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
                                         </div>
                                         <p class="text-gray-300 mb-4 leading-relaxed">
                                                 <?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>
