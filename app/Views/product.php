@@ -167,14 +167,14 @@ if (isset($_GET['ajax_pagination'])) {
     // Start capturing HTML for products
     ob_start();
     ?>
-    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+    <div id="products-container" class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 xl:gap-8">
         <?php
         if (!empty($pagedProducts)):
             foreach ($pagedProducts as $index => $product):
                 $categoryClass = $product['featured'] ? 'product-featured' : 'product-regular';
                 $aosDelay = ($index % 6) * 100;
         ?>
-            <article class="product-item bg-white rounded-[2rem] p-2 md:p-4 transition-all duration-300 group product-item <?php echo $categoryClass; ?> cursor-pointer flex flex-col h-full hover:shadow-2xl border border-gray-100/50 relative overflow-hidden" 
+            <article class="product-item bg-white rounded-2xl md:rounded-[2rem] p-1.5 sm:p-2.5 md:p-4 transition-all duration-300 group product-item <?php echo $categoryClass; ?> cursor-pointer flex flex-col h-full hover:shadow-xl shadow-xs border border-gray-100/80 hover:border-orange-200/60 relative overflow-hidden active:scale-[0.98]" 
                      onclick="window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'" 
                      data-category="<?php echo $product['featured'] ? 'featured' : 'regular'; ?>" 
                      data-category-id="<?php echo $product['base_category_id'] ?: ''; ?>" 
@@ -186,39 +186,36 @@ if (isset($_GET['ajax_pagination'])) {
                 <div class="hidden md:block absolute -top-10 -right-10 w-48 h-48 bg-yellow-100 rounded-full blur-3xl opacity-0 group-hover:opacity-60 transition-opacity"></div>
                 
                 <!-- Badges -->
-                <div class="absolute top-4 left-4 flex flex-col gap-2 z-20">
+                <div class="absolute top-1.5 left-1.5 md:top-3 md:left-3 flex flex-col gap-1 z-20 pointer-events-none">
                     <?php if ($product['featured']): ?>
-                        <span class="bg-yellow-500 text-white px-3 py-1 rounded-xl text-[11px] font-bold shadow-sm flex items-center gap-1.5 backdrop-blur-sm bg-opacity-90">
-                            <i class="fas fa-star text-[9px]"></i> FEATURED
+                        <span class="bg-yellow-500 text-white px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md md:rounded-xl text-[8px] md:text-[10px] font-bold shadow-xs flex items-center gap-1 backdrop-blur-sm bg-opacity-95">
+                            <i class="fas fa-star text-[7px] md:text-[9px]"></i>
+                            <span class="hidden sm:inline">FEATURED</span>
                         </span>
                     <?php elseif ($product['best_seller']): ?>
-                        <span class="bg-red-500 text-white px-3 py-1 rounded-xl text-[11px] font-bold shadow-sm flex items-center gap-1.5 backdrop-blur-sm bg-opacity-90">
-                            <i class="fas fa-fire text-[9px]"></i> HOT
+                        <span class="bg-red-500 text-white px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md md:rounded-xl text-[8px] md:text-[10px] font-bold shadow-xs flex items-center gap-1 backdrop-blur-sm bg-opacity-95">
+                            <i class="fas fa-fire text-[7px] md:text-[9px]"></i>
+                            <span class="hidden sm:inline">HOT</span>
                         </span>
                     <?php endif; ?>
                 </div>
 
                 <!-- Image Container -->
-                <div class="product-image-container relative mb-6 pt-[100%] rounded-3xl bg-gray-50/50 md:bg-transparent overflow-hidden">
-                    <div class="absolute inset-0 flex items-center justify-center p-1">
+                <div class="product-image-container relative mb-1.5 sm:mb-2 md:mb-4 pt-[100%] rounded-xl md:rounded-2xl bg-amber-50/20 md:bg-transparent overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center p-1 sm:p-1.5 md:p-2">
                         <img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                              alt="<?php echo htmlspecialchars($product['name']); ?>" 
                              loading="lazy"
                              decoding="async"
-                             class="main-img w-full h-full object-contain transform transition-transform duration-700 group-hover:scale-110 drop-shadow-2xl" 
-                             style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
+                             class="main-img w-full h-full object-contain transform transition-transform duration-700 group-hover:scale-110 drop-shadow-md md:drop-shadow-2xl" 
+                             style="filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08));">
                     </div>
-                    
-                    <!-- Mobile Quick View Button (Overlay) -->
-                    <button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-orange-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
-                        <i class="fas fa-arrow-right text-xs"></i>
-                    </button>
                 </div>
 
                 <!-- Content -->
-                <div class="product-info flex-1 flex flex-col pt-2">
+                <div class="product-info flex-1 flex flex-col pt-1 sm:pt-2">
                     <!-- Title -->
-                    <h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-1.5 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
+                    <h4 class="product-title text-[11px] sm:text-sm md:text-lg font-bold text-gray-900 mb-1 line-clamp-2 leading-snug min-h-[1.9rem] sm:min-h-[2.3rem] md:min-h-[2.8rem] group-hover:text-orange-600 transition-colors text-center md:text-left">
                         <?php echo htmlspecialchars($product['name']); ?>
                     </h4>
 
@@ -227,23 +224,32 @@ if (isset($_GET['ajax_pagination'])) {
                     $shortDesc = trim(strip_tags($product['description'] ?? ''));
                     if (!empty($shortDesc)): 
                     ?>
-                        <p class="text-xs md:text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">
-                            <?php echo htmlspecialchars(mb_substr($shortDesc, 0, 90, 'UTF-8')) . (mb_strlen($shortDesc, 'UTF-8') > 90 ? '...' : ''); ?>
+                        <p class="text-[9px] sm:text-xs md:text-sm text-gray-500 line-clamp-1 md:line-clamp-2 leading-tight md:leading-relaxed mb-1.5 md:mb-3 text-center md:text-left">
+                            <?php echo htmlspecialchars(mb_substr($shortDesc, 0, 70, 'UTF-8')) . (mb_strlen($shortDesc, 'UTF-8') > 70 ? '...' : ''); ?>
                         </p>
                     <?php else: ?>
-                        <p class="text-xs md:text-sm text-gray-400 italic mb-3">
+                        <p class="text-[9px] sm:text-xs md:text-sm text-gray-400 italic mb-1.5 md:mb-3 text-center md:text-left">
                             <?php echo $currentLanguage == 'km' ? 'គុណភាពខ្ពស់ រសជាតិឈ្ងុយឆ្ងាញ់' : 'Premium quality beverage ingredient'; ?>
                         </p>
                     <?php endif; ?>
 
                     <!-- View Details Action -->
-                    <div class="mt-auto pt-3 flex items-center justify-between border-t border-gray-100/70">
-                        <span class="text-xs font-bold text-gray-600 group-hover:text-orange-600 flex items-center gap-1.5 transition-colors">
-                            <span><?php echo $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details'; ?></span>
-                            <i class="fas fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
-                        </span>
-                        <div class="w-8 h-8 rounded-full bg-orange-50 group-hover:bg-orange-500 text-orange-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs">
-                            <i class="fas fa-chevron-right text-xs"></i>
+                    <div class="mt-auto pt-1 sm:pt-2 md:pt-3 border-t border-gray-100/80">
+                        <!-- Mobile Action: Sleek pill button -->
+                        <div class="md:hidden flex items-center justify-center py-1 px-1.5 rounded-lg bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all text-[9px] font-bold gap-1">
+                            <span><?php echo $currentLanguage == 'km' ? 'លម្អិត' : 'Details'; ?></span>
+                            <i class="fas fa-arrow-right text-[7px] transform group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+
+                        <!-- Desktop Action: Full text + arrow circle button -->
+                        <div class="hidden md:flex items-center justify-between">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-orange-600 flex items-center gap-1.5 transition-colors">
+                                <span><?php echo $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details'; ?></span>
+                                <i class="fas fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
+                            </span>
+                            <div class="w-8 h-8 rounded-full bg-orange-50 group-hover:bg-orange-500 text-orange-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2070,13 +2076,13 @@ $topProducts = array_slice($topProducts, 0, 6);
 
 
 	<!-- Product List -->
-	<section id="products" class="px-3 py-10 md:px-6 md:py-20 lg:py-24 bg-white">
+	<section id="products" class="px-2 sm:px-4 md:px-6 py-8 md:py-20 lg:py-24 bg-white">
 		<div class="max-w-7xl mx-auto">
-			<div class="text-center mb-10 md:mb-16">
-				<h3 class="text-3xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-4 flex items-center justify-center tracking-tight">
-					<i class="fas fa-coffee text-yellow-500 mr-4"></i><?php echo htmlspecialchars(getSetting('our_products', 'Our Products')); ?>
+			<div class="text-center mb-6 md:mb-16">
+				<h3 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-2 md:mb-4 flex items-center justify-center tracking-tight">
+					<i class="fas fa-coffee text-yellow-500 mr-2 md:mr-4 text-xl sm:text-3xl md:text-4xl"></i><?php echo htmlspecialchars(getSetting('our_products', 'Our Products')); ?>
 				</h3>
-				<p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto"><?php echo htmlspecialchars(getSetting('our_products_description', $currentLanguage == 'km' ? 'ស្វែងរកផលិតផលទាំងអស់របស់យើង' : 'Discover our complete collection of premium coffee products')); ?></p>
+				<p class="text-gray-500 text-xs sm:text-base md:text-xl max-w-2xl mx-auto px-2"><?php echo htmlspecialchars(getSetting('our_products_description', $currentLanguage == 'km' ? 'ស្វែងរកផលិតផលទាំងអស់របស់យើង' : 'Discover our complete collection of premium coffee products')); ?></p>
 			</div>
 
 			<!-- Sidebar Layout -->
@@ -2131,7 +2137,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 					<?php
 					// Pagination variables are now calculated at the top of the file
 					?>
-					<div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+					<div id="products-container" class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 xl:gap-8">
 						<?php
 						if (!empty($pagedProducts)):
 							foreach ($pagedProducts as $index => $product):
@@ -2144,7 +2150,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 								// Calculate AOS delay for staggered effect (0, 100, 200...)
 								$aosDelay = ($index % 6) * 100;
 						?>
-							<article class="product-item bg-white rounded-[2rem] p-2 md:p-4 transition-all duration-300 group product-item <?php echo $categoryClass; ?> cursor-pointer flex flex-col h-full hover:shadow-2xl border border-gray-100/50 relative overflow-hidden" 
+							<article class="product-item bg-white rounded-2xl md:rounded-[2rem] p-1.5 sm:p-2.5 md:p-4 transition-all duration-300 group product-item <?php echo $categoryClass; ?> cursor-pointer flex flex-col h-full hover:shadow-xl shadow-xs border border-gray-100/80 hover:border-orange-200/60 relative overflow-hidden active:scale-[0.98]" 
 									 onclick="window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'" 
 									 data-category="<?php echo $product['featured'] ? 'featured' : 'regular'; ?>" 
 									 data-category-id="<?php echo $product['base_category_id'] ?: ''; ?>" 
@@ -2156,39 +2162,36 @@ $topProducts = array_slice($topProducts, 0, 6);
 								<div class="hidden md:block absolute -top-10 -right-10 w-48 h-48 bg-yellow-100 rounded-full blur-3xl opacity-0 group-hover:opacity-60 transition-opacity"></div>
 								
 								<!-- Badges -->
-								<div class="absolute top-4 left-4 flex flex-col gap-2 z-20">
+								<div class="absolute top-1.5 left-1.5 md:top-3 md:left-3 flex flex-col gap-1 z-20 pointer-events-none">
 									<?php if ($product['featured']): ?>
-										<span class="bg-yellow-500 text-white px-3 py-1 rounded-xl text-[11px] font-bold shadow-sm flex items-center gap-1.5 backdrop-blur-sm bg-opacity-90">
-											<i class="fas fa-star text-[9px]"></i> FEATURED
+										<span class="bg-yellow-500 text-white px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md md:rounded-xl text-[8px] md:text-[10px] font-bold shadow-xs flex items-center gap-1 backdrop-blur-sm bg-opacity-95">
+											<i class="fas fa-star text-[7px] md:text-[9px]"></i>
+											<span class="hidden sm:inline">FEATURED</span>
 										</span>
 									<?php elseif ($product['best_seller']): ?>
-										<span class="bg-red-500 text-white px-3 py-1 rounded-xl text-[11px] font-bold shadow-sm flex items-center gap-1.5 backdrop-blur-sm bg-opacity-90">
-											<i class="fas fa-fire text-[9px]"></i> HOT
+										<span class="bg-red-500 text-white px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md md:rounded-xl text-[8px] md:text-[10px] font-bold shadow-xs flex items-center gap-1 backdrop-blur-sm bg-opacity-95">
+											<i class="fas fa-fire text-[7px] md:text-[9px]"></i>
+											<span class="hidden sm:inline">HOT</span>
 										</span>
 									<?php endif; ?>
 								</div>
 
 								<!-- Image Container -->
-								<div class="product-image-container relative mb-6 pt-[100%] rounded-3xl bg-gray-50/50 md:bg-transparent overflow-hidden">
-									<div class="absolute inset-0 flex items-center justify-center p-1">
+								<div class="product-image-container relative mb-1.5 sm:mb-2 md:mb-4 pt-[100%] rounded-xl md:rounded-2xl bg-amber-50/20 md:bg-transparent overflow-hidden">
+									<div class="absolute inset-0 flex items-center justify-center p-1 sm:p-1.5 md:p-2">
 										<img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 											 alt="<?php echo htmlspecialchars($product['name']); ?>" 
 											 loading="lazy"
 											 decoding="async"
-											 class="main-img w-full h-full object-contain transform transition-transform duration-700 group-hover:scale-110 drop-shadow-2xl" 
-											 style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
+											 class="main-img w-full h-full object-contain transform transition-transform duration-700 group-hover:scale-110 drop-shadow-md md:drop-shadow-2xl" 
+											 style="filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08));">
 									</div>
-									
-									<!-- Mobile Quick View Button (Overlay) -->
-									<button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-orange-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
-										<i class="fas fa-arrow-right text-xs"></i>
-									</button>
 								</div>
 
 								<!-- Content -->
-								<div class="product-info flex-1 flex flex-col pt-2">
+								<div class="product-info flex-1 flex flex-col pt-1 sm:pt-2">
 									<!-- Title -->
-									<h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-1.5 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
+									<h4 class="product-title text-[11px] sm:text-sm md:text-lg font-bold text-gray-900 mb-1 line-clamp-2 leading-snug min-h-[1.9rem] sm:min-h-[2.3rem] md:min-h-[2.8rem] group-hover:text-orange-600 transition-colors text-center md:text-left">
 										<?php echo htmlspecialchars($product['name']); ?>
 									</h4>
 
@@ -2197,23 +2200,32 @@ $topProducts = array_slice($topProducts, 0, 6);
 									$shortDesc = trim(strip_tags($product['description'] ?? ''));
 									if (!empty($shortDesc)): 
 									?>
-										<p class="text-xs md:text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">
-											<?php echo htmlspecialchars(mb_substr($shortDesc, 0, 90, 'UTF-8')) . (mb_strlen($shortDesc, 'UTF-8') > 90 ? '...' : ''); ?>
+										<p class="text-[9px] sm:text-xs md:text-sm text-gray-500 line-clamp-1 md:line-clamp-2 leading-tight md:leading-relaxed mb-1.5 md:mb-3 text-center md:text-left">
+											<?php echo htmlspecialchars(mb_substr($shortDesc, 0, 70, 'UTF-8')) . (mb_strlen($shortDesc, 'UTF-8') > 70 ? '...' : ''); ?>
 										</p>
 									<?php else: ?>
-										<p class="text-xs md:text-sm text-gray-400 italic mb-3">
+										<p class="text-[9px] sm:text-xs md:text-sm text-gray-400 italic mb-1.5 md:mb-3 text-center md:text-left">
 											<?php echo $currentLanguage == 'km' ? 'គុណភាពខ្ពស់ រសជាតិឈ្ងុយឆ្ងាញ់' : 'Premium quality beverage ingredient'; ?>
 										</p>
 									<?php endif; ?>
 
 									<!-- View Details Action -->
-									<div class="mt-auto pt-3 flex items-center justify-between border-t border-gray-100/70">
-										<span class="text-xs font-bold text-gray-600 group-hover:text-orange-600 flex items-center gap-1.5 transition-colors">
-											<span><?php echo $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details'; ?></span>
-											<i class="fas fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
-										</span>
-										<div class="w-8 h-8 rounded-full bg-orange-50 group-hover:bg-orange-500 text-orange-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs">
-											<i class="fas fa-chevron-right text-xs"></i>
+									<div class="mt-auto pt-1 sm:pt-2 md:pt-3 border-t border-gray-100/80">
+										<!-- Mobile Action: Sleek pill button -->
+										<div class="md:hidden flex items-center justify-center py-1 px-1.5 rounded-lg bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all text-[9px] font-bold gap-1">
+											<span><?php echo $currentLanguage == 'km' ? 'លម្អិត' : 'Details'; ?></span>
+											<i class="fas fa-arrow-right text-[7px] transform group-hover:translate-x-0.5 transition-transform"></i>
+										</div>
+
+										<!-- Desktop Action: Full text + arrow circle button -->
+										<div class="hidden md:flex items-center justify-between">
+											<span class="text-xs font-bold text-gray-600 group-hover:text-orange-600 flex items-center gap-1.5 transition-colors">
+												<span><?php echo $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details'; ?></span>
+												<i class="fas fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
+											</span>
+											<div class="w-8 h-8 rounded-full bg-orange-50 group-hover:bg-orange-500 text-orange-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs">
+												<i class="fas fa-chevron-right text-xs"></i>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -3760,9 +3772,9 @@ $topProducts = array_slice($topProducts, 0, 6);
         </style>
 
         <!-- Floating Categories Button (Mobile Only) -->
-        <div id="floatingCategoriesBtn" class="fixed bottom-24 right-4 z-40 md:hidden">
-			<button onclick="toggleCategoriesModal()" aria-label="Open filters" title="Filters" class="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-2xl border border-white/20 backdrop-blur-sm transition-transform duration-300 transform hover:-translate-y-1 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-yellow-300/30">
-				<i class="fas fa-filter text-lg"></i>
+        <div id="floatingCategoriesBtn" class="fixed bottom-24 right-3 z-40 md:hidden">
+			<button onclick="toggleCategoriesModal()" aria-label="Open filters" title="Filters" class="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-tr from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white shadow-xl border border-white/40 backdrop-blur-sm transition-transform duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-300/50">
+				<i class="fas fa-filter text-base"></i>
 			</button>
         </div>
 
