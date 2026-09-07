@@ -382,4 +382,107 @@ function checkRemoveBgAccount($apiKey = null) {
 
     return ['success' => true, 'data' => $json['data'] ?? $json];
 }
+
+/**
+ * Format bytes into human-readable string (KB, MB)
+ */
+function formatFileSize($bytes) {
+    if ($bytes >= 1048576) {
+        return round($bytes / 1048576, 2) . ' MB';
+    } elseif ($bytes >= 1024) {
+        return round($bytes / 1024, 1) . ' KB';
+    }
+    return $bytes . ' B';
+}
+
+/**
+ * Detect if an image already has a transparent background
+ * Checks mime type (JPEGs are never transparent) and samples alpha channels in PNG/WebP/GIF
+ *
+ * @param string $filePath Path to local image file
+ * @return bool True if image already has transparent background, false otherwise
+ */
+function isImageAlreadyTransparent($filePath) {
+    if (!file_exists($filePath)) return false;
+
+    $info = @getimagesize($filePath);
+    if (!$info) return false;
+    $mime = $info['mime'];
+
+    // JPEGs can never have transparency
+    if ($mime === 'image/jpeg' || $mime === 'image/jpg') {
+        return false;
+    }
+
+    $img = null;
+    if ($mime === 'image/png' && function_exists('imagecreatefrompng')) {
+        $img = @imagecreatefrompng($filePath);
+    } elseif ($mime === 'image/webp' && function_exists('imagecreatefromwebp')) {
+        $img = @imagecreatefromwebp($filePath);
+    } elseif ($mime === 'image/gif' && function_exists('imagecreatefromgif')) {
+        $img = @imagecreatefromgif($filePath);
+    }
+
+    if (!$img) return false;
+
+    $width = imagesx($img);
+    $height = imagesy($img);
+
+    if ($width <= 0 || $height <= 0) {
+        imagedestroy($img);
+        return false;
+    }
+
+    // Check corners: in GD, ($rgba >> 24) & 0x7F gives alpha from 0 (opaque) to 127 (fully transparent)
+    $corners = [
+        [0, 0],
+        [$width - 1, 0],
+        [0, $height - 1],
+        [$width - 1, $height - 1],
+    ];
+
+    $transparentCorners = 0;
+    foreach ($corners as $pt) {
+        $color = imagecolorat($img, $pt[0], $pt[1]);
+        $alpha = ($color >> 24) & 0x7F;
+        if ($alpha > 40) {
+            $transparentCorners++;
+        }
+    }
+
+    // If at least 2 corners are transparent, it's definitely a transparent cutout
+    if ($transparentCorners >= 2) {
+        imagedestroy($img);
+        return true;
+    }
+
+    // Sample perimeter borders
+    $transparentPerimeter = 0;
+    $perimeterPoints = [
+        [(int)($width * 0.25), 0],
+        [(int)($width * 0.5), 0],
+        [(int)($width * 0.75), 0],
+        [(int)($width * 0.25), $height - 1],
+        [(int)($width * 0.5), $height - 1],
+        [(int)($width * 0.75), $height - 1],
+        [0, (int)($height * 0.25)],
+        [0, (int)($height * 0.5)],
+        [0, (int)($height * 0.75)],
+        [$width - 1, (int)($height * 0.25)],
+        [$width - 1, (int)($height * 0.5)],
+        [$width - 1, (int)($height * 0.75)],
+    ];
+
+    foreach ($perimeterPoints as $pt) {
+        $color = imagecolorat($img, $pt[0], $pt[1]);
+        $alpha = ($color >> 24) & 0x7F;
+        if ($alpha > 40) {
+            $transparentPerimeter++;
+        }
+    }
+
+    imagedestroy($img);
+
+    return ($transparentPerimeter >= 4);
+}
 ?>

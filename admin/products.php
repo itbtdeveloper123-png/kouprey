@@ -319,15 +319,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
                 require_once '../app/Config/image_utils.php';
                 $webp_file_name = uniqid() . '_' . time() . '.webp';
                 $webp_target = $upload_dir . $webp_file_name;
-                $bgRes = removeBgAndConvertToWebp($target_file, $webp_target, null, ['size' => 'auto', 'type' => 'product', 'quality' => 90]);
-                if (!empty($bgRes['success']) && file_exists($webp_target)) {
-                    if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
-                    $file_name = $webp_file_name;
-                } else {
+                $alreadyTrans = function_exists('isImageAlreadyTransparent') && isImageAlreadyTransparent($target_file);
+
+                if ($alreadyTrans) {
                     $settings = getCompressionSettings('product');
                     if (compressImage($target_file, $webp_target, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
                         if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
                         $file_name = $webp_file_name;
+                    }
+                } else {
+                    $bgRes = removeBgAndConvertToWebp($target_file, $webp_target, null, ['size' => 'auto', 'type' => 'product', 'quality' => 88]);
+                    if (!empty($bgRes['success']) && file_exists($webp_target)) {
+                        if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                        $file_name = $webp_file_name;
+                    } else {
+                        $settings = getCompressionSettings('product');
+                        if (compressImage($target_file, $webp_target, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
+                            if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                            $file_name = $webp_file_name;
+                        }
                     }
                 }
                 $uploaded_image = '/kouprey/public/assets/images/products/' . $file_name;
@@ -524,15 +534,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
             require_once '../app/Config/image_utils.php';
             $webp_file_name = uniqid() . '_' . time() . '.webp';
             $webp_target = $upload_dir . $webp_file_name;
-            $bgRes = removeBgAndConvertToWebp($target_file, $webp_target, null, ['size' => 'auto', 'type' => 'product', 'quality' => 90]);
-            if (!empty($bgRes['success']) && file_exists($webp_target)) {
-                if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
-                $file_name = $webp_file_name;
-            } else {
+            $alreadyTrans = function_exists('isImageAlreadyTransparent') && isImageAlreadyTransparent($target_file);
+
+            if ($alreadyTrans) {
                 $settings = getCompressionSettings('product');
                 if (compressImage($target_file, $webp_target, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
                     if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
                     $file_name = $webp_file_name;
+                }
+            } else {
+                $bgRes = removeBgAndConvertToWebp($target_file, $webp_target, null, ['size' => 'auto', 'type' => 'product', 'quality' => 88]);
+                if (!empty($bgRes['success']) && file_exists($webp_target)) {
+                    if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                    $file_name = $webp_file_name;
+                } else {
+                    $settings = getCompressionSettings('product');
+                    if (compressImage($target_file, $webp_target, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
+                        if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                        $file_name = $webp_file_name;
+                    }
                 }
             }
             $uploaded_image = '/kouprey/public/assets/images/products/' . $file_name;

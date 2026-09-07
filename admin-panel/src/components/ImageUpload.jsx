@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2, Sparkles } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
 import { formatImageUrl, handleImageError } from '../utils/imageUrl';
-import { compressImageClient } from '../utils/imageCompressor';
+import { compressImageClient, checkImageTransparency } from '../utils/imageCompressor';
 
 export default function ImageUpload({
   value,
@@ -14,25 +14,38 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [localPreview, setLocalPreview] = useState('');
   const [error, setError] = useState('');
+  const [stats, setStats] = useState(null);
   const [removeBg, setRemoveBg] = useState(allowRemoveBg !== null ? allowRemoveBg : (type === 'product'));
   const fileInputRef = useRef(null);
 
   const handleFile = async (rawFile) => {
     if (!rawFile) return;
     setError('');
+    setStats(null);
     const previewUrl = URL.createObjectURL(rawFile);
     setLocalPreview(previewUrl);
     setUploading(true);
 
     try {
+      const isAlreadyTrans = await checkImageTransparency(rawFile);
       const file = await compressImageClient(rawFile);
-      const res = await adminApi.uploadImage(file, type, { removeBg });
+      const res = await adminApi.uploadImage(file, type, {
+        removeBg: removeBg && !isAlreadyTrans,
+        alreadyTransparent: isAlreadyTrans
+      });
       if (res.success && res.path) {
         const cleanPath = res.path.includes('/uploads/')
           ? res.path.substring(res.path.indexOf('/uploads/'))
           : res.path;
         onChange(cleanPath);
-        if (res.warning) {
+        setStats({
+          compressed: res.compressed_size_formatted || '',
+          original: res.original_size_formatted || '',
+          savedPercent: res.saved_percent || 0,
+          alreadyTransparent: Boolean(res.already_transparent || isAlreadyTrans),
+          bgRemoved: Boolean(res.bg_removed)
+        });
+        if (res.warning && res.warning !== 'already_transparent') {
           setError(`ចំណាំ: ${res.warning}`);
         }
       } else {
@@ -127,9 +140,9 @@ export default function ImageUpload({
         </div>
       )}
 
-      {/* Remove BG Toggle */}
-      {allowRemoveBg !== false && (
-        <div className="pt-0.5">
+      {/* Remove BG Toggle & Compression Metrics */}
+      <div className="space-y-1.5 pt-0.5">
+        {allowRemoveBg !== false && (
           <label className="inline-flex items-center gap-1.5 cursor-pointer select-none text-xs text-gray-600 hover:text-amber-800 transition">
             <input
               type="checkbox"
@@ -142,8 +155,21 @@ export default function ImageUpload({
               Auto Remove Background (AI)
             </span>
           </label>
-        </div>
-      )}
+        )}
+
+        {stats && (
+          <div className="flex flex-wrap items-center gap-1.5 text-[10.5px]">
+            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+              ⚡ WebP: <strong>{stats.compressed}</strong> {stats.savedPercent > 0 && `(-${stats.savedPercent}%)`}
+            </span>
+            {stats.alreadyTransparent && (
+              <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200">
+                🛡️ Transparent ស្រាប់
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
     </div>

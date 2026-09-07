@@ -153,6 +153,9 @@ export const adminApi = {
     if (options.removeBg !== undefined) {
       formData.append('remove_bg', options.removeBg ? '1' : '0');
     }
+    if (options.alreadyTransparent !== undefined) {
+      formData.append('already_transparent', options.alreadyTransparent ? '1' : '0');
+    }
     return request('upload_image', {
       method: 'POST',
       body: formData,

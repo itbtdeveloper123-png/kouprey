@@ -1118,6 +1118,9 @@ switch ($action) {
             $filename = $prefix . $uniqueId . '_' . $timestamp . '.' . $ext;
             $targetPath = $uploadDir . $filename;
 
+            $alreadyTransparentParam = $_POST['already_transparent'] ?? null;
+            $isClientReportedTransparent = ($alreadyTransparentParam !== null) ? filter_var($alreadyTransparentParam, FILTER_VALIDATE_BOOLEAN) : false;
+
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
                 require_once __DIR__ . '/../app/Config/image_utils.php';
 
@@ -1126,11 +1129,29 @@ switch ($action) {
                 $webpFilename = $prefix . $uniqueId . '_' . $timestamp . '.webp';
                 $webpPath = $uploadDir . $webpFilename;
 
-                if ($removeBg && function_exists('removeBgAndConvertToWebp')) {
+                // Check if image already has a transparent background to preserve API credits
+                $alreadyTransparent = $isClientReportedTransparent || (function_exists('isImageAlreadyTransparent') && isImageAlreadyTransparent($targetPath));
+
+                if ($alreadyTransparent) {
+                    // SKIP Remove.bg API call to avoid wasting API credits!
+                    $bgRemoved = false;
+                    $bgWarning = 'already_transparent';
+
+                    // Convert and compress directly to WebP
+                    if (function_exists('compressImage')) {
+                        compressImage($targetPath, $webpPath, 85, 1400, 1400);
+                        if (file_exists($webpPath) && filesize($webpPath) > 0) {
+                            if ($targetPath !== $webpPath && file_exists($targetPath)) @unlink($targetPath);
+                            $filename = $webpFilename;
+                            $targetPath = $webpPath;
+                        }
+                    }
+                } elseif ($removeBg && function_exists('removeBgAndConvertToWebp')) {
+                    // Image has solid/opaque background - call Remove.bg API
                     $bgResult = removeBgAndConvertToWebp($targetPath, $webpPath, null, [
                         'size' => 'auto',
                         'type' => ($type === 'product' ? 'product' : 'auto'),
-                        'quality' => 90
+                        'quality' => 88
                     ]);
 
                     if (!empty($bgResult['success']) && file_exists($webpPath) && filesize($webpPath) > 0) {
@@ -1145,8 +1166,8 @@ switch ($action) {
                         error_log("Remove.bg failed for {$targetPath}: {$bgWarning}. Falling back to standard WebP.");
                         
                         // Fallback: convert original to WebP
-                        if ($ext !== 'webp' && function_exists('imagewebp')) {
-                            if (function_exists('compressImage') && compressImage($targetPath, $webpPath, 88, 1920, 1920)) {
+                        if (function_exists('compressImage')) {
+                            if (compressImage($targetPath, $webpPath, 85, 1400, 1400)) {
                                 if (file_exists($targetPath) && $targetPath !== $webpPath) {
                                     @unlink($targetPath);
                                 }
@@ -1157,8 +1178,8 @@ switch ($action) {
                     }
                 } else {
                     // Standard WebP conversion if not removing BG
-                    if ($ext !== 'webp' && function_exists('imagewebp')) {
-                        if (function_exists('compressImage') && compressImage($targetPath, $webpPath, 88, 1920, 1920)) {
+                    if (function_exists('compressImage')) {
+                        if (compressImage($targetPath, $webpPath, 85, 1400, 1400)) {
                             if (file_exists($targetPath) && $targetPath !== $webpPath) {
                                 @unlink($targetPath);
                             }
@@ -1168,6 +1189,11 @@ switch ($action) {
                     }
                 }
 
+                $originalSize = (int)$file['size'];
+                $finalSize = file_exists($targetPath) ? (int)filesize($targetPath) : 0;
+                $savedBytes = max(0, $originalSize - $finalSize);
+                $savedPercent = ($originalSize > 0 && $finalSize < $originalSize) ? round(($savedBytes / $originalSize) * 100) : 0;
+
                 $relPath = match($type) {
                     'logo'     => '/uploads/' . $filename,
                     'banner'   => '/uploads/banners/' . $filename,
@@ -1176,12 +1202,18 @@ switch ($action) {
                 };
 
                 echo json_encode([
-                    'success'    => true,
-                    'path'       => $relPath,
-                    'filename'   => $filename,
-                    'bg_removed' => $bgRemoved,
-                    'warning'    => $bgWarning,
-                    'format'     => 'webp'
+                    'success'                   => true,
+                    'path'                      => $relPath,
+                    'filename'                  => $filename,
+                    'bg_removed'                => $bgRemoved,
+                    'already_transparent'       => $alreadyTransparent,
+                    'warning'                   => $bgWarning,
+                    'format'                    => 'webp',
+                    'original_size'             => $originalSize,
+                    'compressed_size'           => $finalSize,
+                    'original_size_formatted'   => function_exists('formatFileSize') ? formatFileSize($originalSize) : round($originalSize/1024) . ' KB',
+                    'compressed_size_formatted' => function_exists('formatFileSize') ? formatFileSize($finalSize) : round($finalSize/1024) . ' KB',
+                    'saved_percent'             => $savedPercent,
                 ]);
             } else {
                 echo json_encode(['success' => false, 'error' => 'Failed to save file']);
@@ -1338,17 +1370,24 @@ switch ($action) {
                             $webpName = $baseNameNoExt . '.webp';
                             $webpDest = $dir . $webpName;
 
-                            if ($removeBg && $folder === 'products' && function_exists('removeBgAndConvertToWebp')) {
-                                $bgRes = removeBgAndConvertToWebp($dest, $webpDest, null, ['size' => 'auto', 'type' => 'product', 'quality' => 90]);
+                            $alreadyTrans = function_exists('isImageAlreadyTransparent') && isImageAlreadyTransparent($dest);
+                            if ($alreadyTrans) {
+                                // Already transparent - skip remove.bg, directly convert to WebP
+                                if (function_exists('compressImage') && compressImage($dest, $webpDest, 85, 1400, 1400)) {
+                                    if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
+                                    $safe = $webpName;
+                                }
+                            } elseif ($removeBg && $folder === 'products' && function_exists('removeBgAndConvertToWebp')) {
+                                $bgRes = removeBgAndConvertToWebp($dest, $webpDest, null, ['size' => 'auto', 'type' => 'product', 'quality' => 88]);
                                 if (!empty($bgRes['success']) && file_exists($webpDest)) {
                                     if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
                                     $safe = $webpName;
-                                } elseif (function_exists('compressImage') && compressImage($dest, $webpDest, 88, 1920, 1920)) {
+                                } elseif (function_exists('compressImage') && compressImage($dest, $webpDest, 85, 1400, 1400)) {
                                     if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
                                     $safe = $webpName;
                                 }
                             } elseif ($lowExt !== 'webp' && function_exists('compressImage')) {
-                                if (compressImage($dest, $webpDest, 88, 1920, 1920)) {
+                                if (compressImage($dest, $webpDest, 85, 1400, 1400)) {
                                     if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
                                     $safe = $webpName;
                                 }

@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
 import { formatImageUrl, handleImageError } from '../utils/imageUrl';
-import { compressImageClient } from '../utils/imageCompressor';
+import { compressImageClient, checkImageTransparency } from '../utils/imageCompressor';
 import MediaBrowserModal from '../components/MediaBrowserModal';
 
 // ──────────────────────────────────────────────
@@ -217,6 +217,7 @@ export default function ProductsPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [autoRemoveBg, setAutoRemoveBg] = useState(true);
   const [uploadProgressText, setUploadProgressText] = useState('');
+  const [imageCompressionStats, setImageCompressionStats] = useState(null);
   const [productForm, setProductForm] = useState({
     base_product_id: 0,
     price: '',
@@ -1699,18 +1700,44 @@ export default function ProductsPage() {
                               const localUrl = URL.createObjectURL(rawFile);
                               setImagePreview(localUrl);
                               setUploadingImage(true);
-                              setUploadProgressText(autoRemoveBg ? 'Remove BG & WebP...' : 'កំពុង Upload...');
+                              setImageCompressionStats(null);
+
+                              // 1. Detect if image is already transparent to avoid wasting API Key credits
+                              const isAlreadyTrans = await checkImageTransparency(rawFile);
+                              if (isAlreadyTrans) {
+                                setUploadProgressText('កំពុងបម្លែងជា WebP...');
+                              } else if (autoRemoveBg) {
+                                setUploadProgressText('Remove BG & WebP...');
+                              } else {
+                                setUploadProgressText('កំពុង Upload & WebP...');
+                              }
+
                               try {
                                 const file = await compressImageClient(rawFile);
-                                const res = await adminApi.uploadImage(file, 'product', { removeBg: autoRemoveBg });
+                                const res = await adminApi.uploadImage(file, 'product', {
+                                  removeBg: autoRemoveBg && !isAlreadyTrans,
+                                  alreadyTransparent: isAlreadyTrans,
+                                });
+
                                 if (res.success && res.path) {
                                   const cleanPath = res.path.includes('/uploads/')
                                     ? res.path.substring(res.path.indexOf('/uploads/'))
                                     : res.path;
                                   setProductForm((prev) => ({ ...prev, image: cleanPath }));
-                                  if (res.bg_removed) {
-                                    showToast('បាន Remove Background និងបម្លែងជា WebP ជោគជ័យ! 🎉');
-                                  } else if (res.warning) {
+
+                                  setImageCompressionStats({
+                                    original: res.original_size_formatted || '',
+                                    compressed: res.compressed_size_formatted || '',
+                                    savedPercent: res.saved_percent || 0,
+                                    alreadyTransparent: Boolean(res.already_transparent || isAlreadyTrans),
+                                    bgRemoved: Boolean(res.bg_removed),
+                                  });
+
+                                  if (res.already_transparent || isAlreadyTrans) {
+                                    showToast(`រូបភាព Transparent ស្រាប់! បានបម្លែងជា WebP (${res.compressed_size_formatted || ''}) ដោយមិនខាត API Key 💡`);
+                                  } else if (res.bg_removed) {
+                                    showToast(`បាន Remove Background & Compress ជា WebP ជោគជ័យ! (${res.saved_percent}% សន្សំ) 🎉`);
+                                  } else if (res.warning && res.warning !== 'already_transparent') {
                                     showToast(`បាន Upload ជា WebP (${res.warning})`, 'warning');
                                   } else {
                                     showToast('បានផ្ទុកឡើងរូបភាព (WebP) ជោគជ័យ!');
@@ -1749,6 +1776,28 @@ export default function ProductsPage() {
                         </span>
                       </label>
                     </div>
+
+                    {/* Auto Compression & Transparency Metrics Badge */}
+                    {imageCompressionStats && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-medium">
+                          ⚡ WebP: <strong>{imageCompressionStats.compressed}</strong>
+                          {imageCompressionStats.savedPercent > 0 && (
+                            <span className="text-emerald-600 font-bold">(កាត់បន្ថយ {imageCompressionStats.savedPercent}% ពី {imageCompressionStats.original})</span>
+                          )}
+                        </span>
+                        {imageCompressionStats.alreadyTransparent && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 border border-sky-200 text-[11px] font-medium">
+                            🛡️ Transparent ស្រាប់ (មិនខាត API Key)
+                          </span>
+                        )}
+                        {imageCompressionStats.bgRemoved && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-800 border border-purple-200 text-[11px] font-medium">
+                            ✨ Remove.bg កាត់ BG រួចរាល់
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
