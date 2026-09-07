@@ -256,6 +256,46 @@ export default function ProductsPage() {
   const [copyProductSearch, setCopyProductSearch] = useState('');
   const [copyModalLoading, setCopyModalLoading] = useState(false);
   const [allCatalogProducts, setAllCatalogProducts] = useState([]);
+  const [draggedCfIndex, setDraggedCfIndex] = useState(null);
+  const [dragOverCfIndex, setDragOverCfIndex] = useState(null);
+
+  const moveCustomField = (fromIndex, toIndex) => {
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= productForm.custom_fields.length ||
+      toIndex >= productForm.custom_fields.length
+    ) {
+      return;
+    }
+    setProductForm((prev) => {
+      const list = [...prev.custom_fields];
+      const [moved] = list.splice(fromIndex, 1);
+      list.splice(toIndex, 0, moved);
+      return { ...prev, custom_fields: list };
+    });
+  };
+
+  const moveTableRow = (cfIdx, fromRowIdx, toRowIdx) => {
+    setProductForm((prev) => {
+      const updated = [...prev.custom_fields];
+      const rows = [...(updated[cfIdx].table_rows || [])];
+      if (
+        fromRowIdx === toRowIdx ||
+        fromRowIdx < 0 ||
+        toRowIdx < 0 ||
+        fromRowIdx >= rows.length ||
+        toRowIdx >= rows.length
+      ) {
+        return prev;
+      }
+      const [moved] = rows.splice(fromRowIdx, 1);
+      rows.splice(toRowIdx, 0, moved);
+      updated[cfIdx].table_rows = rows;
+      return { ...prev, custom_fields: updated };
+    });
+  };
 
   const openCopyModal = async () => {
     setCopyProductSearch('');
@@ -1948,75 +1988,143 @@ export default function ProductsPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {productForm.custom_fields.map((cf, idx) => (
-                      <div
-                        key={cf.id || idx}
-                        className="bg-gray-50/80 rounded-xl border border-gray-200 p-3.5 space-y-3 relative group hover:border-gray-300 transition"
-                      >
-                        {/* Field Header */}
-                        <div className="flex items-center justify-between pb-2 border-b border-gray-200/80 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">
-                              #{idx + 1}
-                            </span>
-                            <span className="font-mono text-[11px] text-gray-500 font-bold truncate max-w-[150px]">
-                              {cf.id}
-                            </span>
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                cf.type === 'table'
-                                  ? 'bg-purple-100 text-purple-700'
-                                  : cf.is_simple
-                                  ? 'bg-gray-100 text-gray-700'
-                                  : 'bg-emerald-100 text-emerald-700'
-                              }`}
-                            >
-                              {cf.type === 'table' ? 'Nutrition Table' : cf.is_simple ? 'Flag' : 'Text Field'}
-                            </span>
-                          </div>
+                    {productForm.custom_fields.map((cf, idx) => {
+                      const isDragging = draggedCfIndex === idx;
+                      const isDragOver = dragOverCfIndex === idx && draggedCfIndex !== idx;
 
-                          <div className="flex items-center gap-2">
-                            {/* Switch Type */}
-                            {!cf.is_simple && (
-                              <select
-                                value={cf.type}
-                                onChange={(e) => {
-                                  const updated = [...productForm.custom_fields];
-                                  const newType = e.target.value;
-                                  updated[idx].type = newType;
-                                  if (newType === 'table' && (!updated[idx].table_rows || updated[idx].table_rows.length === 0)) {
-                                    updated[idx].table_rows = [
-                                      {
-                                        id: `row_0_${Date.now()}`,
-                                        label_en: '',
-                                        label_km: '',
-                                        values: [{ en: '', km: '' }],
-                                      },
-                                    ];
-                                  }
+                      return (
+                        <div
+                          key={cf.id || idx}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedCfIndex(idx);
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', String(idx));
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            if (dragOverCfIndex !== idx) {
+                              setDragOverCfIndex(idx);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverCfIndex === idx) {
+                              setDragOverCfIndex(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            moveCustomField(draggedCfIndex, idx);
+                            setDraggedCfIndex(null);
+                            setDragOverCfIndex(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedCfIndex(null);
+                            setDragOverCfIndex(null);
+                          }}
+                          className={`rounded-xl border p-3.5 space-y-3 relative group transition ${
+                            isDragging
+                              ? 'opacity-40 border-dashed border-blue-400 bg-blue-50/20 scale-[0.99]'
+                              : isDragOver
+                              ? 'border-blue-500 ring-2 ring-blue-400/40 bg-blue-50/40 shadow-sm'
+                              : 'bg-gray-50/80 border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          {/* Field Header */}
+                          <div className="flex items-center justify-between pb-2 border-b border-gray-200/80 text-xs">
+                            <div className="flex items-center gap-2">
+                              {/* Drag Handle */}
+                              <div
+                                className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-700 hover:bg-white rounded transition flex items-center justify-center select-none"
+                                title="ចុចអូសដើម្បីតម្រៀបលំដាប់ (Drag to reorder)"
+                              >
+                                <GripVertical size={15} />
+                              </div>
+
+                              <span className="font-mono text-[10px] text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                                #{idx + 1}
+                              </span>
+                              <span className="font-mono text-[11px] text-gray-500 font-bold truncate max-w-[150px]">
+                                {cf.id}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  cf.type === 'table'
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : cf.is_simple
+                                    ? 'bg-gray-100 text-gray-700'
+                                    : 'bg-emerald-100 text-emerald-700'
+                                }`}
+                              >
+                                {cf.type === 'table' ? 'Nutrition Table' : cf.is_simple ? 'Flag' : 'Text Field'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              {/* Reorder Buttons (Up / Down) */}
+                              <div className="flex items-center bg-white border border-gray-200 rounded-lg p-0.5 shadow-2xs">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => moveCustomField(idx, idx - 1)}
+                                  className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-900 disabled:opacity-25 disabled:hover:text-gray-500 hover:bg-gray-100 rounded transition cursor-pointer disabled:cursor-not-allowed"
+                                  title="រំកិលឡើងលើ (Move Up)"
+                                >
+                                  <ChevronUp size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === productForm.custom_fields.length - 1}
+                                  onClick={() => moveCustomField(idx, idx + 1)}
+                                  className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-900 disabled:opacity-25 disabled:hover:text-gray-500 hover:bg-gray-100 rounded transition cursor-pointer disabled:cursor-not-allowed"
+                                  title="រំកិលចុះក្រោម (Move Down)"
+                                >
+                                  <ChevronDown size={13} />
+                                </button>
+                              </div>
+
+                              {/* Switch Type */}
+                              {!cf.is_simple && (
+                                <select
+                                  value={cf.type}
+                                  onChange={(e) => {
+                                    const updated = [...productForm.custom_fields];
+                                    const newType = e.target.value;
+                                    updated[idx].type = newType;
+                                    if (newType === 'table' && (!updated[idx].table_rows || updated[idx].table_rows.length === 0)) {
+                                      updated[idx].table_rows = [
+                                        {
+                                          id: `row_0_${Date.now()}`,
+                                          label_en: '',
+                                          label_km: '',
+                                          values: [{ en: '', km: '' }],
+                                        },
+                                      ];
+                                    }
+                                    setProductForm({ ...productForm, custom_fields: updated });
+                                  }}
+                                  className="text-[11px] bg-white border border-gray-200 rounded px-2 py-0.5 text-gray-700 focus:outline-none"
+                                >
+                                  <option value="text">Text (អត្ថបទ)</option>
+                                  <option value="table">Nutrition Table</option>
+                                </select>
+                              )}
+
+                              {/* Remove Field */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = productForm.custom_fields.filter((_, i) => i !== idx);
                                   setProductForm({ ...productForm, custom_fields: updated });
                                 }}
-                                className="text-[11px] bg-white border border-gray-200 rounded px-2 py-0.5 text-gray-700"
+                                className="w-6 h-6 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                title="លុបវាលនេះ"
                               >
-                                <option value="text">Text (អត្ថបទ)</option>
-                                <option value="table">Nutrition Table</option>
-                              </select>
-                            )}
-
-                            {/* Remove Field */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updated = productForm.custom_fields.filter((_, i) => i !== idx);
-                                setProductForm({ ...productForm, custom_fields: updated });
-                              }}
-                              className="w-6 h-6 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition"
-                              title="លុបវាលនេះ"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </div>
-                        </div>
 
                         {/* Legacy Simple Field */}
                         {cf.is_simple ? (
@@ -2253,8 +2361,9 @@ export default function ProductsPage() {
                           </>
                         )}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
                 )}
               </div>
 
