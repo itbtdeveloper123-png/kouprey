@@ -30,6 +30,15 @@ require_once __DIR__ . '/../app/Config/settings.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
+// Auto-clear cache on admin updates
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action !== 'login' && $action !== 'check_session') {
+    register_shutdown_function(function() {
+        if (function_exists('clearSettingsCache')) {
+            clearSettingsCache();
+        }
+    });
+}
+
 // ─────────────────────────────────────────────────
 //  PUBLIC ACTIONS (no session required)
 // ─────────────────────────────────────────────────

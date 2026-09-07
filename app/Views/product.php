@@ -18,81 +18,104 @@ $heroImages = glob(realpath(__DIR__ . '/../../public/uploads/') . '/hero-bg-*.pn
 
 // Fetch products from database with average ratings for all languages
 $currentLanguage = getCurrentLanguage();
-$stmt = $pdo->prepare("
-    SELECT
-        p.*,
-        c.base_category_id,
-        COALESCE(review_stats.avg_rating, 0) as avg_rating,
-        COALESCE(review_stats.review_count, 0) as review_count
-	FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-	LEFT JOIN (
+
+// High performance catalog cache (invalidated when products or settings are modified)
+$catalogCacheFile = sys_get_temp_dir() . '/kouprey_catalog_' . md5($currentLanguage) . '.cache';
+$catalogData = null;
+if (file_exists($catalogCacheFile) && (time() - filemtime($catalogCacheFile) < 300)) {
+    $catalogData = @unserialize(@file_get_contents($catalogCacheFile));
+}
+
+if (!is_array($catalogData) || empty($catalogData['products'])) {
+    $stmt = $pdo->prepare("
         SELECT
-            base_product_id,
-            AVG(r.rating) as avg_rating,
-            COUNT(r.id) as review_count
-        FROM reviews r
-        JOIN products pr ON r.product_id = pr.id
-        GROUP BY pr.base_product_id
-    ) review_stats ON p.base_product_id = review_stats.base_product_id
-	WHERE p.enabled = 1
-    ORDER BY p.sort_order ASC, p.featured DESC, p.id DESC
-");
-$stmt->execute();
-$allProducts = $stmt->fetchAll();
+            p.*,
+            c.base_category_id,
+            COALESCE(review_stats.avg_rating, 0) as avg_rating,
+            COALESCE(review_stats.review_count, 0) as review_count
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN (
+            SELECT
+                base_product_id,
+                AVG(r.rating) as avg_rating,
+                COUNT(r.id) as review_count
+            FROM reviews r
+            JOIN products pr ON r.product_id = pr.id
+            GROUP BY pr.base_product_id
+        ) review_stats ON p.base_product_id = review_stats.base_product_id
+        WHERE p.enabled = 1
+        ORDER BY p.sort_order ASC, p.featured DESC, p.id DESC
+    ");
+    $stmt->execute();
+    $allProducts = $stmt->fetchAll();
 
-// Group products by base_product_id and keep only current language version for display
-$productsByBaseId = [];
-foreach ($allProducts as $product) {
-    $baseId = $product['base_product_id'];
-    if (!isset($productsByBaseId[$baseId])) {
-        $productsByBaseId[$baseId] = [];
+    // Group products by base_product_id and keep only current language version for display
+    $productsByBaseId = [];
+    foreach ($allProducts as $product) {
+        $baseId = $product['base_product_id'];
+        if (!isset($productsByBaseId[$baseId])) {
+            $productsByBaseId[$baseId] = [];
+        }
+        $productsByBaseId[$baseId][$product['language']] = $product;
     }
-    $productsByBaseId[$baseId][$product['language']] = $product;
-}
 
-// For display, use current language products, fallback to English if not available
-$products = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    if (isset($langVersions[$currentLanguage])) {
-        $products[] = $langVersions[$currentLanguage];
-    } elseif (isset($langVersions['en'])) {
-        $products[] = $langVersions['en'];
-    } else {
-        // Use first available language version
-        $products[] = reset($langVersions);
+    // For display, use current language products, fallback to English if not available
+    $products = [];
+    foreach ($productsByBaseId as $baseId => $langVersions) {
+        if (isset($langVersions[$currentLanguage])) {
+            $products[] = $langVersions[$currentLanguage];
+        } elseif (isset($langVersions['en'])) {
+            $products[] = $langVersions['en'];
+        } else {
+            // Use first available language version
+            $products[] = reset($langVersions);
+        }
     }
-}
-$allAvailableProducts = $products;
+    $allAvailableProducts = $products;
 
-// Create a search index with all language versions
-$searchProducts = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    $searchProduct = [
-        'base_product_id' => $baseId,
-        'languages' => $langVersions, // Include all language versions
-        'all_names' => '',
-        'all_descriptions' => ''
+    // Create a search index with all language versions
+    $searchProducts = [];
+    foreach ($productsByBaseId as $baseId => $langVersions) {
+        $searchProduct = [
+            'base_product_id' => $baseId,
+            'languages' => $langVersions, // Include all language versions
+            'all_names' => '',
+            'all_descriptions' => ''
+        ];
+
+        // Collect all language versions for search
+        $allNames = [];
+        $allDescriptions = [];
+
+        foreach ($langVersions as $lang => $product) {
+            $allNames[] = $product['name'];
+            $allDescriptions[] = $product['description'];
+        }
+
+        $searchProduct['all_names'] = implode(' ', $allNames);
+        $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
+        $searchProducts[] = $searchProduct;
+    }
+
+    // Fetch categories for current language
+    $stmt = $pdo->prepare("SELECT * FROM categories WHERE language = ? ORDER BY name ASC");
+    $stmt->execute([$currentLanguage]);
+    $categories = $stmt->fetchAll();
+
+    $catalogData = [
+        'products' => $products,
+        'allAvailableProducts' => $allAvailableProducts,
+        'searchProducts' => $searchProducts,
+        'categories' => $categories
     ];
-
-    // Collect all language versions for search
-    $allNames = [];
-    $allDescriptions = [];
-
-    foreach ($langVersions as $lang => $product) {
-        $allNames[] = $product['name'];
-        $allDescriptions[] = $product['description'];
-    }
-
-    $searchProduct['all_names'] = implode(' ', $allNames);
-    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-    $searchProducts[] = $searchProduct;
+    @file_put_contents($catalogCacheFile, serialize($catalogData), LOCK_EX);
 }
 
-// Fetch categories for current language
-$stmt = $pdo->prepare("SELECT * FROM categories WHERE language = ? ORDER BY name ASC");
-$stmt->execute([$currentLanguage]);
-$categories = $stmt->fetchAll();
+$products = $catalogData['products'];
+$allAvailableProducts = $catalogData['allAvailableProducts'];
+$searchProducts = $catalogData['searchProducts'];
+$categories = $catalogData['categories'];
 
 // Function to generate star rating
 function generateStars($rating) {
@@ -176,8 +199,10 @@ if (isset($_GET['ajax_pagination'])) {
                 <div class="product-image-container relative mb-4 pt-[100%] rounded-xl">
                     <div class="absolute inset-0 flex items-center justify-center p-2 md:p-6">
                         <div class="absolute w-32 h-32 bg-orange-200 rounded-full filter blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-                        <img src="<?php echo ($product['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+                        <img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                              alt="<?php echo htmlspecialchars($product['name']); ?>" 
+                             loading="lazy"
+                             decoding="async"
                              class="main-img max-w-full max-h-full object-contain relative z-10" 
                              style="filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));">
                     </div>
@@ -1447,8 +1472,10 @@ $topProducts = array_slice($topProducts, 0, 6);
 									<div class="absolute w-[280px] h-[280px] md:w-[450px] md:h-[450px] bg-gradient-to-tr from-gray-100 to-gray-50 rounded-full z-0 transform transition-transform duration-700 group-hover:scale-105"></div>
 									
 									<!-- Main Image -->
-									<img src="<?php echo ($spotlightProduct['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+									<img src="<?php echo htmlspecialchars($spotlightProduct['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 										 alt="<?php echo htmlspecialchars($spotlightProduct['name']); ?>" 
+										 loading="eager"
+										 decoding="async"
 										 class="relative z-10 w-64 md:w-96 max-w-full drop-shadow-2xl transform transition-all duration-500 group-hover:-rotate-3 group-hover:scale-110 cursor-pointer"
 										 onclick="window.location.href='product_detail.php?base_id=<?php echo $spotlightProduct['base_product_id']; ?>'">
 									
@@ -1719,8 +1746,10 @@ $topProducts = array_slice($topProducts, 0, 6);
 									<div class="swiper-wrapper">
 										<?php foreach ($syrupProducts as $p): ?>
 										<div class="swiper-slide cursor-pointer pb-12" onclick="window.location.href='product_detail.php?base_id=<?php echo $p['base_product_id']; ?>'">
-											<img src="<?php echo ($p['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+											<img src="<?php echo htmlspecialchars($p['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 												 alt="<?php echo htmlspecialchars($p['name']); ?>" 
+												 loading="lazy"
+												 decoding="async"
 												 class="w-full h-full object-contain object-center transform transition-transform duration-1000 p-2 md:p-4"
 												 style="filter: drop-shadow(0 5px 5px rgba(0,0,0,0.6)) drop-shadow(0 5px 5px rgba(0,0,0,0.3))">
 										<div class="absolute bottom-16 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
@@ -1809,8 +1838,10 @@ $topProducts = array_slice($topProducts, 0, 6);
 								<div class="swiper-wrapper">
 									<?php foreach ($powderProducts as $p): ?>
 									<div class="swiper-slide cursor-pointer pb-12" onclick="window.location.href='product_detail.php?base_id=<?php echo $p['base_product_id']; ?>'">
-										<img src="<?php echo ($p['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+										<img src="<?php echo htmlspecialchars($p['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 											 alt="<?php echo htmlspecialchars($p['name']); ?>" 
+											 loading="lazy"
+											 decoding="async"
 											 class="w-full h-full object-contain object-center transform transition-transform duration-1000 p-2 md:p-4"
 											 style="filter: drop-shadow(0 5px 5px rgba(0,0,0,0.6)) drop-shadow(0 5px 5px rgba(0,0,0,0.3))">
 										<div class="absolute bottom-16 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
@@ -1894,8 +1925,10 @@ $topProducts = array_slice($topProducts, 0, 6);
 								<div class="swiper-wrapper">
 									<?php foreach ($beanProducts as $p): ?>
 									<div class="swiper-slide cursor-pointer pb-12" onclick="window.location.href='product_detail.php?base_id=<?php echo $p['base_product_id']; ?>'">
-										<img src="<?php echo ($p['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+										<img src="<?php echo htmlspecialchars($p['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 											 alt="<?php echo htmlspecialchars($p['name']); ?>" 
+											 loading="lazy"
+											 decoding="async"
 											 class="w-full h-full object-contain object-center transform transition-transform duration-1000 p-2 md:p-4"
 											 style="filter: drop-shadow(0 5px 5px rgba(0,0,0,0.6)) drop-shadow(0 5px 5px rgba(0,0,0,0.3))">
 										<div class="absolute bottom-16 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
@@ -1953,8 +1986,10 @@ $topProducts = array_slice($topProducts, 0, 6);
 										onclick="window.location.href='product_detail.php?base_id=<?php echo $p['base_product_id']; ?>'">
 									<div class="product-image-container relative mb-3 pt-[100%] rounded-2xl bg-gray-50 overflow-hidden">
 										<div class="absolute inset-0 flex items-center justify-center p-4">
-											<img src="<?php echo ($p['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+											<img src="<?php echo htmlspecialchars($p['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 												 alt="<?php echo htmlspecialchars($p['name']); ?>" 
+												 loading="lazy"
+												 decoding="async"
 												 class="w-full h-full object-contain transform transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
 										</div>
 									</div>
@@ -2088,8 +2123,10 @@ $topProducts = array_slice($topProducts, 0, 6);
 								<!-- Image Container -->
 								<div class="product-image-container relative mb-6 pt-[100%] rounded-3xl bg-gray-50/50 md:bg-transparent overflow-hidden">
 									<div class="absolute inset-0 flex items-center justify-center p-1">
-										<img src="<?php echo ($product['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+										<img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
 											 alt="<?php echo htmlspecialchars($product['name']); ?>" 
+											 loading="lazy"
+											 decoding="async"
 											 class="main-img w-full h-full object-contain transform transition-transform duration-700 group-hover:scale-110 drop-shadow-2xl" 
 											 style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
 									</div>
@@ -2381,7 +2418,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 					window.location.href = 'product_detail.php?base_id=' + product.base_product_id;
 				};
 				resultItem.innerHTML = `
-					<img src="${(product.image || '/kouprey/public/assets/images/product-medium.png') + '?t=' + Date.now()}" alt="${product.name}" class="w-12 h-12 object-contain mr-4 rounded">
+					<img src="${product.image || '/kouprey/public/assets/images/product-medium.png'}" alt="${product.name}" loading="lazy" decoding="async" class="w-12 h-12 object-contain mr-4 rounded">
 					<div class="flex-1">
 						<h4 class="font-semibold text-gray-800">${product.name}</h4>
 						<p class="text-sm text-gray-600">$${parseFloat(product.price).toFixed(2)}</p>
@@ -2406,7 +2443,77 @@ $topProducts = array_slice($topProducts, 0, 6);
 		}
 
 
-		// Product filtering functionality
+		// In-memory client cache for instant (0ms) category switching and pagination
+		const productAjaxCache = {};
+
+		function attachProductPrefetch() {
+			document.querySelectorAll('article.product-item').forEach(card => {
+				card.addEventListener('mouseenter', () => {
+					const onclickStr = card.getAttribute('onclick') || '';
+					const match = onclickStr.match(/product_detail\.php\?base_id=\d+/);
+					if (match && !document.querySelector(`link[rel="prefetch"][href="${match[0]}"]`)) {
+						const link = document.createElement('link');
+						link.rel = 'prefetch';
+						link.href = match[0];
+						document.head.appendChild(link);
+					}
+				}, { once: true });
+			});
+		}
+
+		function applyProductData(data, scrollToProducts) {
+			const container = document.getElementById('products-container');
+			const wrapper = document.getElementById('ajax-products-wrapper');
+			
+			if (container) {
+				container.outerHTML = data.productsHtml;
+			} else if (wrapper) {
+				const newContainer = document.createElement('div');
+				newContainer.innerHTML = data.productsHtml;
+				wrapper.prepend(newContainer.firstChild); 
+			}
+			
+			const paginationContainer = document.getElementById('pagination-ui-container');
+			if (paginationContainer) {
+				paginationContainer.innerHTML = data.paginationHtml;
+			}
+
+			if (wrapper) {
+				wrapper.style.opacity = '1';
+				wrapper.style.pointerEvents = 'auto';
+			}
+
+			if (scrollToProducts) {
+				const el = document.getElementById('products');
+				if (el) el.scrollIntoView({ behavior: 'smooth' });
+			}
+
+			if (typeof AOS !== 'undefined') {
+				AOS.refreshHard();
+			}
+
+			attachProductPrefetch();
+		}
+
+		// Initial prefetch attachment
+		document.addEventListener('DOMContentLoaded', () => {
+			attachProductPrefetch();
+			
+			// Hover prefetch for categories
+			document.querySelectorAll('.category-btn').forEach(btn => {
+				btn.addEventListener('mouseenter', () => {
+					const cat = btn.getAttribute('data-category');
+					if (cat && !productAjaxCache[cat + '_1']) {
+						fetch('?page=1&category=' + encodeURIComponent(cat) + '&ajax_pagination=1')
+							.then(r => r.json())
+							.then(d => { productAjaxCache[cat + '_1'] = d; })
+							.catch(() => {});
+					}
+				}, { once: true });
+			});
+		});
+
+		// Product filtering functionality with instant cache
 		function filterProducts(category) {
 			const categoryBtns = document.querySelectorAll('.category-btn');
 			
@@ -2435,7 +2542,12 @@ $topProducts = array_slice($topProducts, 0, 6);
 				console.error('Error updating URL:', e);
 			}
 
-            // Fetch filtered products from server
+			const cacheKey = category + '_1';
+			if (productAjaxCache[cacheKey]) {
+				applyProductData(productAjaxCache[cacheKey], false);
+				return;
+			}
+
             const wrapper = document.getElementById('ajax-products-wrapper');
 			if (wrapper) {
 				wrapper.style.opacity = '0.5';
@@ -2445,34 +2557,8 @@ $topProducts = array_slice($topProducts, 0, 6);
             fetch('?page=1&category=' + encodeURIComponent(category) + '&ajax_pagination=1')
 				.then(function(response) { return response.json(); })
 				.then(function(data) {
-					// Update products content
-					const container = document.getElementById('products-container');
-					
-					if (container) {
-                        container.outerHTML = data.productsHtml;
-                    } else if (wrapper) {
-						// Fallback if container is missing
-                        const newContainer = document.createElement('div');
-                        newContainer.innerHTML = data.productsHtml;
-                        wrapper.prepend(newContainer.firstChild); 
-                    }
-					
-					// Update pagination UI
-					const paginationContainer = document.getElementById('pagination-ui-container');
-					if (paginationContainer) {
-                        paginationContainer.innerHTML = data.paginationHtml;
-                    }
-
-					// Restore UI state
-					if (wrapper) {
-						wrapper.style.opacity = '1';
-						wrapper.style.pointerEvents = 'auto';
-					}
-
-					// Re-initialize AOS for new elements
-					if (typeof AOS !== 'undefined') {
-						AOS.refreshHard();
-					}
+					productAjaxCache[cacheKey] = data;
+					applyProductData(data, false);
 				})
 				.catch(function(error) {
 					console.error('Error fetching filtered products:', error);
@@ -2496,40 +2582,33 @@ $topProducts = array_slice($topProducts, 0, 6);
 		}
 
 		function changePage(page) {
-			const wrapper = document.getElementById('ajax-products-wrapper');
-			wrapper.style.opacity = '0.5';
-			wrapper.style.pointerEvents = 'none';
-
 			const urlParams = new URLSearchParams(window.location.search);
 			const currentCategory = urlParams.get('category') || 'all';
+			const cacheKey = currentCategory + '_' + page;
+
+			if (productAjaxCache[cacheKey]) {
+				applyProductData(productAjaxCache[cacheKey], true);
+				return;
+			}
+
+			const wrapper = document.getElementById('ajax-products-wrapper');
+			if (wrapper) {
+				wrapper.style.opacity = '0.5';
+				wrapper.style.pointerEvents = 'none';
+			}
 			
-			fetch(`?page=${page}&category=${currentCategory}&ajax_pagination=1`)
+			fetch(`?page=${page}&category=${encodeURIComponent(currentCategory)}&ajax_pagination=1`)
 				.then(response => response.json())
 				.then(data => {
-					// Update products content
-					const container = document.getElementById('products-container');
-					container.outerHTML = data.productsHtml;
-					
-					// Update pagination UI
-					const paginationContainer = document.getElementById('pagination-ui-container');
-					paginationContainer.innerHTML = data.paginationHtml;
-
-					// Restore UI state
-					wrapper.style.opacity = '1';
-					wrapper.style.pointerEvents = 'auto';
-
-					// Scroll back to top of products section
-					document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-
-					// Re-initialize AOS for new elements
-					if (typeof AOS !== 'undefined') {
-						AOS.refreshHard();
-					}
+					productAjaxCache[cacheKey] = data;
+					applyProductData(data, true);
 				})
 				.catch(error => {
 					console.error('Error fetching page:', error);
-					wrapper.style.opacity = '1';
-					wrapper.style.pointerEvents = 'auto';
+					if (wrapper) {
+						wrapper.style.opacity = '1';
+						wrapper.style.pointerEvents = 'auto';
+					}
 				});
 		}
 
@@ -2823,8 +2902,8 @@ $topProducts = array_slice($topProducts, 0, 6);
                                 <!-- Company Info -->
                                 <div class="col-span-1 md:col-span-2">
                                         <div class="flex items-center mb-4">
-                                                <img src="https://i.ibb.co/zT8QwG1h/Untitled-1-Recovered-3-Recovered-Recovered.png" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-8 w-auto mr-3 object-contain">
-                                                <span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey Coffee')); ?></span>
+                                                <img src="https://i.ibb.co/Wv0j3ZTQ/logo.png" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-8 w-auto mr-3 object-contain">
+                                                <span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
                                         </div>
                                         <p class="text-gray-300 mb-4 leading-relaxed">
                                                 <?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>

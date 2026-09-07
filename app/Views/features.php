@@ -628,8 +628,8 @@ foreach ($rawAssignments as $featureId => $productIds) {
 				<!-- Company Info -->
 				<div class="col-span-1 md:col-span-2">
 					<div class="flex items-center mb-4">
-						<img src="https://i.ibb.co/zT8QwG1h/Untitled-1-Recovered-3-Recovered-Recovered.png" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-8 w-auto mr-3 object-contain">
-						<span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey Coffee')); ?></span>
+						<img src="https://i.ibb.co/Wv0j3ZTQ/logo.png" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-8 w-auto mr-3 object-contain">
+						<span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
 					</div>
 					<p class="text-gray-300 mb-4 leading-relaxed">
 						<?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>

@@ -335,8 +335,10 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
             <div class="space-y-6 lg:sticky lg:top-24" data-aos="fade-right">
                 <div class="product-image-frame p-8 flex justify-center items-center shadow-inner aspect-square overflow-hidden relative" style="height: 500px;">
                     <div class="product-image-container w-full h-full flex items-center justify-center relative overflow-hidden">
-                        <img src="<?php echo ($product['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+                        <img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                              alt="<?php echo htmlspecialchars($product['name']); ?>" 
+                             loading="eager"
+                             decoding="async"
                              class="main-img w-full h-full object-contain filter drop-shadow-xl">
                     </div>
                 </div>
@@ -597,8 +599,10 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
                             <!-- Glow effect -->
                             <div class="absolute w-24 h-24 bg-orange-200 rounded-full filter blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
                             
-                            <img src="<?php echo ($rp['image'] ?: '/kouprey/public/assets/images/product-medium.png') . '?t=' . time(); ?>" 
+                            <img src="<?php echo htmlspecialchars($rp['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                                  alt="<?php echo htmlspecialchars($rp['name']); ?>" 
+                                 loading="lazy"
+                                 decoding="async"
                                  class="main-img max-w-full max-h-full object-contain relative z-10"
                                  style="filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));">
                         </div>

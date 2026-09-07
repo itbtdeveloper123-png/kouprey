@@ -93,6 +93,14 @@ function loadAllSettingsIntoCache($language = null) {
 function clearSettingsCache() {
     $GLOBALS['__SETTINGS_CACHE__'] = [];
     $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
+    // Invalidate product catalog cache
+    $cacheDir = sys_get_temp_dir();
+    $files = glob($cacheDir . '/kouprey_catalog_*.cache');
+    if ($files) {
+        foreach ($files as $f) {
+            @unlink($f);
+        }
+    }
 }
 
 /**
@@ -122,16 +130,26 @@ function getSetting($key, $default = '', $language = null) {
     }
 
     if ($language === 'km') {
+        if ($key === 'company_name') {
+            return 'ហ្គោ ហ្គោ';
+        }
         if ($key === 'our_products_description' && ($val === null || empty($val) || $val === $default || strpos($val, 'Discover') !== false)) {
             $val = 'ស្វែងរកផលិតផលទាំងអស់របស់យើង';
         }
         if ($key === 'site_description' && ($val === null || empty($val) || $val === $default || strpos($val, 'Premium coffee') !== false)) {
             $val = 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ';
         }
+        if ($key === 'footer_text') {
+            $val = str_replace('គោព្រៃ', 'ហ្គោ ហ្គោ', $val ?? $default);
+        }
     }
 
     if ($val === null) {
-        return replaceCoffeeKhmer($default);
+        $val = $default;
+    }
+
+    if (($key === 'company_name' || $key === 'footer_text') && is_string($val)) {
+        $val = str_replace('គោព្រៃ', 'ហ្គោ ហ្គោ', $val);
     }
 
     // Post-processing overrides for Rich Text Editor elements on Front-end (CDN Tailwind bypass)

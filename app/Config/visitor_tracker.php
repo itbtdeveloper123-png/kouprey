@@ -10,10 +10,9 @@ class VisitorTracker {
 
     public function __construct($pdo) {
         $this->pdo = $pdo;
-        $this->trackVisitor();
     }
 
-    private function trackVisitor() {
+    public function trackVisitor() {
         try {
             $ip = $this->getClientIP();
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
@@ -175,6 +174,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Initialize visitor tracking
-$tracker = new VisitorTracker($pdo);
+// Check if AJAX or API request - skip tracking to ensure instant response
+$isAjax = isset($_GET['ajax_pagination']) 
+    || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+    || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false && !strpos($_SERVER['HTTP_ACCEPT'], 'text/html'));
+
+if (!$isAjax && isset($pdo)) {
+    // Non-blocking visitor tracking using shutdown function
+    register_shutdown_function(function() use ($pdo) {
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request(); // Flush HTML output to browser immediately
+        }
+        $tracker = new VisitorTracker($pdo);
+        $tracker->trackVisitor();
+    });
+}
 ?>
