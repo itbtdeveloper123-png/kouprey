@@ -400,11 +400,11 @@ function generateStars($rating) {
 		}
 	</script>
 </head>
-<body class="bg-white text-gray-800 font-freeman min-h-screen pb-20 flex flex-col">
-	<header class="bg-white/70 backdrop-blur-xl shadow-sm border-b border-white/20 px-4 py-4 md:px-6 md:py-5 sticky top-0 z-50 transition-all duration-300">
-		<div class="flex items-center justify-between max-w-6xl mx-auto h-full">
+<body class="bg-white text-gray-800 font-freeman min-h-screen pb-32 md:pb-20 flex flex-col">
+	<header class="bg-white/70 backdrop-blur-xl shadow-sm border-b border-white/20 px-4 py-3 md:px-6 md:py-3 sticky top-0 z-50 transition-all duration-300">
+		<div class="flex items-center justify-between max-w-6xl mx-auto h-full gap-2">
 			<!-- Logo -->
-			<div class="flex items-center">
+			<div class="flex items-center shrink-0">
 				<a href="product.php#products" class="flex items-center transform active:scale-95 transition-transform">
 					<?php 
 					$logoUrl = getSetting('company_logo'); 
@@ -413,30 +413,30 @@ function generateStars($rating) {
 					}
 					?>
 					<?php if (!empty($logoUrl)): ?>
-						<img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-14 w-auto object-contain" style="height: 56px;">
+						<img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-12 md:h-14 w-auto object-contain" style="max-height: 56px;">
 					<?php endif; ?>
 				</a>
 			</div>
 			
 			<!-- Desktop Navigation -->
-			<nav class="hidden md:flex items-center space-x-4">
-				<a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', 'Product')); ?></a>
-				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></a>
-				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></a>
-				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></a>
+			<nav class="hidden md:flex items-center space-x-1 lg:space-x-3 text-xs md:text-sm lg:text-base font-bold">
+				<a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', $currentLanguage == 'km' ? 'ផលិតផល' : 'Product')); ?></a>
+				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', $currentLanguage == 'km' ? 'លក្ខណៈពិសេស' : 'Features')); ?></a>
+				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', $currentLanguage == 'km' ? 'ការពិនិត្យ' : 'Reviews')); ?></a>
+				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', $currentLanguage == 'km' ? 'អំពីយើង' : 'About')); ?></a>
 			</nav>
 			
 			<!-- Mobile Actions -->
-			<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2 md:gap-3 shrink-0">
 				<!-- Language Switcher -->
-				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-4 py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="Switch Language">
+				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-1.5 md:gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-3 py-1.5 md:px-4 md:py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ប្តូរភាសា' : 'Switch Language'; ?>">
 					<img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://cdn-icons-png.flaticon.com/512/16022/16022033.png'; ?>" 
 						 alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
-						 class="w-6 h-6 object-cover rounded-full shadow-sm">
-					<span class="font-bold text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
+						 class="w-5 h-5 md:w-6 md:h-6 object-cover rounded-full shadow-sm">
+					<span class="font-bold text-xs md:text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
 				</button>
-				<button id="searchButton" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="Search">
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<button id="searchButton" class="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ស្វែងរក' : 'Search'; ?>">
+					<svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
 					</svg>
 				</button>
@@ -949,7 +949,7 @@ function generateStars($rating) {
 	<style>
 		@media (max-width: 768px) {
 			body {
-				padding-bottom: 80px;
+				padding-bottom: 120px;
 			}
 		}
 	</style>

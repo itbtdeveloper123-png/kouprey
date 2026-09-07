@@ -167,14 +167,14 @@ if (isset($_GET['ajax_pagination'])) {
     // Start capturing HTML for products
     ob_start();
     ?>
-    <div id="products-container" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-6">
+    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
         <?php
         if (!empty($pagedProducts)):
             foreach ($pagedProducts as $index => $product):
                 $categoryClass = $product['featured'] ? 'product-featured' : 'product-regular';
                 $aosDelay = ($index % 6) * 100;
         ?>
-            <article class="product-item rounded-2xl p-2 md:p-6 transition-all duration-300 group product-item <?php echo $categoryClass; ?> cursor-pointer flex flex-col h-full" 
+            <article class="product-item bg-white rounded-[2rem] p-2 md:p-4 transition-all duration-300 group product-item <?php echo $categoryClass; ?> cursor-pointer flex flex-col h-full hover:shadow-2xl border border-gray-100/50 relative overflow-hidden" 
                      onclick="window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'" 
                      data-category="<?php echo $product['featured'] ? 'featured' : 'regular'; ?>" 
                      data-category-id="<?php echo $product['base_category_id'] ?: ''; ?>" 
@@ -182,54 +182,74 @@ if (isset($_GET['ajax_pagination'])) {
                      data-aos="fade-up"
                      data-aos-delay="<?php echo $aosDelay; ?>">
                 
+                <!-- Hover Gradient Blob (Desktop) -->
+                <div class="hidden md:block absolute -top-10 -right-10 w-48 h-48 bg-yellow-100 rounded-full blur-3xl opacity-0 group-hover:opacity-60 transition-opacity"></div>
+                
                 <!-- Badges -->
-                <div class="absolute top-3 left-3 flex flex-col gap-2 z-20">
+                <div class="absolute top-4 left-4 flex flex-col gap-2 z-20">
                     <?php if ($product['featured']): ?>
-                        <span class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold shadow-lg flex items-center gap-1">
-                            <i class="fas fa-star"></i> FEATURED
+                        <span class="bg-yellow-500 text-white px-3 py-1 rounded-xl text-[11px] font-bold shadow-sm flex items-center gap-1.5 backdrop-blur-sm bg-opacity-90">
+                            <i class="fas fa-star text-[9px]"></i> FEATURED
                         </span>
                     <?php elseif ($product['best_seller']): ?>
-                        <span class="bg-gradient-to-r from-green-600 to-green-500 text-white px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold shadow-lg flex items-center gap-1">
-                            <i class="fas fa-award"></i> BEST SELLER
+                        <span class="bg-red-500 text-white px-3 py-1 rounded-xl text-[11px] font-bold shadow-sm flex items-center gap-1.5 backdrop-blur-sm bg-opacity-90">
+                            <i class="fas fa-fire text-[9px]"></i> HOT
                         </span>
                     <?php endif; ?>
                 </div>
 
                 <!-- Image Container -->
-                <div class="product-image-container relative mb-4 pt-[100%] rounded-xl">
-                    <div class="absolute inset-0 flex items-center justify-center p-2 md:p-6">
-                        <div class="absolute w-32 h-32 bg-orange-200 rounded-full filter blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
+                <div class="product-image-container relative mb-6 pt-[100%] rounded-3xl bg-gray-50/50 md:bg-transparent overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center p-1">
                         <img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                              alt="<?php echo htmlspecialchars($product['name']); ?>" 
                              loading="lazy"
                              decoding="async"
-                             class="main-img max-w-full max-h-full object-contain relative z-10" 
-                             style="filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));">
+                             class="main-img w-full h-full object-contain transform transition-transform duration-700 group-hover:scale-110 drop-shadow-2xl" 
+                             style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
                     </div>
+                    
+                    <!-- Mobile Quick Add/View Button (Overlay) -->
+                    <button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-yellow-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
 
                 <!-- Content -->
-                <div class="product-info flex-1 flex flex-col items-center text-center">
-                    <div class="flex items-center justify-center gap-1 mb-2">
-                        <div class="flex text-[10px] sm:text-xs text-yellow-400">
-                            <?php echo generateStars(round($product['avg_rating'])); ?>
-                        </div>
-                        <span class="text-[10px] text-gray-400 font-medium">(<?php echo $product['review_count']; ?>)</span>
-                    </div>
-                    <h4 class="product-title text-sm md:text-lg font-bold text-gray-800 mb-3 line-clamp-2 leading-snug">
+                <div class="product-info flex-1 flex flex-col pt-2">
+                    <!-- Title -->
+                    <h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
                         <?php echo htmlspecialchars($product['name']); ?>
                     </h4>
-                    <div class="mt-auto">
-                        <button class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-sm group-hover:shadow-md transform group-hover:scale-105">
-                            <i class="fas fa-eye mr-2"></i><?php echo htmlspecialchars(getSetting('view_details', $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details')); ?>
-                        </button>
+
+                    <!-- Rating (Small) -->
+                    <div class="flex items-center gap-2 mb-4 md:mb-6">
+                        <div class="flex text-xs text-yellow-400">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-xs md:text-sm text-gray-500 font-medium"><?php echo round($product['avg_rating'], 1); ?> (<?php echo $product['review_count']; ?>)</span>
+                    </div>
+
+                    <!-- Price & Action (Desktop Only) -->
+                    <div class="mt-auto flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <?php if(!empty($product['old_price']) && $product['old_price'] > $product['price']): ?>
+                                <span class="text-xs text-gray-400 line-through">$<?php echo number_format($product['old_price'], 2); ?></span>
+                            <?php endif; ?>
+                            <span class="text-lg md:text-2xl font-black text-gray-900">$<?php echo number_format($product['price'], 2); ?></span>
+                        </div>
+                        
+                        <!-- Desktop View Arrow -->
+                        <div class="hidden md:flex w-12 h-12 rounded-full bg-yellow-50 items-center justify-center text-yellow-600 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 shadow-sm">
+                            <i class="fas fa-arrow-right text-base"></i>
+                        </div>
                     </div>
                 </div>
             </article>
         <?php endforeach; else: ?>
             <div class="col-span-full text-center py-12">
                 <i class="fas fa-coffee text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-500 text-lg">No products available.</p>
+                <p class="text-gray-500 text-lg">No products available at the moment.</p>
             </div>
         <?php endif; ?>
     </div>
@@ -575,8 +595,9 @@ $topProducts = array_slice($topProducts, 0, 6);
 		font-weight: 600;
 		color: #1f2937;
 		margin-bottom: 0.5rem;
-		line-height: 1.4;
-		height: 2.8rem;
+		line-height: 1.55;
+		min-height: 3.2rem;
+		height: auto;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
@@ -584,14 +605,16 @@ $topProducts = array_slice($topProducts, 0, 6);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-align: center;
+		word-break: break-word;
 	}
 	.product-description {
 		color: #6b7280;
 		font-size: 0.875rem;
-		line-height: 1.5;
+		line-height: 1.6;
 		margin-bottom: 1rem;
 		flex: 1;
-		height: 3rem;
+		min-height: 3.2rem;
+		height: auto;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
@@ -599,6 +622,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-align: center;
+		word-break: break-word;
 	}
 
 	/* Our Products Premium Card Styles */
@@ -1396,11 +1420,11 @@ $topProducts = array_slice($topProducts, 0, 6);
 		});
 	</script>
 </head>
-<body class="bg-white text-gray-800 font-freeman min-h-screen pb-20 flex flex-col">
-	<header class="w-full fixed top-0 left-0 z-50 transition-all duration-500 px-4 py-4 md:px-6 md:py-3">
-		<div class="flex items-center justify-between max-w-6xl mx-auto h-full">
+<body class="bg-white text-gray-800 font-freeman min-h-screen pb-32 md:pb-20 flex flex-col">
+	<header class="w-full sticky top-0 z-50 transition-all duration-300 px-4 py-3 md:px-6 md:py-3 shadow-sm border-b border-gray-100/50">
+		<div class="flex items-center justify-between max-w-6xl mx-auto h-full gap-2">
 			<!-- Logo -->
-			<div class="flex items-center">
+			<div class="flex items-center shrink-0">
 				<a href="product.php" class="flex items-center transform active:scale-95 transition-transform">
 					<?php 
 					$logoUrl = getSetting('company_logo'); 
@@ -1409,30 +1433,30 @@ $topProducts = array_slice($topProducts, 0, 6);
 					}
 					?>
 					<?php if (!empty($logoUrl)): ?>
-						<img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-14 w-auto object-contain" style="height: 56px;">
+						<img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-12 md:h-14 w-auto object-contain" style="max-height: 56px;">
 					<?php endif; ?>
 				</a>
 			</div>
 			
 			<!-- Desktop Navigation -->
-			<nav class="hidden md:flex items-center space-x-4">
-				<a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', $currentLanguage == 'km' ? 'ផលិតផល' : 'Product')); ?></a>
-				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', $currentLanguage == 'km' ? 'លក្ខណៈពិសេស' : 'Features')); ?></a>
-				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', $currentLanguage == 'km' ? 'ការពិនិត្យ' : 'Reviews')); ?></a>
-				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', $currentLanguage == 'km' ? 'អំពីយើង' : 'About')); ?></a>
+			<nav class="hidden md:flex items-center space-x-1 lg:space-x-3 text-xs md:text-sm lg:text-base font-bold">
+				<a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', $currentLanguage == 'km' ? 'ផលិតផល' : 'Product')); ?></a>
+				<a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', $currentLanguage == 'km' ? 'លក្ខណៈពិសេស' : 'Features')); ?></a>
+				<a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', $currentLanguage == 'km' ? 'ការពិនិត្យ' : 'Reviews')); ?></a>
+				<a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] bg-[#92adc5]/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'; ?> px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-xl whitespace-nowrap transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', $currentLanguage == 'km' ? 'អំពីយើង' : 'About')); ?></a>
 			</nav>
 			
 			<!-- Mobile Actions -->
-			<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2 md:gap-3 shrink-0">
 				<!-- Language Switcher -->
-				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-4 py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ប្តូរភាសា' : 'Switch Language'; ?>">
+				<button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-1.5 md:gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-3 py-1.5 md:px-4 md:py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ប្តូរភាសា' : 'Switch Language'; ?>">
 					<img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://cdn-icons-png.flaticon.com/512/16022/16022033.png'; ?>" 
 						 alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
-						 class="w-6 h-6 object-cover rounded-full shadow-sm">
-					<span class="font-bold text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
+						 class="w-5 h-5 md:w-6 md:h-6 object-cover rounded-full shadow-sm">
+					<span class="font-bold text-xs md:text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
 				</button>
-				<button id="searchButton" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ស្វែងរក' : 'Search'; ?>">
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<button id="searchButton" class="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ស្វែងរក' : 'Search'; ?>">
+					<svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
 					</svg>
 				</button>
@@ -1524,7 +1548,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 								</div>
 
 								<p class="text-gray-600 text-base md:text-xl mb-8 leading-relaxed max-w-xl mx-auto md:mx-0">
-									<?php echo htmlspecialchars(substr($spotlightProduct['description'], 0, 150)) . '...'; ?>
+									<?php echo htmlspecialchars(mb_substr($spotlightProduct['description'], 0, 150, 'UTF-8')) . '...'; ?>
 								</p>
 
 								<div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center">
@@ -2140,7 +2164,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 								<!-- Content -->
 								<div class="product-info flex-1 flex flex-col pt-2">
 									<!-- Title -->
-									<h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-snug min-h-[48px] md:min-h-[auto] group-hover:text-orange-600 transition-colors">
+									<h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
 										<?php echo htmlspecialchars($product['name']); ?>
 									</h4>
 
@@ -2612,23 +2636,39 @@ $topProducts = array_slice($topProducts, 0, 6);
 				});
 		}
 
-		// Initialize with category from URL or 'all'
+		// Cache initial server-rendered HTML and sync category buttons without re-fetching
 		document.addEventListener('DOMContentLoaded', function() {
 			const urlParams = new URLSearchParams(window.location.search);
-			const categoryParam = urlParams.get('category');
+			const categoryParam = urlParams.get('category') || 'all';
+			const pageParam = urlParams.get('page') || '1';
+			const filterValue = (!isNaN(categoryParam) && categoryParam !== 'all') ? 'category-' + categoryParam : categoryParam;
 			
-			if (categoryParam) {
-				// If it's a numeric ID, prefix with 'category-'
-				const filterValue = isNaN(categoryParam) ? categoryParam : 'category-' + categoryParam;
-				filterProducts(filterValue);
-				
-				// Optional: scroll to products section
+			// Cache initial server-rendered HTML so clicking back to it is 0ms
+			const container = document.getElementById('products-container');
+			const paginationContainer = document.getElementById('pagination-ui-container');
+			if (container && paginationContainer) {
+				productAjaxCache[filterValue + '_' + pageParam] = {
+					productsHtml: container.outerHTML,
+					paginationHtml: paginationContainer.innerHTML
+				};
+			}
+
+			// Ensure active button state matches current category
+			const categoryBtns = document.querySelectorAll('.category-btn');
+			categoryBtns.forEach(function(btn) {
+				btn.classList.remove('active', 'bg-yellow-50', 'text-black');
+				if (btn.getAttribute('data-category') === filterValue) {
+					btn.classList.add('active', 'bg-yellow-50', 'text-black');
+				}
+			});
+			updateMobileCategoryButtons(filterValue);
+
+			// Only scroll if URL explicitly requested category or page
+			if (urlParams.has('category') || urlParams.has('page')) {
 				const productsSection = document.getElementById('products');
 				if (productsSection) {
 					productsSection.scrollIntoView({ behavior: 'smooth' });
 				}
-			} else {
-				filterProducts('all');
 			}
 		});
 
@@ -3672,7 +3712,7 @@ $topProducts = array_slice($topProducts, 0, 6);
         </style>
 
         <!-- Floating Categories Button (Mobile Only) -->
-        <div id="floatingCategoriesBtn" class="fixed bottom-20 right-4 z-40 md:hidden">
+        <div id="floatingCategoriesBtn" class="fixed bottom-24 right-4 z-40 md:hidden">
 			<button onclick="toggleCategoriesModal()" aria-label="Open filters" title="Filters" class="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white shadow-2xl border border-white/20 backdrop-blur-sm transition-transform duration-300 transform hover:-translate-y-1 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-yellow-300/30">
 				<i class="fas fa-filter text-lg"></i>
 			</button>
