@@ -1383,7 +1383,7 @@ $categories = $stmt->fetchAll();
             </button>
         </div>
         <div class="sidebar-content">
-            <form method="POST" enctype="multipart/form-data" id="editProductForm">
+            <form method="POST" enctype="multipart/form-data" id="editProductForm" novalidate>
                 <input type="hidden" id="base_product_id" name="base_product_id" value="">
                 <input type="hidden" id="custom_fields_data_edit" name="custom_fields_data_edit" value="">
                 
@@ -1412,11 +1412,11 @@ $categories = $stmt->fetchAll();
                             <div class="card-body">
                                 <div class="form-floating-custom">
                                     <label for="edit_name_en">Product Name *</label>
-                                    <input type="text" class="form-control form-control-premium" id="edit_name_en" name="edit_name_en" required placeholder="Enter product name">
+                                    <input type="text" class="form-control form-control-premium" id="edit_name_en" name="edit_name_en" placeholder="Enter product name">
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="edit_description_en">Short Description *</label>
-                                    <textarea class="form-control form-control-premium" id="edit_description_en" name="edit_description_en" rows="3" required placeholder="Brief summary..."></textarea>
+                                    <textarea class="form-control form-control-premium" id="edit_description_en" name="edit_description_en" rows="3" placeholder="Brief summary..."></textarea>
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="edit_weight_en">Weight (EN)</label>
@@ -1457,7 +1457,7 @@ $categories = $stmt->fetchAll();
                                     <label for="edit_price">Price ($) *</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-0 rounded-start-pill px-3">$</span>
-                                        <input type="number" step="0.01" class="form-control form-control-premium rounded-end-pill" id="edit_price" name="edit_price" required>
+                                        <input type="number" step="0.01" class="form-control form-control-premium rounded-end-pill" id="edit_price" name="edit_price">
                                     </div>
                                 </div>
                             </div>
@@ -1591,7 +1591,7 @@ $categories = $stmt->fetchAll();
             </button>
         </div>
         <div class="sidebar-content">
-            <form method="POST" enctype="multipart/form-data" id="addProductForm">
+            <form method="POST" enctype="multipart/form-data" id="addProductForm" novalidate>
                 <input type="hidden" id="custom_fields_data_add" name="custom_fields_data_add" value="">
                 
                 <!-- Language Navigation -->
@@ -1619,11 +1619,11 @@ $categories = $stmt->fetchAll();
                             <div class="card-body">
                                 <div class="form-floating-custom">
                                     <label for="sidebar_name_en">Product Name *</label>
-                                    <input type="text" class="form-control form-control-premium" id="sidebar_name_en" name="name_en" required placeholder="Enter product name">
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_name_en" name="name_en" placeholder="Enter product name">
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="sidebar_description_en">Short Description *</label>
-                                    <textarea class="form-control form-control-premium" id="sidebar_description_en" name="description_en" rows="3" required placeholder="Brief summary..."></textarea>
+                                    <textarea class="form-control form-control-premium" id="sidebar_description_en" name="description_en" rows="3" placeholder="Brief summary..."></textarea>
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="sidebar_weight_en">Weight (EN)</label>
@@ -1639,15 +1639,15 @@ $categories = $stmt->fetchAll();
                             <div class="card-body">
                                 <div class="form-floating-custom">
                                     <label for="sidebar_name_km">ឈ្មោះផលិតផល (KM) *</label>
-                                    <input type="text" class="form-control form-control-premium" id="sidebar_name_km" name="name_km" required placeholder="បញ្ចូលឈ្មោះផលិតផល">
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_name_km" name="name_km" placeholder="បញ្ចូលឈ្មោះផលិតផល">
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="sidebar_description_km">ការពិពណ៌នាសង្ខេប (KM) *</label>
-                                    <textarea class="form-control form-control-premium" id="sidebar_description_km" name="description_km" rows="3" required placeholder="សេចក្តីសង្ខេប..."></textarea>
+                                    <textarea class="form-control form-control-premium" id="sidebar_description_km" name="description_km" rows="3" placeholder="សេចក្តីសង្ខេប..."></textarea>
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="sidebar_weight_km">ទម្ងន់ (KM)</label>
-                                    <input type="text" class="form-control form-control-premium" id="sidebar_weight_km" name="weight_km" placeholder="ឧದಾហរណ៍ៈ ២៥០ក្រាម">
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_weight_km" name="weight_km" placeholder="ឧដាហរណ៍ៈ ២៥០ក្រាម">
                                 </div>
                             </div>
                         </div>
@@ -1664,7 +1664,7 @@ $categories = $stmt->fetchAll();
                                     <label for="sidebar_price">Price ($) *</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-0 rounded-start-pill px-3">$</span>
-                                        <input type="number" step="0.01" class="form-control form-control-premium rounded-end-pill" id="sidebar_price" name="price" required>
+                                        <input type="number" step="0.01" class="form-control form-control-premium rounded-end-pill" id="sidebar_price" name="price">
                                     </div>
                                 </div>
                             </div>
@@ -1790,7 +1790,7 @@ $categories = $stmt->fetchAll();
             </button>
         </div>
         <div class="sidebar-content">
-            <form method="POST" enctype="multipart/form-data" id="addCategoryForm">
+            <form method="POST" enctype="multipart/form-data" id="addCategoryForm" novalidate>
                 <!-- Language Navigation -->
                 <div class="mb-4">
                     <label class="form-label fw-bold text-muted small text-uppercase mb-2">Category Language</label>
@@ -1815,7 +1815,7 @@ $categories = $stmt->fetchAll();
                             <div class="card-body p-4">
                                 <div class="form-floating-custom">
                                     <label for="sidebar_category_name_en">Category Name (EN) *</label>
-                                    <input type="text" class="form-control form-control-premium" id="sidebar_category_name_en" name="category_name_en" required placeholder="e.g. Coffee Beans">
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_category_name_en" name="category_name_en" placeholder="e.g. Coffee Beans">
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="sidebar_category_description_en">Description (EN)</label>
@@ -1831,7 +1831,7 @@ $categories = $stmt->fetchAll();
                             <div class="card-body p-4">
                                 <div class="form-floating-custom">
                                     <label for="sidebar_category_name_km">Category Name (KM) *</label>
-                                    <input type="text" class="form-control form-control-premium" id="sidebar_category_name_km" name="category_name_km" required>
+                                    <input type="text" class="form-control form-control-premium" id="sidebar_category_name_km" name="category_name_km">
                                 </div>
                                 <div class="form-floating-custom">
                                     <label for="sidebar_category_description_km">Description (KM)</label>
@@ -1885,7 +1885,7 @@ $categories = $stmt->fetchAll();
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="editCategoryForm" novalidate>
                     <input type="hidden" id="edit_category_id" name="edit_category_id" value="">
                     <div class="modal-body p-4 bg-light">
                         <!-- Language Navigation -->
@@ -1901,7 +1901,7 @@ $categories = $stmt->fetchAll();
                                 <div class="card-body p-4">
                                     <div class="form-floating-custom">
                                         <label class="small text-muted fw-bold">CATEGORY NAME (EN) *</label>
-                                        <input type="text" class="form-control form-control-premium" id="edit_category_name_en" name="edit_category_name_en" required>
+                                        <input type="text" class="form-control form-control-premium" id="edit_category_name_en" name="edit_category_name_en">
                                     </div>
                                     <div class="form-floating-custom">
                                         <label class="small text-muted fw-bold">DESCRIPTION (EN)</label>
@@ -1916,7 +1916,7 @@ $categories = $stmt->fetchAll();
                                 <div class="card-body p-4">
                                     <div class="form-floating-custom">
                                         <label class="small text-muted fw-bold">CATEGORY NAME (KM) *</label>
-                                        <input type="text" class="form-control form-control-premium" id="edit_category_name_km" name="edit_category_name_km" required>
+                                        <input type="text" class="form-control form-control-premium" id="edit_category_name_km" name="edit_category_name_km">
                                     </div>
                                     <div class="form-floating-custom">
                                         <label class="small text-muted fw-bold">DESCRIPTION (KM)</label>
@@ -1928,29 +1928,21 @@ $categories = $stmt->fetchAll();
 
                         <div class="card border-0 shadow-sm">
                             <div class="card-body p-4">
-                                <div class="row align-items-center">
-                                    <div class="col-md-4 text-center mb-3 mb-md-0">
-                                        <label class="small text-muted fw-bold d-block mb-2">CURRENT IMAGE</label>
-                                        <img id="current_category_image_preview" src="" alt="Category image" class="img-thumbnail rounded-3 shadow-sm mx-auto" style="max-width: 120px; max-height: 120px; object-fit: contain;">
-                                    </div>
-                                    <div class="col-md-8">
-                                        <div class="mb-3">
-                                            <label class="small text-muted fw-bold mb-2">UPLOAD NEW</label>
-                                            <input type="file" class="form-control form-control-premium" id="edit_category_image" name="edit_category_image" accept="image/*">
-                                        </div>
-                                        <div class="form-floating-custom">
-                                            <label class="small text-muted fw-bold mb-2">OR IMAGE URL</label>
-                                            <input type="url" class="form-control form-control-premium" id="edit_category_image_url" name="edit_category_image_url">
-                                        </div>
-                                    </div>
+                                <label class="small text-muted fw-bold mb-2">CATEGORY IMAGE</label>
+                                <div class="text-center mb-3">
+                                    <img id="current_category_image_preview" src="" alt="Current Category Image" class="rounded shadow-sm" style="max-width: 120px; max-height: 120px; object-fit: contain; display: none;">
                                 </div>
+                                <input type="file" class="form-control form-control-premium mb-2" id="edit_category_image" name="edit_category_image" accept="image/*">
+                                <div class="form-text">Choose a new file to replace current image</div>
+                                <div class="text-center my-2 text-muted fw-bold small">OR</div>
+                                <input type="url" class="form-control form-control-premium" id="edit_category_image_url" name="edit_category_image_url" placeholder="Enter image URL">
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer bg-white border-0 p-4">
                         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" name="update_category" class="btn btn-warning rounded-pill px-4 shadow fw-bold">
-                            <i class="bi bi-save me-1"></i>Update Category
+                            <i class="bi bi-check2-circle me-1"></i>Update Category
                         </button>
                     </div>
                 </form>
@@ -1959,18 +1951,16 @@ $categories = $stmt->fetchAll();
     </div>
 
     <!-- Detailed Product Information Modal -->
-    <!-- Detailed Product Information Modal -->
     <div class="modal fade" id="detailedProductModal" tabindex="-1" aria-labelledby="detailedProductModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg overflow-hidden">
-                <div class="modal-header bg-dark text-white p-4">
-                    <h5 class="modal-title d-flex align-items-center" id="detailedProductModalLabel">
-                        <i class="bi bi-gear-fill me-2 text-info"></i> 
-                        <span class="fw-bold"><?php echo getSetting('admin_detailed_product_modal_title', 'Detailed Product Information', $currentLanguage); ?></span>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header bg-gradient-info text-white p-4">
+                    <h5 class="modal-title fw-bold" id="detailedProductModalLabel">
+                        <i class="bi bi-sliders me-2"></i>Product Detailed Information
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" id="detailedProductForm" accept-charset="UTF-8">
+                <form method="POST" id="detailedProductForm" accept-charset="UTF-8" novalidate>
                     <input type="hidden" id="detailed_base_product_id" name="base_product_id" value="">
                     <input type="hidden" id="custom_fields_data" name="custom_fields_data" value="">
                     <div class="modal-body p-4 bg-light">
@@ -2172,6 +2162,27 @@ $categories = $stmt->fetchAll();
 
         // Open sidebar
         addProductBtn.addEventListener('click', function() {
+            // Reset form
+            document.getElementById('addProductForm').reset();
+            document.getElementById('customFieldsContainerAdd').innerHTML = '';
+            if (document.getElementById('selected_related_products_add')) {
+                document.getElementById('selected_related_products_add').innerHTML = '';
+            }
+            if (document.getElementById('related_products_data_add')) {
+                document.getElementById('related_products_data_add').value = '';
+            }
+
+            // Switch to English tab by default
+            var enTabBtn = document.getElementById('add-en-tab');
+            if (enTabBtn) {
+                enTabBtn.click();
+            }
+
+            // Initialize related products
+            if (typeof initializeRelatedProducts === 'function') {
+                addRelatedProductsHandler = initializeRelatedProducts('add');
+            }
+
             addProductSidebar.classList.add('open');
             sidebarOverlay.classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -2186,6 +2197,12 @@ $categories = $stmt->fetchAll();
             document.getElementById('addProductForm').reset();
             // Clear custom fields
             document.getElementById('customFieldsContainerAdd').innerHTML = '';
+            if (document.getElementById('selected_related_products_add')) {
+                document.getElementById('selected_related_products_add').innerHTML = '';
+            }
+            if (document.getElementById('related_products_data_add')) {
+                document.getElementById('related_products_data_add').value = '';
+            }
         }
 
         closeAddProductSidebar.addEventListener('click', closeSidebar);
@@ -2215,23 +2232,54 @@ $categories = $stmt->fetchAll();
 
         // Form validation for the sidebar
         (function(){
-var sidebarForm = document.getElementById('addProductForm');
+            var sidebarForm = document.getElementById('addProductForm');
             if (sidebarForm) {
                 sidebarForm.addEventListener('submit', function(e) {
                     var nameEn = document.getElementById('sidebar_name_en').value.trim();
                     var nameKm = document.getElementById('sidebar_name_km').value.trim();
                     var descriptionEn = document.getElementById('sidebar_description_en').value.trim();
                     var descriptionKm = document.getElementById('sidebar_description_km').value.trim();
-                    var price = document.getElementById('sidebar_price').value;
+                    var price = document.getElementById('sidebar_price').value.trim();
 
-                    if (!nameEn || !nameKm || !descriptionEn || !descriptionKm || !price) {
+                    if (!nameEn) {
                         e.preventDefault();
-                        alert('Please fill in all required fields (Name and Description for both English and Khmer, and Price).');
+                        var tabBtn = document.getElementById('add-en-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('sidebar_name_en').focus();
+                        alert('Please enter product name in English.');
                         return false;
                     }
 
-                    if (parseFloat(price) <= 0) {
+                    if (!descriptionEn) {
                         e.preventDefault();
+                        var tabBtn = document.getElementById('add-en-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('sidebar_description_en').focus();
+                        alert('Please enter product description in English.');
+                        return false;
+                    }
+
+                    if (!nameKm) {
+                        e.preventDefault();
+                        var tabBtn = document.getElementById('add-km-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('sidebar_name_km').focus();
+                        alert('Please enter product name in Khmer.');
+                        return false;
+                    }
+
+                    if (!descriptionKm) {
+                        e.preventDefault();
+                        var tabBtn = document.getElementById('add-km-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('sidebar_description_km').focus();
+                        alert('Please enter product description in Khmer.');
+                        return false;
+                    }
+
+                    if (!price || parseFloat(price) <= 0) {
+                        e.preventDefault();
+                        document.getElementById('sidebar_price').focus();
                         alert('Price must be greater than 0.');
                         return false;
                     }
@@ -2257,6 +2305,12 @@ var sidebarForm = document.getElementById('addProductForm');
             document.getElementById('editProductForm').reset();
             // Clear custom fields
             document.getElementById('customFieldsContainerEdit').innerHTML = '';
+            if (document.getElementById('selected_related_products_edit')) {
+                document.getElementById('selected_related_products_edit').innerHTML = '';
+            }
+            if (document.getElementById('related_products_data_edit')) {
+                document.getElementById('related_products_data_edit').value = '';
+            }
         }
 
         closeEditProductSidebar.addEventListener('click', closeEditSidebar);
@@ -2271,23 +2325,54 @@ var sidebarForm = document.getElementById('addProductForm');
 
         // Form validation for the edit sidebar
         (function(){
-var editSidebarForm = document.getElementById('editProductForm');
+            var editSidebarForm = document.getElementById('editProductForm');
             if (editSidebarForm) {
                 editSidebarForm.addEventListener('submit', function(e) {
                     var nameEn = document.getElementById('edit_name_en').value.trim();
                     var nameKm = document.getElementById('edit_name_km').value.trim();
                     var descriptionEn = document.getElementById('edit_description_en').value.trim();
                     var descriptionKm = document.getElementById('edit_description_km').value.trim();
-                    var price = document.getElementById('edit_price').value;
+                    var price = document.getElementById('edit_price').value.trim();
 
-                    if (!nameEn || !nameKm || !descriptionEn || !descriptionKm || !price) {
+                    if (!nameEn) {
                         e.preventDefault();
-                        alert('Please fill in all required fields (Name and Description for both English and Khmer, and Price).');
+                        var tabBtn = document.getElementById('edit-en-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('edit_name_en').focus();
+                        alert('Please enter product name in English.');
                         return false;
                     }
 
-                    if (parseFloat(price) <= 0) {
+                    if (!descriptionEn) {
                         e.preventDefault();
+                        var tabBtn = document.getElementById('edit-en-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('edit_description_en').focus();
+                        alert('Please enter product description in English.');
+                        return false;
+                    }
+
+                    if (!nameKm) {
+                        e.preventDefault();
+                        var tabBtn = document.getElementById('edit-km-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('edit_name_km').focus();
+                        alert('Please enter product name in Khmer.');
+                        return false;
+                    }
+
+                    if (!descriptionKm) {
+                        e.preventDefault();
+                        var tabBtn = document.getElementById('edit-km-tab');
+                        if (tabBtn) tabBtn.click();
+                        document.getElementById('edit_description_km').focus();
+                        alert('Please enter product description in Khmer.');
+                        return false;
+                    }
+
+                    if (!price || parseFloat(price) <= 0) {
+                        e.preventDefault();
+                        document.getElementById('edit_price').focus();
                         alert('Price must be greater than 0.');
                         return false;
                     }
@@ -2465,6 +2550,45 @@ var editSidebarForm = document.getElementById('editProductForm');
         });
 
         function populateEditModal(productData) {
+            // Immediately populate basic row data so inputs are not empty
+            document.getElementById('base_product_id').value = productData.base_product_id;
+            document.getElementById('edit_name_en').value = productData.name || '';
+            document.getElementById('edit_description_en').value = '';
+            document.getElementById('edit_name_km').value = '';
+            document.getElementById('edit_description_km').value = '';
+            document.getElementById('edit_price').value = productData.price || '';
+            document.getElementById('edit_featured').checked = productData.featured == 1;
+            document.getElementById('edit_best_seller').checked = productData.best_seller == 1;
+
+            var imagePreview = document.getElementById('current_image_preview');
+            if (productData.image) {
+                imagePreview.src = productData.image;
+                imagePreview.style.display = 'block';
+            } else {
+                imagePreview.style.display = 'none';
+            }
+
+            document.getElementById('edit_image').value = '';
+            document.getElementById('edit_image_url').value = '';
+
+            // Switch to English tab by default
+            var enTabBtn = document.getElementById('edit-en-tab');
+            if (enTabBtn) {
+                enTabBtn.click();
+            }
+
+            // Reset and initialize related products
+            if (document.getElementById('selected_related_products_edit')) {
+                document.getElementById('selected_related_products_edit').innerHTML = '';
+            }
+            if (document.getElementById('related_products_data_edit')) {
+                document.getElementById('related_products_data_edit').value = '';
+            }
+            if (typeof initializeRelatedProducts === 'function') {
+                editRelatedProductsHandler = initializeRelatedProducts('edit');
+                loadRelatedProducts(productData.base_product_id);
+            }
+
             // Fetch English version
             fetch(window.location.href, {
                 method: 'POST',
@@ -2479,20 +2603,20 @@ var editSidebarForm = document.getElementById('editProductForm');
                     var product = data.product;
 
                     document.getElementById('base_product_id').value = productData.base_product_id;
-                    document.getElementById('edit_name_en').value = product.name || '';
-                    document.getElementById('edit_description_en').value = product.description || '';
-                    document.getElementById('edit_price').value = product.price || productData.price || '';
+                    if (product.name) document.getElementById('edit_name_en').value = product.name;
+                    if (product.description) document.getElementById('edit_description_en').value = product.description;
+                    if (product.price) document.getElementById('edit_price').value = product.price;
                     document.getElementById('edit_weight_en').value = product.weight || '';
                     document.getElementById('edit_featured').checked = (product.featured == 1) || (productData.featured == 1);
                     document.getElementById('edit_best_seller').checked = (product.best_seller == 1) || (productData.best_seller == 1);
 
-                    var imagePreview = document.getElementById('current_image_preview');
+                    var imgPrev = document.getElementById('current_image_preview');
                     var imageSrc = product.image || productData.image;
                     if (imageSrc) {
-                        imagePreview.src = imageSrc;
-                        imagePreview.style.display = 'block';
+                        imgPrev.src = imageSrc;
+                        imgPrev.style.display = 'block';
                     } else {
-                        imagePreview.style.display = 'none';
+                        imgPrev.style.display = 'none';
                     }
 
                     document.getElementById('edit_image').value = '';
@@ -2521,8 +2645,8 @@ var editSidebarForm = document.getElementById('editProductForm');
                 if (data.success) {
                     var product = data.product;
 
-                    document.getElementById('edit_name_km').value = product.name || '';
-                    document.getElementById('edit_description_km').value = product.description || '';
+                    if (product.name) document.getElementById('edit_name_km').value = product.name;
+                    if (product.description) document.getElementById('edit_description_km').value = product.description;
                     document.getElementById('edit_weight_km').value = product.weight || '';
                 }
             })
@@ -3642,19 +3766,26 @@ var editSidebarForm = document.getElementById('editProductForm');
             }
         }
 
-        window.removeSelectedProductGlobal = function(baseId) {
-            var handler = addRelatedProductsHandler || editRelatedProductsHandler;
-            if (handler && handler.removeSelectedProduct) {
-                handler.removeSelectedProduct(baseId);
+        window.removeSelectedProductGlobal = function(formTypeOrBaseId, baseId) {
+            var targetHandler = null;
+            var targetId = null;
+
+            if (baseId !== undefined) {
+                targetHandler = formTypeOrBaseId === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
+                targetId = baseId;
+            } else {
+                targetId = formTypeOrBaseId;
+                if (editProductSidebar && editProductSidebar.classList.contains('open') && editRelatedProductsHandler) {
+                    targetHandler = editRelatedProductsHandler;
+                } else if (addRelatedProductsHandler) {
+                    targetHandler = addRelatedProductsHandler;
+                }
+            }
+
+            if (targetHandler && targetHandler.removeSelectedProduct) {
+                targetHandler.removeSelectedProduct(targetId);
             }
         };
-
-        function updateCustomImageUrl(formType, index, value) {
-            var handler = formType === 'add' ? addRelatedProductsHandler : editRelatedProductsHandler;
-            if (handler && handler.updateCustomImageUrl) {
-                handler.updateCustomImageUrl(index, value);
-            }
-        }
 
         function initializeRelatedProducts(formType) {
             var searchInput = document.getElementById(`related_products_search_${formType}`);
@@ -3670,7 +3801,7 @@ var editSidebarForm = document.getElementById('editProductForm');
                     .then(function(response) { return response.json(); })
                     .then(function(data) {
                         if (data.success) {
-                            allProducts = data.products;
+                            allProducts = data.products || [];
                             renderProductsList('');
                         }
                     })
@@ -3679,9 +3810,11 @@ var editSidebarForm = document.getElementById('editProductForm');
 
             // Render products list
             function renderProductsList(searchTerm) {
+                var term = (searchTerm || '').toLowerCase();
                 var filtered = allProducts.filter(function(product) {
-                    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                        !selectedProducts.find(function(p) { return p.base_id == product.base_product_id; });
+                    var prodName = (product.name || '').toLowerCase();
+                    return prodName.includes(term) &&
+                        !selectedProducts.find(function(p) { return String(p.base_id) === String(product.base_product_id); });
                 });
 
                 productsList.innerHTML = filtered.map(function(product) {
@@ -3714,40 +3847,44 @@ var editSidebarForm = document.getElementById('editProductForm');
 
             // Add selected product
             function addSelectedProduct(baseId, name, image) {
-                if (!selectedProducts.find(function(p) { return p.base_id == baseId; })) {
+                if (!selectedProducts.find(function(p) { return String(p.base_id) === String(baseId); })) {
                     selectedProducts.push({base_id: baseId, name: name, image: image, custom_image: '', custom_url: '', custom_image_file: null, custom_image_url: ''});
                     updateSelectedDisplay();
-                    renderProductsList(searchInput.value);
+                    renderProductsList(searchInput ? searchInput.value : '');
                     updateDataInput();
                 }
             }
 
             // Remove selected product
             function removeSelectedProduct(baseId) {
-                selectedProducts = selectedProducts.filter(function(p) { return p.base_id != baseId; });
+                selectedProducts = selectedProducts.filter(function(p) { return String(p.base_id) !== String(baseId); });
                 updateSelectedDisplay();
-                renderProductsList(searchInput.value);
+                renderProductsList(searchInput ? searchInput.value : '');
                 updateDataInput();
             }
 
             // Update selected products display
             function updateSelectedDisplay() {
-                    selectedContainer.innerHTML = selectedProducts.map(function(product, index) {
-                        return `
-                        <div class="d-inline-block m-1 text-center" style="width: 80px;">
-                            <img src="${product.custom_image_url || product.custom_image || product.image || '/kouprey/public/assets/images/placeholder.png'}" alt="${product.name}" class="rounded mb-1" style="width: 60px; height: 60px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;" title="${product.name}">
-                            <input type="file" class="form-control form-control-sm mb-1" name="custom_image_${formType}_${index}" accept="image/*" onchange="updateCustomImageFile('${formType}', ${index}, this.files[0])" style="font-size: 10px;">
-                            ${product.base_id.startsWith('custom_') ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Image URL" value="${product.custom_image_url}" onchange="updateCustomImageUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
-                            <input type="text" class="form-control form-control-sm mb-1" placeholder="URL" value="${product.custom_url}" onchange="updateCustomUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">
-                            ${product.base_id.startsWith('custom_') ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Name" value="${product.name}" onchange="updateCustomName('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
-                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSelectedProductGlobal('${product.base_id}')" style="font-size: 10px; padding: 2px 5px;"><i class="bi bi-x"></i></button>
-                        </div>
-                    `;
-                    }).join('');
-                }
+                if (!selectedContainer) return;
+                selectedContainer.innerHTML = selectedProducts.map(function(product, index) {
+                    var baseIdStr = String(product.base_id || '');
+                    var isCustom = baseIdStr.startsWith('custom_');
+                    return `
+                    <div class="d-inline-block m-1 text-center" style="width: 80px;">
+                        <img src="${product.custom_image_url || product.custom_image || product.image || '/kouprey/public/assets/images/placeholder.png'}" alt="${product.name || ''}" class="rounded mb-1" style="width: 60px; height: 60px; object-fit: contain; background-color: #f8f9fa; cursor: pointer;" title="${product.name || ''}">
+                        <input type="file" class="form-control form-control-sm mb-1" name="custom_image_${formType}_${index}" accept="image/*" onchange="updateCustomImageFile('${formType}', ${index}, this.files[0])" style="font-size: 10px;">
+                        ${isCustom ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Image URL" value="${product.custom_image_url || ''}" onchange="updateCustomImageUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
+                        <input type="text" class="form-control form-control-sm mb-1" placeholder="URL" value="${product.custom_url || ''}" onchange="updateCustomUrl('${formType}', ${index}, this.value)" style="font-size: 10px;">
+                        ${isCustom ? `<input type="text" class="form-control form-control-sm mb-1" placeholder="Name" value="${product.name || ''}" onchange="updateCustomName('${formType}', ${index}, this.value)" style="font-size: 10px;">` : ''}
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeSelectedProductGlobal('${formType}', '${baseIdStr}')" style="font-size: 10px; padding: 2px 5px;"><i class="bi bi-x"></i></button>
+                    </div>
+                `;
+                }).join('');
+            }
 
             // Update hidden input
             function updateDataInput() {
+                if (!dataInput) return;
                 var data = selectedProducts.map(function(p) {
                     return {
                         base_id: p.base_id,
@@ -3762,9 +3899,11 @@ var editSidebarForm = document.getElementById('editProductForm');
             }
 
             // Search functionality
-            searchInput.addEventListener('input', function() {
-                renderProductsList(this.value);
-            });
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    renderProductsList(this.value);
+                });
+            }
 
             // Load products on initialization
             loadProducts();
@@ -3772,39 +3911,46 @@ var editSidebarForm = document.getElementById('editProductForm');
             // Return functions for external use
             return {
                 setSelectedProducts: function(products) {
-                    selectedProducts = products.map(p => ({...p, custom_image_file: null}));
+                    selectedProducts = (products || []).map(p => ({...p, custom_image_file: null}));
                     updateSelectedDisplay();
                     updateDataInput();
-                    renderProductsList(searchInput.value);
+                    renderProductsList(searchInput ? searchInput.value : '');
                 },
                 updateCustomImageFile: function(index, file) {
-                    selectedProducts[index].custom_image_file = file;
-                    // Show preview if file selected
-                    if (file) {
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
-                            var img = selectedContainer.children[index].querySelector('img');
-                            if (img) img.src = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
+                    if (selectedProducts[index]) {
+                        selectedProducts[index].custom_image_file = file;
+                        if (file && selectedContainer && selectedContainer.children[index]) {
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                                var img = selectedContainer.children[index].querySelector('img');
+                                if (img) img.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                        updateDataInput();
                     }
-                    updateDataInput();
                 },
                 updateCustomUrl: function(index, value) {
-                    selectedProducts[index].custom_url = value;
-                    updateDataInput();
+                    if (selectedProducts[index]) {
+                        selectedProducts[index].custom_url = value;
+                        updateDataInput();
+                    }
                 },
                 updateCustomName: function(index, value) {
-                    selectedProducts[index].name = value;
-                    updateDataInput();
+                    if (selectedProducts[index]) {
+                        selectedProducts[index].name = value;
+                        updateDataInput();
+                    }
                 },
                 updateCustomImageUrl: function(index, value) {
-                    selectedProducts[index].custom_image_url = value;
-                    updateSelectedDisplay();
-                    updateDataInput();
+                    if (selectedProducts[index]) {
+                        selectedProducts[index].custom_image_url = value;
+                        updateSelectedDisplay();
+                        updateDataInput();
+                    }
                 },
                 addCustomProduct: function() {
-                    var customId = 'custom_' + Date.now();
+                    var customId = 'custom_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
                     selectedProducts.push({base_id: customId, name: 'Custom Product', image: '', custom_image: '', custom_url: '', custom_image_file: null, custom_image_url: ''});
                     updateSelectedDisplay();
                     updateDataInput();
@@ -3816,84 +3962,46 @@ var editSidebarForm = document.getElementById('editProductForm');
         // Initialize related products for add and edit forms
         var addRelatedProductsHandler, editRelatedProductsHandler;
 
-        // Add Product Modal
-        document.getElementById('addProductBtn').addEventListener('click', function() {
-            // Reset form
-            document.getElementById('addProductForm').reset();
-            document.getElementById('customFieldsContainerAdd').innerHTML = '';
-            document.getElementById('selected_related_products_add').innerHTML = '';
-            document.getElementById('related_products_data_add').value = '';
-            
-            // Initialize related products
-            addRelatedProductsHandler = initializeRelatedProducts('add');
-            
-            // Add custom related product button listener
-            document.getElementById('add_custom_related_add').addEventListener('click', function() {
+        // Custom related product button listeners
+        var addCustomRelatedAddBtn = document.getElementById('add_custom_related_add');
+        if (addCustomRelatedAddBtn) {
+            addCustomRelatedAddBtn.addEventListener('click', function() {
                 if (addRelatedProductsHandler && addRelatedProductsHandler.addCustomProduct) {
                     addRelatedProductsHandler.addCustomProduct();
                 }
             });
-            
-            // Show modal
-            document.getElementById('addProductSidebar').classList.add('active');
-        });
+        }
 
-        // Edit Product Modal
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.edit-product-btn')) {
-                var button = e.target.closest('.edit-product-btn');
-                var baseProductId = button.getAttribute('data-base-product-id');
-                
-                // Load product data
-                fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `get_product_data=1&base_product_id=${baseProductId}&language=en`
-                })
-                    .then(function(response) { return response.json(); })
-                    .then(function(data) {
-                        if (data.success) {
-                            populateEditForm(data.product, baseProductId);
-                            // Initialize related products
-                            editRelatedProductsHandler = initializeRelatedProducts('edit');
-                            // Load existing related products
-                            loadRelatedProducts(baseProductId);
-                            
-                            // Add custom related product button listener
-                            document.getElementById('add_custom_related_edit').addEventListener('click', function() {
-                                if (editRelatedProductsHandler && editRelatedProductsHandler.addCustomProduct) {
-                                    editRelatedProductsHandler.addCustomProduct();
-                                }
-                            });
-                        }
-                    })
-                    .catch(function(error) { console.error('Error loading product data:', error); });
-                
-                document.getElementById('editProductSidebar').classList.add('active');
-            }
-        });
+        var addCustomRelatedEditBtn = document.getElementById('add_custom_related_edit');
+        if (addCustomRelatedEditBtn) {
+            addCustomRelatedEditBtn.addEventListener('click', function() {
+                if (editRelatedProductsHandler && editRelatedProductsHandler.addCustomProduct) {
+                    editRelatedProductsHandler.addCustomProduct();
+                }
+            });
+        }
 
         function loadRelatedProducts(baseProductId) {
             fetch(`../public/api.php?action=get_related_products&base_product_id=${baseProductId}`)
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
                     if (data.success && editRelatedProductsHandler) {
-                        var selected = data.related_products.map(function(p) {
-                            var base_id = p.base_product_id || ('custom_' + Date.now() + '_' + Math.random());
-                            return {base_id: base_id, name: p.name, image: p.image, custom_image: p.custom_image || '', custom_url: p.custom_url || '', custom_image_file: null, custom_image_url: p.custom_image_url || ''};
+                        var selected = (data.related_products || []).map(function(p) {
+                            var base_id = p.base_product_id != null ? p.base_product_id : ('custom_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
+                            return {
+                                base_id: base_id,
+                                name: p.name || '',
+                                image: p.image || '',
+                                custom_image: p.custom_image || '',
+                                custom_url: p.custom_url || '',
+                                custom_image_file: null,
+                                custom_image_url: p.custom_image_url || ''
+                            };
                         });
                         editRelatedProductsHandler.setSelectedProducts(selected);
                     }
                 })
                 .catch(function(error) { console.error('Error loading related products:', error); });
-        }
-
-        function populateEditForm(product, baseProductId) {
-            document.getElementById('base_product_id').value = baseProductId;
-            // Populate other fields...
-            // (existing code for populating form fields)
         }
 
         // Image Preview Logic
@@ -3915,7 +4023,7 @@ var editSidebarForm = document.getElementById('editProductForm');
             }
         }
 
-        setupImagePreview('sidebar_image', 'sidebar_image_preview'); // You might need to add this ID to the HTML
+        setupImagePreview('sidebar_image', 'sidebar_image_preview');
         setupImagePreview('edit_image', 'current_image_preview');
         setupImagePreview('sidebar_category_image', 'sidebar_category_image_preview');
         setupImagePreview('edit_category_image', 'current_category_image_preview');
