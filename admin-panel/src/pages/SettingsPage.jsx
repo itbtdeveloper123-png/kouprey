@@ -251,6 +251,8 @@ const DEFAULT_LOCATION_SETTINGS = {
   location_btn_text: { en: 'Get Directions', km: 'Get Directions', type: 'text', description: 'Directions button text' }
 };
 
+const EMOJI_LIST = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','•'];
+
 // Clean up corrupted HTML tags or broken CSS snippets from legacy RTE editors
 export const cleanSocialBannerText = (str) => {
   if (!str || typeof str !== 'string') return '';
