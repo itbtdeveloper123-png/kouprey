@@ -254,6 +254,24 @@ export default function ProductsPage() {
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [copyModalOpen, setCopyModalOpen] = useState(false);
   const [copyProductSearch, setCopyProductSearch] = useState('');
+  const [copyModalLoading, setCopyModalLoading] = useState(false);
+  const [allCatalogProducts, setAllCatalogProducts] = useState([]);
+
+  const openCopyModal = async () => {
+    setCopyProductSearch('');
+    setCopyModalOpen(true);
+    setCopyModalLoading(true);
+    try {
+      const res = await adminApi.getProducts({ lang });
+      if (res.success && Array.isArray(res.products)) {
+        setAllCatalogProducts(res.products);
+      }
+    } catch (err) {
+      console.warn('Failed to load all products for copy modal', err);
+    } finally {
+      setCopyModalLoading(false);
+    }
+  };
 
   // ──────────────────────────────────────────────
   // DETAILED SPECS MODAL (Gear ⚙️ Button)
@@ -295,6 +313,9 @@ export default function ProductsPage() {
       ]);
       if (prodsRes.success) {
         setProducts(prodsRes.products || []);
+        if (!search && !selectedCategory) {
+          setAllCatalogProducts(prodsRes.products || []);
+        }
       }
       if (catsRes.success) {
         setCategories(catsRes.categories || []);
@@ -1910,11 +1931,8 @@ export default function ProductsPage() {
                     {/* Copy Custom Fields */}
                     <button
                       type="button"
-                      onClick={() => {
-                        setCopyProductSearch('');
-                        setCopyModalOpen(true);
-                      }}
-                      className="px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg flex items-center gap-1 cursor-pointer transition"
+                      onClick={openCopyModal}
+                      className="px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg flex items-center gap-1 cursor-pointer transition shadow-2xs"
                       title="ចម្លង Custom Fields ពីផលិតផលផ្សេង"
                     >
                       <Copy size={13} /> ចម្លង (Copy)
@@ -2265,13 +2283,14 @@ export default function ProductsPage() {
                   />
                   {relatedSearch.trim() && (
                     <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-gray-100">
-                      {products
+                      {(allCatalogProducts.length > 0 ? allCatalogProducts : products)
                         .filter((p) => {
-                          const name = (p.name || '').toLowerCase();
+                          const name = (p.name || p.name_km || p.name_en || '').toLowerCase();
                           const q = relatedSearch.toLowerCase();
-                          const isSelf = (p.base_product_id || p.id) === productForm.base_product_id;
+                          const pBaseId = String(p.base_product_id || p.id || 0);
+                          const isSelf = String(productForm.base_product_id || 0) !== '0' && pBaseId === String(productForm.base_product_id || 0);
                           const isAlready = productForm.related_products.some(
-                            (r) => r.base_id == (p.base_product_id || p.id)
+                            (r) => String(r.base_id) === pBaseId
                           );
                           return !isSelf && !isAlready && name.includes(q);
                         })
@@ -2392,61 +2411,109 @@ export default function ProductsPage() {
                 />
               </div>
 
-              <div className="max-h-64 overflow-y-auto space-y-1 divide-y divide-gray-50">
-                {products
-                  .filter((p) => {
-                    const isSelf = (p.base_product_id || p.id) === productForm.base_product_id;
-                    const matches = (p.name || '').toLowerCase().includes(copyProductSearch.toLowerCase());
-                    return !isSelf && matches;
-                  })
-                  .map((p) => (
-                    <div
-                      key={p.id}
-                      className="p-2.5 rounded-xl hover:bg-blue-50/50 flex items-center justify-between transition"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <img
-                          src={formatImageUrl(p.image, 'products')}
-                          alt={p.name}
-                          className="w-8 h-8 rounded-lg object-contain bg-gray-100 border border-gray-200 p-0.5"
-                          onError={handleImageError}
-                        />
-                        <div>
-                          <p className="text-xs font-bold text-gray-800">{p.name}</p>
-                          <p className="text-[10px] text-gray-400">ID #{p.base_product_id || p.id} • ${Number(p.price).toFixed(2)}</p>
-                        </div>
-                      </div>
+              <div className="max-h-72 overflow-y-auto space-y-1.5 divide-y divide-gray-100 pr-1">
+                {copyModalLoading ? (
+                  <div className="py-12 text-center text-gray-400">
+                    <Loader2 size={24} className="animate-spin mx-auto mb-2 text-blue-600" />
+                    <p className="text-xs">កំពុងផ្ទុកបញ្ជីផលិតផល...</p>
+                  </div>
+                ) : (() => {
+                  const pool = allCatalogProducts.length > 0 ? allCatalogProducts : products;
+                  const currentBaseId = String(productForm.base_product_id || 0);
+                  const q = copyProductSearch.toLowerCase().trim();
 
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            const baseId = p.base_product_id || p.id;
-                            const res = await adminApi.getProductData(baseId);
-                            if (res.success) {
-                              const cfRaw = res.en?.custom_fields || res.km?.custom_fields || p.custom_fields || '{}';
-                              const parsed = parseCustomFields(cfRaw);
-                              if (parsed.length === 0) {
-                                showToast('ផលិតផលនេះគ្មាន Custom Fields សម្រាប់ចម្លងទេ', 'error');
-                                return;
-                              }
-                              setProductForm((prev) => ({
-                                ...prev,
-                                custom_fields: parsed,
-                              }));
-                              setCopyModalOpen(false);
-                              showToast(`បានចម្លង ${parsed.length} Custom Fields ពី "${p.name}" ជោគជ័យ!`);
-                            }
-                          } catch (err) {
-                            showToast('បរាជ័យក្នុងការចម្លង: ' + err.message, 'error');
-                          }
-                        }}
-                        className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer transition flex items-center gap-1"
+                  const filtered = pool.filter((p) => {
+                    const pBaseId = String(p.base_product_id || p.id || 0);
+                    const isSelf = currentBaseId !== '0' && pBaseId === currentBaseId;
+                    if (isSelf) return false;
+                    if (!q) return true;
+                    const name = (p.name || '').toLowerCase();
+                    const nameEn = (p.name_en || '').toLowerCase();
+                    const nameKm = (p.name_km || '').toLowerCase();
+                    return name.includes(q) || nameEn.includes(q) || nameKm.includes(q) || pBaseId.includes(q);
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="py-12 text-center text-gray-400">
+                        <Package size={36} className="mx-auto mb-2 text-gray-300" />
+                        <p className="font-semibold text-gray-600 text-xs">រកមិនឃើញផលិតផលសម្រាប់ចម្លងទេ</p>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          {copyProductSearch ? 'គ្មានផលិតផលត្រូវនឹងពាក្យស្វែងរកនេះទេ' : 'មិនទាន់មានផលិតផលផ្សេងទៀតក្នុងប្រព័ន្ធទេ'}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return filtered.map((p) => {
+                    const cfObj = p.parsed_custom_fields || {};
+                    const customFieldKeys = Object.keys(cfObj).filter(
+                      (k) => k !== 'show_in_collection' && cfObj[k] && typeof cfObj[k] === 'object'
+                    );
+                    const hasCf = customFieldKeys.length > 0;
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="p-2.5 rounded-xl hover:bg-blue-50/60 flex items-center justify-between transition border border-transparent hover:border-blue-100"
                       >
-                        <Copy size={11} /> ចម្លង
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={formatImageUrl(p.image, 'products')}
+                            alt={p.name}
+                            className="w-10 h-10 rounded-lg object-contain bg-gray-50 border border-gray-200 p-0.5 shrink-0"
+                            onError={handleImageError}
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-xs font-bold text-gray-900 truncate">
+                                {p.name || p.name_km || p.name_en || `Product #${p.base_product_id || p.id}`}
+                              </p>
+                              {hasCf ? (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 shrink-0">
+                                  ✨ {customFieldKeys.length} Fields
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              ID #{p.base_product_id || p.id} • ${Number(p.price || 0).toFixed(2)}
+                              {p.category_name ? ` • ${p.category_name}` : ''}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const baseId = p.base_product_id || p.id;
+                              const res = await adminApi.getProductData(baseId);
+                              if (res.success) {
+                                const cfRaw = res.en?.custom_fields || res.km?.custom_fields || p.custom_fields || '{}';
+                                const parsed = parseCustomFields(cfRaw);
+                                if (parsed.length === 0) {
+                                  showToast('ផលិតផលនេះគ្មាន Custom Fields សម្រាប់ចម្លងទេ', 'error');
+                                  return;
+                                }
+                                setProductForm((prev) => ({
+                                  ...prev,
+                                  custom_fields: parsed,
+                                }));
+                                setCopyModalOpen(false);
+                                showToast(`បានចម្លង ${parsed.length} Custom Fields ពី "${p.name || p.name_km || p.name_en}" ជោគជ័យ!`);
+                              }
+                            } catch (err) {
+                              showToast('បរាជ័យក្នុងការចម្លង: ' + err.message, 'error');
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer transition flex items-center gap-1 shrink-0 ml-2"
+                        >
+                          <Copy size={12} /> ចម្លង
+                        </button>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
