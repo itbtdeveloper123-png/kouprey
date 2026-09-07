@@ -473,8 +473,24 @@ foreach ($allSettingsRaw as $s) {
             'values' => ['en' => '', 'km' => '']
         ];
     }
-    $groupedSettings[$cat][$key]['values'][$lang] = $s['setting_value'];
-}
+        $val = $s['setting_value'];
+        if ($key === 'social_banner_text' && (strpos($val, '<') !== false || strpos($val, 'mask-image') !== false || strpos($val, 'background-color') !== false)) {
+            $clean = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $clean = strip_tags($clean);
+            $clean = preg_replace('/background-color\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/mask-image\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/mask-size\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/mask-repeat\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/data-src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = preg_replace('/src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = preg_replace('/class\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = str_replace(['&nbsp;', '">', '">', '">'], ' ', $clean);
+            $clean = trim(preg_replace('/\s+/', ' ', $clean));
+            $val = !empty($clean) ? $clean : (($lang === 'km') ? 'ប្រព័ន្ធបណ្តាញសង្គម' : 'Social Media');
+        }
+        $groupedSettings[$cat][$key]['values'][$lang] = $val;
+    }
 
 // Populate missing language fallbacks
 foreach ($groupedSettings as $cat => &$keys) {

@@ -173,27 +173,43 @@ function getSetting($key, $default = '', $language = null) {
         $val = str_replace('គោព្រៃ', 'ហ្គោ ហ្គោ', $val);
     }
 
-    // Post-processing overrides for Rich Text Editor elements on Front-end (CDN Tailwind bypass)
+    // Post-processing overrides for social_banner_text on Front-end
     if ($key === 'social_banner_text') {
-        // Strip block-level wrapper tags like <p> and <div> that cause layout breaks inside headings
-        $val = preg_replace('/<\/?(p|div)[^>]*>/i', '', $val);
+        if (strpos($val, '<font') !== false || strpos($val, 'mask-image') !== false || strpos($val, 'background-color') !== false || strpos($val, '&quot;') !== false) {
+            $clean = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $clean = strip_tags($clean);
+            $clean = preg_replace('/background-color\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/mask-image\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/mask-size\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/mask-repeat\s*:[^;]+;?/i', '', $clean);
+            $clean = preg_replace('/data-src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = preg_replace('/src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = preg_replace('/class\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+            $clean = str_replace(['&nbsp;', '">', '">', '">'], ' ', $clean);
+            $clean = trim(preg_replace('/\s+/', ' ', $clean));
+            $val = !empty($clean) ? $clean : (($lang === 'km') ? 'ប្រព័ន្ធបណ្តាញសង្គម' : 'Social Media');
+        } else {
+            // Strip block-level wrapper tags like <p> and <div> that cause layout breaks inside headings
+            $val = preg_replace('/<\/?(p|div)[^>]*>/i', '', $val);
 
-        if (strpos($val, '<img') !== false) {
-            $val = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
-                $attrs = $matches[1];
-                if (preg_match('/style\s*=\s*["\']([^"\']+)["\']/i', $attrs, $styleMatches)) {
-                    $style = $styleMatches[1];
-                    if (strpos($style, 'display') === false) {
-                        $style .= '; display: inline-block !important;';
+            if (strpos($val, '<img') !== false) {
+                $val = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
+                    $attrs = $matches[1];
+                    if (preg_match('/style\s*=\s*["\'][^"\']/i', $attrs, $styleMatches)) {
+                        $style = $styleMatches[1];
+                        if (strpos($style, 'display') === false) {
+                            $style .= '; display: inline-block !important;';
+                        } else {
+                            $style = preg_replace('/display\s*:\s*[^;]+/i', 'display: inline-block !important', $style);
+                        }
+                        $attrs = str_replace($styleMatches[0], 'style="' . $style . '"', $attrs);
                     } else {
-                        $style = preg_replace('/display\s*:\s*[^;]+/i', 'display: inline-block !important', $style);
+                        $attrs .= ' style="display: inline-block !important; vertical-align: middle;"';
                     }
-                    $attrs = str_replace($styleMatches[0], 'style="' . $style . '"', $attrs);
-                } else {
-                    $attrs .= ' style="display: inline-block !important; vertical-align: middle;"';
-                }
-                return '<img' . $attrs . '>';
-            }, $val);
+                    return '<img' . $attrs . '>';
+                }, $val);
+            }
         }
     }
 

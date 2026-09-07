@@ -251,7 +251,28 @@ const DEFAULT_LOCATION_SETTINGS = {
   location_btn_text: { en: 'Get Directions', km: 'Get Directions', type: 'text', description: 'Directions button text' }
 };
 
-const EMOJI_LIST = ['📌','🔴','🟢','🔵','⭐','✅','💡','🔥','🎯','📝','💬','📧','📞','📍','🌐','💻','📱','🛒','📦','💰','🎉','❤️','👍','➡️','⬅️','•'];
+// Clean up corrupted HTML tags or broken CSS snippets from legacy RTE editors
+export const cleanSocialBannerText = (str) => {
+  if (!str || typeof str !== 'string') return '';
+  let clean = str
+    .replace(/&quot;/gi, '"')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&nbsp;/gi, ' ');
+  clean = clean.replace(/<[^>]*>/g, '');
+  clean = clean.replace(/background-color\s*:[^;]+;?/gi, '');
+  clean = clean.replace(/mask-image\s*:[^;]+;?/gi, '');
+  clean = clean.replace(/mask-size\s*:[^;]+;?/gi, '');
+  clean = clean.replace(/mask-repeat\s*:[^;]+;?/gi, '');
+  clean = clean.replace(/data-src\s*=\s*["'][^"']*["']/gi, '');
+  clean = clean.replace(/style\s*=\s*["'][^"']*["']/gi, '');
+  clean = clean.replace(/src\s*=\s*["'][^"']*["']/gi, '');
+  clean = clean.replace(/class\s*=\s*["'][^"']*["']/gi, '');
+  clean = clean.replace(/['"]?>/g, '');
+  clean = clean.replace(/\s+/g, ' ').trim();
+  return clean;
+};
 
 export default function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -356,12 +377,20 @@ export default function SettingsPage() {
                 km: fromGeneralKm || def.km,
               },
             };
-          } else {
-            if (!built.location[k].values) built.location[k].values = { en: '', km: '' };
-            if (!built.location[k].values.en) built.location[k].values.en = def.en;
-            if (!built.location[k].values.km) built.location[k].values.km = def.km;
           }
         });
+
+        // Auto-clean any legacy corrupted HTML in social_banner_text
+        if (built.social?.social_banner_text?.values) {
+          const rawEn = built.social.social_banner_text.values.en || '';
+          const rawKm = built.social.social_banner_text.values.km || '';
+          if (rawEn.includes('<') || rawEn.includes('mask-image') || rawEn.includes('background-color') || rawEn.includes('&quot;')) {
+            built.social.social_banner_text.values.en = cleanSocialBannerText(rawEn) || 'Social Media';
+          }
+          if (rawKm.includes('<') || rawKm.includes('mask-image') || rawKm.includes('background-color') || rawKm.includes('&quot;')) {
+            built.social.social_banner_text.values.km = cleanSocialBannerText(rawKm) || 'ប្រព័ន្ធបណ្តាញសង្គម';
+          }
+        }
 
         setGroupedSettings(built);
       }
@@ -418,7 +447,11 @@ export default function SettingsPage() {
   };
 
   const getVal = (category, key, lang, fallback = '') => {
-    return groupedSettings[category]?.[key]?.values?.[lang] ?? fallback;
+    let val = groupedSettings[category]?.[key]?.values?.[lang] ?? fallback;
+    if (key === 'social_banner_text' && typeof val === 'string' && (val.includes('<') || val.includes('mask-image') || val.includes('background-color') || val.includes('&quot;'))) {
+      val = cleanSocialBannerText(val);
+    }
+    return val;
   };
 
   const setVal = (category, key, lang, value) => {
@@ -1478,6 +1511,21 @@ export default function SettingsPage() {
                         <Share2 size={18} className="text-sky-600" />
                         <span>Social Banner Text (ផ្ទាំងផ្សាយ Social លើទំព័រដើម)</span>
                       </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const enVal = cleanSocialBannerText(getVal('social', 'social_banner_text', 'en')) || 'Social Media';
+                          const kmVal = cleanSocialBannerText(getVal('social', 'social_banner_text', 'km')) || 'ប្រព័ន្ធបណ្តាញសង្គម';
+                          setVal('social', 'social_banner_text', 'en', enVal);
+                          setVal('social', 'social_banner_text', 'km', kmVal);
+                          showToast('បានសម្អាតកូដ និងកំណត់អក្សរស្អាតឡើងវិញ!');
+                        }}
+                        className="text-xs px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl font-medium flex items-center gap-1.5 transition border border-emerald-200 shadow-2xs cursor-pointer"
+                        title="សម្អាតកូដ HTML ឲ្យទៅជាអក្សរធម្មតា"
+                      >
+                        <Sparkles size={14} />
+                        <span>✨ សម្អាតកូដ (Clean Text)</span>
+                      </button>
                     </div>
 
                     {/* Emoji Quick Picker */}
@@ -1610,7 +1658,7 @@ export default function SettingsPage() {
 
                   <div className="bg-gray-950 text-white p-6 rounded-2xl text-center space-y-4">
                     <p className="text-xs sm:text-sm leading-relaxed text-gray-200">
-                      {getVal('social', 'social_banner_text', 'km') || getVal('social', 'social_banner_text', 'en') || 'Social banner text preview...'}
+                      {cleanSocialBannerText(getVal('social', 'social_banner_text', 'km')) || cleanSocialBannerText(getVal('social', 'social_banner_text', 'en')) || 'Social Media'}
                     </p>
                     <div className="flex items-center justify-center gap-3 pt-2">
                       <span className="w-8 h-8 rounded-full bg-blue-600/80 flex items-center justify-center text-white"><FacebookIcon size={14} /></span>

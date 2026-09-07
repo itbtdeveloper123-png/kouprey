@@ -975,6 +975,31 @@ switch ($action) {
                 $cat = !empty($r['category']) ? $r['category'] : 'general';
                 $val = $r['setting_value'] ?? '';
 
+                // Self-healing for messy legacy RTE HTML/CSS tags in social_banner_text
+                if ($key === 'social_banner_text' && (strpos($val, '<') !== false || strpos($val, 'mask-image') !== false || strpos($val, 'background-color') !== false || strpos($val, '&quot;') !== false || strpos($val, 'font-size') !== false)) {
+                    $clean = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $clean = strip_tags($clean);
+                    $clean = preg_replace('/background-color\s*:[^;]+;?/i', '', $clean);
+                    $clean = preg_replace('/mask-image\s*:[^;]+;?/i', '', $clean);
+                    $clean = preg_replace('/mask-size\s*:[^;]+;?/i', '', $clean);
+                    $clean = preg_replace('/mask-repeat\s*:[^;]+;?/i', '', $clean);
+                    $clean = preg_replace('/data-src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                    $clean = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                    $clean = preg_replace('/src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                    $clean = preg_replace('/class\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                    $clean = str_replace(['&nbsp;', '">', '">', '">'], ' ', $clean);
+                    $clean = trim(preg_replace('/\s+/', ' ', $clean));
+                    if (empty($clean) || strlen($clean) < 2) {
+                        $clean = ($lang === 'km') ? 'ប្រព័ន្ធបណ្តាញសង្គម' : 'Social Media';
+                    }
+                    try {
+                        if (!empty($r['id'])) {
+                            $pdo->prepare("UPDATE settings SET setting_value = ? WHERE id = ?")->execute([$clean, $r['id']]);
+                        }
+                    } catch (Exception $ignored) {}
+                    $val = $clean;
+                }
+
                 $map[$lang][$key] = $val;
 
                 if (!isset($grouped[$cat][$key])) {
@@ -1003,8 +1028,28 @@ switch ($action) {
             $lang  = $data['language'] ?? $data['lang'] ?? 'km';
             if (empty($key)) { echo json_encode(['success' => false, 'error' => 'Key required']); break; }
 
+            // Sanitize social_banner_text if saved
+            if ($key === 'social_banner_text' && (strpos($value, '<') !== false || strpos($value, 'mask-image') !== false || strpos($value, 'background-color') !== false)) {
+                $clean = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $clean = strip_tags($clean);
+                $clean = preg_replace('/background-color\s*:[^;]+;?/i', '', $clean);
+                $clean = preg_replace('/mask-image\s*:[^;]+;?/i', '', $clean);
+                $clean = preg_replace('/mask-size\s*:[^;]+;?/i', '', $clean);
+                $clean = preg_replace('/mask-repeat\s*:[^;]+;?/i', '', $clean);
+                $clean = preg_replace('/data-src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                $clean = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                $clean = preg_replace('/src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                $clean = preg_replace('/class\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                $clean = str_replace(['&nbsp;', '">', '">', '">'], ' ', $clean);
+                $clean = trim(preg_replace('/\s+/', ' ', $clean));
+                $value = !empty($clean) ? $clean : (($lang === 'km') ? 'ប្រព័ន្ធបណ្តាញសង្គម' : 'Social Media');
+            }
+
             $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, language) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
             $stmt->execute([$key, $value, $lang]);
+            if (function_exists('clearAllKoupreyCaches')) {
+                clearAllKoupreyCaches();
+            }
             echo json_encode(['success' => true]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -1036,6 +1081,23 @@ switch ($action) {
                 $lang = $item['language'] ?? 'km';
                 $cat  = trim($item['category'] ?? '');
                 if ($key) {
+                    // Sanitize social_banner_text
+                    if ($key === 'social_banner_text' && (strpos($val, '<') !== false || strpos($val, 'mask-image') !== false || strpos($val, 'background-color') !== false)) {
+                        $clean = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $clean = strip_tags($clean);
+                        $clean = preg_replace('/background-color\s*:[^;]+;?/i', '', $clean);
+                        $clean = preg_replace('/mask-image\s*:[^;]+;?/i', '', $clean);
+                        $clean = preg_replace('/mask-size\s*:[^;]+;?/i', '', $clean);
+                        $clean = preg_replace('/mask-repeat\s*:[^;]+;?/i', '', $clean);
+                        $clean = preg_replace('/data-src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                        $clean = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                        $clean = preg_replace('/src\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                        $clean = preg_replace('/class\s*=\s*["\'][^"\']*["\']/i', '', $clean);
+                        $clean = str_replace(['&nbsp;', '">', '">', '">'], ' ', $clean);
+                        $clean = trim(preg_replace('/\s+/', ' ', $clean));
+                        $val = !empty($clean) ? $clean : (($lang === 'km') ? 'ប្រព័ន្ធបណ្តាញសង្គម' : 'Social Media');
+                    }
+
                     if ($hasCat) {
                         $stmt->execute([$key, $val, $lang, $cat]);
                     } else {
@@ -1044,6 +1106,9 @@ switch ($action) {
                 }
             }
             $pdo->commit();
+            if (function_exists('clearAllKoupreyCaches')) {
+                clearAllKoupreyCaches();
+            }
             echo json_encode(['success' => true, 'saved' => count($data)]);
         } catch (Exception $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
