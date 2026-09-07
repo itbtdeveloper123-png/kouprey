@@ -271,7 +271,7 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
             <!-- Center: Brand Logo -->
             <div class="flex items-center justify-center">
                 <a href="product.php" class="flex items-center transform active:scale-95 transition-transform">
-                    <img src="/kouprey/public/assets/images/logo.png" onerror="if(this.src.indexOf('assets/images/logo.png')===-1){this.src='assets/images/logo.png';}else{this.src='https://i.ibb.co/Wv0j3ZTQ/logo.png';}" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-10 sm:h-12 w-auto object-contain">
+                    <img src="/kouprey/public/assets/images/logo-black.png" onerror="if(this.src.indexOf('assets/images/logo-black.png')===-1){this.src='assets/images/logo-black.png';}else{this.src='/kouprey/public/assets/images/logo.png';}" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-10 sm:h-12 w-auto object-contain brightness-0" style="filter: brightness(0);">
                 </a>
             </div>
             
