@@ -222,23 +222,34 @@ switch ($action) {
 
     case 'get_product_data':
         try {
-            $base_product_id = intval($_GET['base_product_id'] ?? $_POST['base_product_id'] ?? 0);
-            if (!$base_product_id) {
+            $target_id = intval($_GET['base_product_id'] ?? $_POST['base_product_id'] ?? $_GET['id'] ?? 0);
+            if ($target_id <= 0) {
                 echo json_encode(['success' => false, 'error' => 'base_product_id required']);
                 break;
             }
+
+            // Resolve real base_product_id without conflating id and base_product_id
+            $resolvedBase = $target_id;
+            $st = $pdo->prepare("SELECT base_product_id FROM products WHERE base_product_id = ? LIMIT 1");
+            $st->execute([$target_id]);
+            if (!$st->fetchColumn()) {
+                $st2 = $pdo->prepare("SELECT COALESCE(base_product_id, id) FROM products WHERE id = ? LIMIT 1");
+                $st2->execute([$target_id]);
+                $found = $st2->fetchColumn();
+                if ($found) $resolvedBase = intval($found);
+            }
             
-            $stmt = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR id = ?) AND language = 'en'");
-            $stmt->execute([$base_product_id, $base_product_id]);
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE base_product_id = ? AND language = 'en' LIMIT 1");
+            $stmt->execute([$resolvedBase]);
             $en = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
-            $stmt = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR id = ?) AND language = 'km'");
-            $stmt->execute([$base_product_id, $base_product_id]);
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE base_product_id = ? AND language = 'km' LIMIT 1");
+            $stmt->execute([$resolvedBase]);
             $km = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
             if (!$en && !$km) {
                 $s = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-                $s->execute([$base_product_id]);
+                $s->execute([$target_id]);
                 $single = $s->fetch(PDO::FETCH_ASSOC);
                 if ($single) {
                     if ($single['language'] === 'en') $en = $single;
@@ -253,15 +264,15 @@ switch ($action) {
                 WHERE pr.product_id = ?
                 ORDER BY pr.sort_order ASC, pr.id ASC
             ");
-            $stmt->execute([$base_product_id]);
+            $stmt->execute([$resolvedBase]);
             $related = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
             echo json_encode([
                 'success' => true,
-                'base_product_id' => $base_product_id,
+                'base_product_id' => $resolvedBase,
                 'en' => $en,
                 'km' => $km,
-                'related' => $related
+                'related' => $related,
             ], JSON_UNESCAPED_UNICODE);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -275,8 +286,8 @@ switch ($action) {
             $is_new = ($base_product_id <= 0);
 
             if ($is_new) {
-                $maxBase = $pdo->query("SELECT COALESCE(MAX(base_product_id), 0) FROM products")->fetchColumn();
-                $base_product_id = $maxBase + 1;
+                $maxId = $pdo->query("SELECT GREATEST(COALESCE(MAX(base_product_id), 0), COALESCE(MAX(id), 0)) FROM products")->fetchColumn();
+                $base_product_id = intval($maxId) + 1;
             }
 
             $price = floatval($data['price'] ?? 0);
@@ -294,10 +305,10 @@ switch ($action) {
 
             $getCatIdForLang = function($base_cat_id, $lang) use ($pdo) {
                 if (!$base_cat_id) return null;
-                $s = $pdo->prepare("SELECT id FROM categories WHERE base_category_id = ? AND language = ? LIMIT 1");
-                $s->execute([$base_cat_id, $lang]);
+                $s = $pdo->prepare("SELECT id FROM categories WHERE (base_category_id = ? OR id = ?) AND language = ? LIMIT 1");
+                $s->execute([$base_cat_id, $base_cat_id, $lang]);
                 $r = $s->fetch();
-                return $r ? $r['id'] : null;
+                return $r ? $r['id'] : $base_cat_id;
             };
 
             $featured = !empty($data['featured']) ? 1 : 0;
@@ -315,23 +326,36 @@ switch ($action) {
             }
             $custom_fields_json = json_encode($custom_fields, JSON_UNESCAPED_UNICODE);
 
-            $en_name = trim($data['name_en'] ?? $data['name'] ?? '');
-            $en_desc = trim($data['description_en'] ?? $data['description'] ?? '');
-            $en_detailed = trim($data['detailed_description_en'] ?? '');
-            $en_ingredients = trim($data['ingredients_en'] ?? '');
-            $en_origin = trim($data['origin_en'] ?? '');
-            $en_brewing = trim($data['brewing_instructions_en'] ?? '');
-            $en_tasting = trim($data['tasting_notes_en'] ?? '');
-            $en_weight = trim($data['weight_en'] ?? '');
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE base_product_id = ? AND language = 'en' LIMIT 1");
+            $stmt->execute([$base_product_id]);
+            $row_en = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            $km_name = trim($data['name_km'] ?? '') ?: $en_name;
-            $km_desc = trim($data['description_km'] ?? '') ?: $en_desc;
-            $km_detailed = trim($data['detailed_description_km'] ?? '') ?: $en_detailed;
-            $km_ingredients = trim($data['ingredients_km'] ?? '') ?: $en_ingredients;
-            $km_origin = trim($data['origin_km'] ?? '') ?: $en_origin;
-            $km_brewing = trim($data['brewing_instructions_km'] ?? '') ?: $en_brewing;
-            $km_tasting = trim($data['tasting_notes_km'] ?? '') ?: $en_tasting;
-            $km_weight = trim($data['weight_km'] ?? '') ?: $en_weight;
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE base_product_id = ? AND language = 'km' LIMIT 1");
+            $stmt->execute([$base_product_id]);
+            $row_km = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $raw_en_name = trim($data['name_en'] ?? $data['name'] ?? '');
+            $raw_km_name = trim($data['name_km'] ?? '');
+            $raw_en_desc = trim($data['description_en'] ?? $data['description'] ?? '');
+            $raw_km_desc = trim($data['description_km'] ?? '');
+
+            $en_name = !empty($raw_en_name) ? $raw_en_name : (!empty($row_en['name']) ? $row_en['name'] : $raw_km_name);
+            $en_desc = !empty($raw_en_desc) ? $raw_en_desc : (!empty($row_en['description']) ? $row_en['description'] : $raw_km_desc);
+            $en_detailed = trim($data['detailed_description_en'] ?? '') ?: ($row_en['detailed_description'] ?? '');
+            $en_ingredients = trim($data['ingredients_en'] ?? '') ?: ($row_en['ingredients'] ?? '');
+            $en_origin = trim($data['origin_en'] ?? '') ?: ($row_en['origin'] ?? '');
+            $en_brewing = trim($data['brewing_instructions_en'] ?? '') ?: ($row_en['brewing_instructions'] ?? '');
+            $en_tasting = trim($data['tasting_notes_en'] ?? '') ?: ($row_en['tasting_notes'] ?? '');
+            $en_weight = trim($data['weight_en'] ?? '') ?: ($row_en['weight'] ?? '');
+
+            $km_name = !empty($raw_km_name) ? $raw_km_name : (!empty($row_km['name']) ? $row_km['name'] : $raw_en_name);
+            $km_desc = !empty($raw_km_desc) ? $raw_km_desc : (!empty($row_km['description']) ? $row_km['description'] : $raw_en_desc);
+            $km_detailed = trim($data['detailed_description_km'] ?? '') ?: ($row_km['detailed_description'] ?? $en_detailed);
+            $km_ingredients = trim($data['ingredients_km'] ?? '') ?: ($row_km['ingredients'] ?? $en_ingredients);
+            $km_origin = trim($data['origin_km'] ?? '') ?: ($row_km['origin'] ?? $en_origin);
+            $km_brewing = trim($data['brewing_instructions_km'] ?? '') ?: ($row_km['brewing_instructions'] ?? $en_brewing);
+            $km_tasting = trim($data['tasting_notes_km'] ?? '') ?: ($row_km['tasting_notes'] ?? $en_tasting);
+            $km_weight = trim($data['weight_km'] ?? '') ?: ($row_km['weight'] ?? $en_weight);
 
             $cat_id_en = $getCatIdForLang($base_category_id, 'en');
             $cat_id_km = $getCatIdForLang($base_category_id, 'km');

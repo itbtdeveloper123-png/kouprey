@@ -360,12 +360,13 @@ export default function ProductsPage() {
   // ──────────────────────────────────────────────
   const openEditProduct = async (product) => {
     setDrawerMode('edit');
-    setDrawerTab('en');
+    // Default tab matches current view language
+    setDrawerTab(lang === 'km' ? 'km' : 'en');
     setImagePreview('');
     setUploadingImage(false);
     const baseId = product.base_product_id || product.id;
 
-    // 1. INSTANT OPEN (0ms): Prefill from row data immediately!
+    // 1. INSTANT OPEN (0ms): Prefill from row data with strict language separation!
     setProductForm({
       base_product_id: baseId,
       price: product.price || '',
@@ -374,16 +375,16 @@ export default function ProductsPage() {
       featured: Number(product.featured || 0),
       best_seller: Number(product.best_seller || 0),
       enabled: Number(product.enabled ?? 1),
-      name_en: product.name || '',
-      description_en: product.description || '',
+      name_en: product.name_en || (lang === 'en' ? product.name : '') || '',
+      description_en: product.description_en || (lang === 'en' ? product.description : '') || '',
       weight_en: product.weight || '',
       detailed_description_en: product.detailed_description || '',
       ingredients_en: product.ingredients || '',
       origin_en: product.origin || '',
       brewing_instructions_en: product.brewing_instructions || '',
       tasting_notes_en: product.tasting_notes || '',
-      name_km: product.name || '',
-      description_km: product.description || '',
+      name_km: product.name_km || (lang === 'km' ? product.name : '') || '',
+      description_km: product.description_km || (lang === 'km' ? product.description : '') || '',
       weight_km: product.weight || '',
       detailed_description_km: product.detailed_description || '',
       ingredients_km: product.ingredients || '',
@@ -418,7 +419,7 @@ export default function ProductsPage() {
 
         setProductForm((prev) => ({
           ...prev,
-          base_product_id: baseId,
+          base_product_id: res.base_product_id || baseId,
           price: en.price || km.price || prev.price || '',
           category_id: en.category_id || km.category_id || prev.category_id || '',
           image: en.image || km.image || prev.image || '',
@@ -426,8 +427,8 @@ export default function ProductsPage() {
           best_seller: Number(en.best_seller ?? km.best_seller ?? prev.best_seller),
           enabled: Number(en.enabled ?? km.enabled ?? prev.enabled),
           // EN
-          name_en: en.name || prev.name_en || '',
-          description_en: en.description || prev.description_en || '',
+          name_en: en.name || product.name_en || (lang === 'en' ? product.name : '') || '',
+          description_en: en.description || product.description_en || (lang === 'en' ? product.description : '') || '',
           weight_en: en.weight || prev.weight_en || '',
           detailed_description_en: en.detailed_description || prev.detailed_description_en || '',
           ingredients_en: en.ingredients || prev.ingredients_en || '',
@@ -435,8 +436,8 @@ export default function ProductsPage() {
           brewing_instructions_en: en.brewing_instructions || prev.brewing_instructions_en || '',
           tasting_notes_en: en.tasting_notes || prev.tasting_notes_en || '',
           // KM
-          name_km: km.name || prev.name_km || '',
-          description_km: km.description || prev.description_km || '',
+          name_km: km.name || product.name_km || (lang === 'km' ? product.name : '') || '',
+          description_km: km.description || product.description_km || (lang === 'km' ? product.description : '') || '',
           weight_km: km.weight || prev.weight_km || '',
           detailed_description_km: km.detailed_description || prev.detailed_description_km || '',
           ingredients_km: km.ingredients || prev.ingredients_km || '',

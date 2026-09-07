@@ -19,33 +19,139 @@ $currentLanguage = isset($_GET['lang']) ? $_GET['lang'] : 'en';
 $supportedLanguages = ['en' => 'English', 'km' => 'Khmer'];
 $_SESSION['language'] = $currentLanguage;
 
-// Handle get product data for editing
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['get_product_data'])) {
-    $base_product_id = $_POST['base_product_id'];
-    $language = $_POST['language'];
+// Self-repair action and automatic session check for database base_product_id consistency
+$shouldRepair = (isset($_GET['action']) && $_GET['action'] === 'repair_base_ids') || !isset($_SESSION['base_ids_repaired']);
+if ($shouldRepair) {
+    try {
+        // 1. Assign base_product_id to any products missing it
+        $pdo->exec("UPDATE products SET base_product_id = id WHERE base_product_id IS NULL OR base_product_id = 0");
 
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE base_product_id = ? AND language = ?");
-    $stmt->execute([$base_product_id, $language]);
-    $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($product) {
-        echo json_encode(['success' => true, 'product' => $product]);
-    } else {
-        // Return empty product data for this language
-        echo json_encode(['success' => true, 'product' => [
-            'id' => '',
-            'name' => '',
-            'description' => '',
-            'detailed_description' => '',
-            'ingredients' => '',
-            'origin' => '',
-            'brewing_instructions' => '',
-            'tasting_notes' => '',
-            'weight' => '',
-            'roast_level' => '',
-            'custom_fields' => '{}'
-        ]]);
+        // 2. Decouple duplicate rows that mistakenly share the same base_product_id and language
+        $dupStmt = $pdo->query("
+            SELECT base_product_id, language, COUNT(*) as cnt 
+            FROM products 
+            WHERE base_product_id IS NOT NULL AND base_product_id > 0 
+            GROUP BY base_product_id, language 
+            HAVING cnt > 1
+        ");
+        $dups = $dupStmt->fetchAll();
+        $repaired = 0;
+        foreach ($dups as $dup) {
+            $rowsStmt = $pdo->prepare("SELECT id FROM products WHERE base_product_id = ? AND language = ? ORDER BY id ASC");
+            $rowsStmt->execute([$dup['base_product_id'], $dup['language']]);
+            $rowIds = $rowsStmt->fetchAll(PDO::FETCH_COLUMN);
+            array_shift($rowIds); // Keep the first
+            foreach ($rowIds as $orphanId) {
+                $up = $pdo->prepare("UPDATE products SET base_product_id = id WHERE id = ?");
+                $up->execute([$orphanId]);
+                $repaired++;
+            }
+        }
+        $_SESSION['base_ids_repaired'] = true;
+        if (isset($_GET['action']) && $_GET['action'] === 'repair_base_ids') {
+            $message = "Database base product IDs verified and repaired! ($repaired separated)";
+        }
+    } catch (Exception $e) {
+        if (isset($_GET['action']) && $_GET['action'] === 'repair_base_ids') {
+            $error = "Repair error: " . $e->getMessage();
+        }
     }
+}
+
+// Handle get product data for editing (supports atomic dual-lang and single-lang)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['get_product_data'])) {
+    $base_product_id = intval($_POST['base_product_id'] ?? 0);
+    $product_id = intval($_POST['product_id'] ?? 0);
+    $language = isset($_POST['language']) && in_array($_POST['language'], ['en', 'km']) ? $_POST['language'] : null;
+
+    // Resolve base_product_id from product_id if needed
+    if ($base_product_id <= 0 && $product_id > 0) {
+        $st = $pdo->prepare("SELECT COALESCE(base_product_id, id) FROM products WHERE id = ?");
+        $st->execute([$product_id]);
+        $base_product_id = intval($st->fetchColumn());
+    } elseif ($base_product_id > 0) {
+        // Verify base_product_id exists, or check if it was an id
+        $st = $pdo->prepare("SELECT base_product_id FROM products WHERE base_product_id = ? LIMIT 1");
+        $st->execute([$base_product_id]);
+        if (!$st->fetchColumn()) {
+            $st2 = $pdo->prepare("SELECT COALESCE(base_product_id, id) FROM products WHERE id = ? LIMIT 1");
+            $st2->execute([$base_product_id]);
+            $realBase = $st2->fetchColumn();
+            if ($realBase) {
+                $base_product_id = intval($realBase);
+            }
+        }
+    }
+
+    // If single language was specifically requested
+    if ($language) {
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE base_product_id = ? AND language = ? LIMIT 1");
+        $stmt->execute([$base_product_id, $language]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$product && $product_id > 0) {
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ? AND language = ? LIMIT 1");
+            $stmt->execute([$product_id, $language]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if ($product) {
+            echo json_encode(['success' => true, 'product' => $product, 'base_product_id' => $base_product_id]);
+        } else {
+            echo json_encode(['success' => true, 'product' => [
+                'id' => '',
+                'name' => '',
+                'description' => '',
+                'detailed_description' => '',
+                'ingredients' => '',
+                'origin' => '',
+                'brewing_instructions' => '',
+                'tasting_notes' => '',
+                'weight' => '',
+                'roast_level' => '',
+                'custom_fields' => '{}'
+            ], 'base_product_id' => $base_product_id]);
+        }
+        exit;
+    }
+
+    // Atomic dual-language response: fetch both English and Khmer together
+    $stmtEn = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR (base_product_id IS NULL AND id = ?)) AND language = 'en' LIMIT 1");
+    $stmtEn->execute([$base_product_id, $base_product_id]);
+    $prodEn = $stmtEn->fetch(PDO::FETCH_ASSOC);
+
+    $stmtKm = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR (base_product_id IS NULL AND id = ?)) AND language = 'km' LIMIT 1");
+    $stmtKm->execute([$base_product_id, $base_product_id]);
+    $prodKm = $stmtKm->fetch(PDO::FETCH_ASSOC);
+
+    // If neither found by base_product_id, try product_id
+    if (!$prodEn && !$prodKm && $product_id > 0) {
+        $s = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+        $s->execute([$product_id]);
+        $single = $s->fetch(PDO::FETCH_ASSOC);
+        if ($single) {
+            if ($single['language'] === 'en') $prodEn = $single;
+            else $prodKm = $single;
+            if (!empty($single['base_product_id'])) {
+                $base_product_id = intval($single['base_product_id']);
+                // Re-attempt counterpart language with real base_product_id
+                if (!$prodEn && $single['language'] === 'km') {
+                    $stmtEn->execute([$base_product_id, $base_product_id]);
+                    $prodEn = $stmtEn->fetch(PDO::FETCH_ASSOC);
+                } elseif (!$prodKm && $single['language'] === 'en') {
+                    $stmtKm->execute([$base_product_id, $base_product_id]);
+                    $prodKm = $stmtKm->fetch(PDO::FETCH_ASSOC);
+                }
+            }
+        }
+    }
+
+    echo json_encode([
+        'success' => true,
+        'base_product_id' => $base_product_id,
+        'product_en' => $prodEn ?: null,
+        'product_km' => $prodKm ?: null
+    ]);
     exit;
 }
 
@@ -278,16 +384,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['acti
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
     error_log('Update product request received');
-    error_log('All POST data: ' . print_r($_POST, true));
-    $base_product_id = $_POST['base_product_id'];
+    $base_product_id = intval($_POST['base_product_id'] ?? 0);
+    $product_id = intval($_POST['product_id'] ?? 0);
+    
+    // Resolve base_product_id safely
+    if ($base_product_id <= 0 && $product_id > 0) {
+        $st = $pdo->prepare("SELECT COALESCE(base_product_id, id) FROM products WHERE id = ?");
+        $st->execute([$product_id]);
+        $base_product_id = intval($st->fetchColumn());
+    } elseif ($base_product_id > 0) {
+        $st = $pdo->prepare("SELECT base_product_id FROM products WHERE base_product_id = ? LIMIT 1");
+        $st->execute([$base_product_id]);
+        if (!$st->fetchColumn()) {
+            $st2 = $pdo->prepare("SELECT COALESCE(base_product_id, id) FROM products WHERE id = ? LIMIT 1");
+            $st2->execute([$base_product_id]);
+            $realBase = $st2->fetchColumn();
+            if ($realBase) {
+                $base_product_id = intval($realBase);
+            }
+        }
+    }
     
     // Check if this is a detailed-only update (from modal) or full update (from sidebar)
     $is_detailed_only = !isset($_POST['edit_name_en']);
     
+    // Fetch existing records for both EN and KM
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR (base_product_id IS NULL AND id = ?)) AND language = 'en' LIMIT 1");
+    $stmt->execute([$base_product_id, $base_product_id]);
+    $existing_en = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE (base_product_id = ? OR (base_product_id IS NULL AND id = ?)) AND language = 'km' LIMIT 1");
+    $stmt->execute([$base_product_id, $base_product_id]);
+    $existing_km = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // If existing records exist with valid base_product_id, adopt it
+    if ($existing_en && !empty($existing_en['base_product_id'])) {
+        $base_product_id = intval($existing_en['base_product_id']);
+    } elseif ($existing_km && !empty($existing_km['base_product_id'])) {
+        $base_product_id = intval($existing_km['base_product_id']);
+    }
+
+    // Function to get category_id for a language
+    if (!function_exists('getCategoryIdForLanguageEdit')) {
+        function getCategoryIdForLanguageEdit($base_category_id, $language, $pdo) {
+            if (!$base_category_id) return null;
+            $stmt = $pdo->prepare("SELECT id FROM categories WHERE (base_category_id = ? OR id = ?) AND language = ? LIMIT 1");
+            $stmt->execute([$base_category_id, $base_category_id, $language]);
+            $cat = $stmt->fetch();
+            if ($cat) return $cat['id'];
+            return $base_category_id;
+        }
+    }
+
     if (!$is_detailed_only) {
         // Full update from sidebar
-        $price = $_POST['edit_price'];
-        $category_id = !empty($_POST['edit_category_id']) ? $_POST['edit_category_id'] : null;
+        $price = !empty($_POST['edit_price']) ? floatval($_POST['edit_price']) : floatval($existing_en['price'] ?? $existing_km['price'] ?? 0);
+        $category_id = !empty($_POST['edit_category_id']) ? intval($_POST['edit_category_id']) : null;
         
         // Get base_category_id if category is selected
         $base_category_id = null;
@@ -295,7 +447,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
             $stmt = $pdo->prepare("SELECT base_category_id FROM categories WHERE id = ?");
             $stmt->execute([$category_id]);
             $cat = $stmt->fetch();
-            $base_category_id = $cat ? $cat['base_category_id'] : null;
+            $base_category_id = ($cat && !empty($cat['base_category_id'])) ? $cat['base_category_id'] : $category_id;
+        } elseif (!empty($existing_en['category_id']) || !empty($existing_km['category_id'])) {
+            $catId = $existing_en['category_id'] ?? $existing_km['category_id'];
+            $stmt = $pdo->prepare("SELECT base_category_id FROM categories WHERE id = ?");
+            $stmt->execute([$catId]);
+            $cat = $stmt->fetch();
+            $base_category_id = ($cat && !empty($cat['base_category_id'])) ? $cat['base_category_id'] : $catId;
         }
         
         $featured = isset($_POST['edit_featured']) ? 1 : 0;
@@ -311,7 +469,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
             }
 
             $file_extension = pathinfo($_FILES['edit_image']['name'], PATHINFO_EXTENSION);
-            // Add timestamp to filename for cache busting
             $file_name = uniqid() . '_' . time() . '.' . $file_extension;
             $target_file = $upload_dir . $file_name;
 
@@ -344,106 +501,95 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
             }
         }
 
-        // Use uploaded image if available, otherwise use URL, otherwise keep existing
-        $stmt = $pdo->prepare("SELECT image FROM products WHERE base_product_id = ? AND language = 'en'");
-        $stmt->execute([$base_product_id]);
-        $current_product = $stmt->fetch();
-
-        $final_image = $uploaded_image ?: ($image_url ?: ($current_product ? $current_product['image'] : ''));
+        $final_image = $uploaded_image ?: ($image_url ?: ($existing_en['image'] ?? $existing_km['image'] ?? ''));
 
         // Process custom fields
         $custom_fields_json = $_POST['custom_fields_data_edit'] ?? '{}';
         $custom_fields = json_decode($custom_fields_json, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $custom_fields = [];
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($custom_fields)) {
+            $custom_fields = json_decode($existing_en['custom_fields'] ?? $existing_km['custom_fields'] ?? '{}', true) ?: [];
         }
-    }
 
-    // Function to get category_id for a language
-    function getCategoryIdForLanguageEdit($base_category_id, $language, $pdo) {
-        if (!$base_category_id) return null;
-        $stmt = $pdo->prepare("SELECT id FROM categories WHERE base_category_id = ? AND language = ?");
-        $stmt->execute([$base_category_id, $language]);
-        $cat = $stmt->fetch();
-        return $cat ? $cat['id'] : null;
-    }
+        // Names and descriptions: never destroy one language with another on update
+        $raw_en_name = trim($_POST['edit_name_en'] ?? '');
+        $raw_km_name = trim($_POST['edit_name_km'] ?? '');
+        $raw_en_desc = trim($_POST['edit_description_en'] ?? '');
+        $raw_km_desc = trim($_POST['edit_description_km'] ?? '');
 
-    // Update English version
-    $stmt = $pdo->prepare("SELECT id FROM products WHERE base_product_id = ? AND language = 'en'");
-    $stmt->execute([$base_product_id]);
-    $existing_en = $stmt->fetch();
+        // Safe resolution for EN:
+        $en_name = !empty($raw_en_name) ? $raw_en_name : (!empty($existing_en['name']) ? $existing_en['name'] : $raw_km_name);
+        $en_desc = !empty($raw_en_desc) ? $raw_en_desc : (!empty($existing_en['description']) ? $existing_en['description'] : $raw_km_desc);
 
-    if ($existing_en) {
-        if ($is_detailed_only) {
-            // Update only detailed fields for EN
-            $stmt = $pdo->prepare("UPDATE products SET detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?, tasting_notes = ?, weight = ?, roast_level = ?, custom_fields = ? WHERE id = ?");
-            $stmt->execute([$_POST['edit_detailed_description_en'] ?? '', $_POST['edit_ingredients_en'] ?? '', $_POST['edit_origin_en'] ?? '', $_POST['edit_brewing_instructions_en'] ?? '', $_POST['edit_tasting_notes_en'] ?? '', $_POST['edit_weight_en'] ?? '', $_POST['edit_roast_level_en'] ?? '', json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $existing_en['id']]);
+        // Safe resolution for KM:
+        $km_name = !empty($raw_km_name) ? $raw_km_name : (!empty($existing_km['name']) ? $existing_km['name'] : $raw_en_name);
+        $km_desc = !empty($raw_km_desc) ? $raw_km_desc : (!empty($existing_km['description']) ? $existing_km['description'] : $raw_en_desc);
+
+        // Weights:
+        $raw_en_weight = trim($_POST['edit_weight_en'] ?? '');
+        $raw_km_weight = trim($_POST['edit_weight_km'] ?? '');
+        $en_weight = !empty($raw_en_weight) ? $raw_en_weight : ($existing_en['weight'] ?? '');
+        $km_weight = !empty($raw_km_weight) ? $raw_km_weight : ($existing_km['weight'] ?? '');
+
+        $cat_en = getCategoryIdForLanguageEdit($base_category_id, 'en', $pdo);
+        $cat_km = getCategoryIdForLanguageEdit($base_category_id, 'km', $pdo);
+
+        // Update / Insert EN
+        if ($existing_en) {
+            $stmt = $pdo->prepare("UPDATE products SET name = ?, description = ?, price = ?, category_id = ?, featured = ?, best_seller = ?, image = ?, weight = ?, custom_fields = ? WHERE id = ?");
+            $stmt->execute([$en_name, $en_desc, $price, $cat_en, $featured, $best_seller, $final_image, $en_weight, json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $existing_en['id']]);
         } else {
-            // Full update for EN
-            $stmt = $pdo->prepare("UPDATE products SET name = ?, description = ?, price = ?, category_id = ?, featured = ?, best_seller = ?, image = ?, detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?, tasting_notes = ?, weight = ?, roast_level = ?, custom_fields = ? WHERE id = ?");
-            $stmt->execute([$_POST['edit_name_en'], $_POST['edit_description_en'], $price, getCategoryIdForLanguageEdit($base_category_id, 'en', $pdo), $featured, $best_seller, $final_image, $_POST['edit_detailed_description_en'] ?? '', $_POST['edit_ingredients_en'] ?? '', $_POST['edit_origin_en'] ?? '', $_POST['edit_brewing_instructions_en'] ?? '', $_POST['edit_tasting_notes_en'] ?? '', $_POST['edit_weight_en'] ?? '', $_POST['edit_roast_level_en'] ?? '', json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $existing_en['id']]);
+            $stmt = $pdo->prepare("INSERT INTO products (name, description, price, category_id, featured, best_seller, image, weight, custom_fields, language, base_product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'en', ?)");
+            $stmt->execute([$en_name, $en_desc, $price, $cat_en, $featured, $best_seller, $final_image, $en_weight, json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $base_product_id]);
+        }
+
+        // Update / Insert KM
+        if ($existing_km) {
+            $stmt = $pdo->prepare("UPDATE products SET name = ?, description = ?, price = ?, category_id = ?, featured = ?, best_seller = ?, image = ?, weight = ?, custom_fields = ? WHERE id = ?");
+            $stmt->execute([$km_name, $km_desc, $price, $cat_km, $featured, $best_seller, $final_image, $km_weight, json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $existing_km['id']]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO products (name, description, price, category_id, featured, best_seller, image, weight, custom_fields, language, base_product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'km', ?)");
+            $stmt->execute([$km_name, $km_desc, $price, $cat_km, $featured, $best_seller, $final_image, $km_weight, json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $base_product_id]);
         }
     } else {
-        if (!$is_detailed_only) {
-            // Insert new for EN
-            $stmt = $pdo->prepare("INSERT INTO products (name, description, price, category_id, featured, best_seller, image, detailed_description, ingredients, origin, brewing_instructions, tasting_notes, weight, roast_level, custom_fields, language, base_product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'en', ?)");
-            $stmt->execute([$_POST['edit_name_en'], $_POST['edit_description_en'], $price, getCategoryIdForLanguageEdit($base_category_id, 'en', $pdo), $featured, $best_seller, $final_image, $_POST['edit_detailed_description_en'] ?? '', $_POST['edit_ingredients_en'] ?? '', $_POST['edit_origin_en'] ?? '', $_POST['edit_brewing_instructions_en'] ?? '', $_POST['edit_tasting_notes_en'] ?? '', $_POST['edit_weight_en'] ?? '', $_POST['edit_roast_level_en'] ?? '', json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $base_product_id]);
-        }
-    }
+        // Detailed-only update (from settings modal)
+        $en_det = trim($_POST['edit_detailed_description_en'] ?? '');
+        $km_det = trim($_POST['edit_detailed_description_km'] ?? '');
+        $en_ing = trim($_POST['edit_ingredients_en'] ?? '');
+        $km_ing = trim($_POST['edit_ingredients_km'] ?? '');
+        $en_orig = trim($_POST['edit_origin_en'] ?? '');
+        $km_orig = trim($_POST['edit_origin_km'] ?? '');
+        $en_brew = trim($_POST['edit_brewing_instructions_en'] ?? '');
+        $km_brew = trim($_POST['edit_brewing_instructions_km'] ?? '');
+        $en_tast = trim($_POST['edit_tasting_notes_en'] ?? '');
+        $km_tast = trim($_POST['edit_tasting_notes_km'] ?? '');
+        $en_wt = trim($_POST['edit_weight_en'] ?? '');
+        $km_wt = trim($_POST['edit_weight_km'] ?? '');
+        $roast = trim($_POST['edit_roast_level'] ?? $_POST['edit_roast_level_en'] ?? '');
 
-    // Update Khmer version
-    $stmt = $pdo->prepare("SELECT id FROM products WHERE base_product_id = ? AND language = 'km'");
-    $stmt->execute([$base_product_id]);
-    $existing_km = $stmt->fetch();
-
-    if ($existing_km) {
-        if ($is_detailed_only) {
-            // Update only detailed fields for KM
-            $stmt = $pdo->prepare("UPDATE products SET detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?, tasting_notes = ?, weight = ?, roast_level = ?, custom_fields = ? WHERE id = ?");
-            $stmt->execute([$_POST['edit_detailed_description_km'] ?? '', $_POST['edit_ingredients_km'] ?? '', $_POST['edit_origin_km'] ?? '', $_POST['edit_brewing_instructions_km'] ?? '', $_POST['edit_tasting_notes_km'] ?? '', $_POST['edit_weight_km'] ?? '', $_POST['edit_roast_level_km'] ?? '', json_encode($custom_fields, JSON_UNESCAPED_UNICODE), $existing_km['id']]);
-        } else {
-            // Full update for KM
-            $stmt = $pdo->prepare("UPDATE products SET name = ?, description = ?, price = ?, category_id = ?, featured = ?, best_seller = ?, image = ?, detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?, tasting_notes = ?, weight = ?, roast_level = ?, custom_fields = ? WHERE id = ?");
+        if ($existing_en) {
+            $stmt = $pdo->prepare("UPDATE products SET detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?, tasting_notes = ?, weight = ?, roast_level = ? WHERE id = ?");
             $stmt->execute([
-                !empty($_POST['edit_name_km']) ? $_POST['edit_name_km'] : $_POST['edit_name_en'],
-                !empty($_POST['edit_description_km']) ? $_POST['edit_description_km'] : $_POST['edit_description_en'],
-                $price,
-                getCategoryIdForLanguageEdit($base_category_id, 'km', $pdo),
-                $featured,
-                $best_seller,
-                $final_image,
-                !empty($_POST['edit_detailed_description_km']) ? $_POST['edit_detailed_description_km'] : ($_POST['edit_detailed_description_en'] ?? ''),
-                !empty($_POST['edit_ingredients_km']) ? $_POST['edit_ingredients_km'] : ($_POST['edit_ingredients_en'] ?? ''),
-                !empty($_POST['edit_origin_km']) ? $_POST['edit_origin_km'] : ($_POST['edit_origin_en'] ?? ''),
-                !empty($_POST['edit_brewing_instructions_km']) ? $_POST['edit_brewing_instructions_km'] : ($_POST['edit_brewing_instructions_en'] ?? ''),
-                !empty($_POST['edit_tasting_notes_km']) ? $_POST['edit_tasting_notes_km'] : ($_POST['edit_tasting_notes_en'] ?? ''),
-                !empty($_POST['edit_weight_km']) ? $_POST['edit_weight_km'] : ($_POST['edit_weight_en'] ?? ''),
-                !empty($_POST['edit_roast_level_km']) ? $_POST['edit_roast_level_km'] : ($_POST['edit_roast_level_en'] ?? ''),
-                json_encode($custom_fields, JSON_UNESCAPED_UNICODE),
-                $existing_km['id']
+                !empty($en_det) ? $en_det : ($existing_en['detailed_description'] ?? ''),
+                !empty($en_ing) ? $en_ing : ($existing_en['ingredients'] ?? ''),
+                !empty($en_orig) ? $en_orig : ($existing_en['origin'] ?? ''),
+                !empty($en_brew) ? $en_brew : ($existing_en['brewing_instructions'] ?? ''),
+                !empty($en_tast) ? $en_tast : ($existing_en['tasting_notes'] ?? ''),
+                !empty($en_wt) ? $en_wt : ($existing_en['weight'] ?? ''),
+                !empty($roast) ? $roast : ($existing_en['roast_level'] ?? ''),
+                $existing_en['id']
             ]);
         }
-    } else {
-        if (!$is_detailed_only) {
-            // Insert new for KM
-            $stmt = $pdo->prepare("INSERT INTO products (name, description, price, category_id, featured, best_seller, image, detailed_description, ingredients, origin, brewing_instructions, tasting_notes, weight, roast_level, custom_fields, language, base_product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'km', ?)");
+        if ($existing_km) {
+            $stmt = $pdo->prepare("UPDATE products SET detailed_description = ?, ingredients = ?, origin = ?, brewing_instructions = ?, tasting_notes = ?, weight = ?, roast_level = ? WHERE id = ?");
             $stmt->execute([
-                !empty($_POST['edit_name_km']) ? $_POST['edit_name_km'] : $_POST['edit_name_en'],
-                !empty($_POST['edit_description_km']) ? $_POST['edit_description_km'] : $_POST['edit_description_en'],
-                $price,
-                getCategoryIdForLanguageEdit($base_category_id, 'km', $pdo),
-                $featured,
-                $best_seller,
-                $final_image,
-                !empty($_POST['edit_detailed_description_km']) ? $_POST['edit_detailed_description_km'] : ($_POST['edit_detailed_description_en'] ?? ''),
-                !empty($_POST['edit_ingredients_km']) ? $_POST['edit_ingredients_km'] : ($_POST['edit_ingredients_en'] ?? ''),
-                !empty($_POST['edit_origin_km']) ? $_POST['edit_origin_km'] : ($_POST['edit_origin_en'] ?? ''),
-                !empty($_POST['edit_brewing_instructions_km']) ? $_POST['edit_brewing_instructions_km'] : ($_POST['edit_brewing_instructions_en'] ?? ''),
-                !empty($_POST['edit_tasting_notes_km']) ? $_POST['edit_tasting_notes_km'] : ($_POST['edit_tasting_notes_en'] ?? ''),
-                !empty($_POST['edit_weight_km']) ? $_POST['edit_weight_km'] : ($_POST['edit_weight_en'] ?? ''),
-                !empty($_POST['edit_roast_level_km']) ? $_POST['edit_roast_level_km'] : ($_POST['edit_roast_level_en'] ?? ''),
-                '{}',
-                $base_product_id
+                !empty($km_det) ? $km_det : ($existing_km['detailed_description'] ?? ''),
+                !empty($km_ing) ? $km_ing : ($existing_km['ingredients'] ?? ''),
+                !empty($km_orig) ? $km_orig : ($existing_km['origin'] ?? ''),
+                !empty($km_brew) ? $km_brew : ($existing_km['brewing_instructions'] ?? ''),
+                !empty($km_tast) ? $km_tast : ($existing_km['tasting_notes'] ?? ''),
+                !empty($km_wt) ? $km_wt : ($existing_km['weight'] ?? ''),
+                !empty($roast) ? $roast : ($existing_km['roast_level'] ?? ''),
+                $existing_km['id']
             ]);
         }
     }
@@ -933,34 +1079,58 @@ $offset = ($currentPage - 1) * $productsPerPage;
 
 // Get total count for pagination
 // Category filter
-$categoryFilter = isset($_GET['category_id']) && $_GET['category_id'] !== '' ? $_GET['category_id'] : null;
+$categoryFilter = isset($_GET['category_id']) && $_GET['category_id'] !== '' ? intval($_GET['category_id']) : null;
+
+// Category filter condition that works across English and Khmer rows via base_category_id
+$catFilterSql = "";
+$catFilterParams = [];
+if ($categoryFilter) {
+    $catFilterSql = "WHERE category_id IN (
+        SELECT id FROM categories WHERE base_category_id = (
+            SELECT COALESCE(base_category_id, id) FROM categories WHERE id = ? LIMIT 1
+        ) OR id = ?
+    )";
+    $catFilterParams = [$categoryFilter, $categoryFilter];
+}
 
 // Get total count for pagination
 if ($categoryFilter) {
-    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT base_product_id) as total FROM products WHERE category_id = ?");
-    $stmt->execute([$categoryFilter]);
+    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT COALESCE(base_product_id, id)) as total FROM products $catFilterSql");
+    $stmt->execute($catFilterParams);
 } else {
-    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT base_product_id) as total FROM products");
+    $stmt = $pdo->prepare("SELECT COUNT(DISTINCT COALESCE(base_product_id, id)) as total FROM products");
     $stmt->execute();
 }
 $result = $stmt->fetch();
 $totalProducts = $result ? $result['total'] : 0;
 $totalPages = ceil($totalProducts / $productsPerPage);
 
-// Fetch all products grouped by base_product_id, showing current language version if available (with pagination)
+// Language-aware field selectors
+$isKm = ($currentLanguage === 'km');
+$nameSelect = $isKm ? "COALESCE(NULLIF(p_km.name, ''), p_en.name)" : "COALESCE(NULLIF(p_en.name, ''), p_km.name)";
+$descSelect = $isKm ? "COALESCE(NULLIF(p_km.description, ''), p_en.description)" : "COALESCE(NULLIF(p_en.description, ''), p_km.description)";
+$idSelect = $isKm ? "COALESCE(p_km.id, p_en.id)" : "COALESCE(p_en.id, p_km.id)";
+$catIdSelect = $isKm ? "COALESCE(p_km.category_id, p_en.category_id)" : "COALESCE(p_en.category_id, p_km.category_id)";
+
+// Fetch all products grouped by base_product_id, respecting current language
 $query = "
     SELECT *
     FROM (
         SELECT
-            COALESCE(p_en.id, p_km.id) as id,
-            COALESCE(p_en.base_product_id, p_km.base_product_id) as base_product_id,
-            COALESCE(p_en.name, p_km.name) as name,
-            COALESCE(p_en.description, p_km.description) as description,
+            $idSelect as id,
+            COALESCE(p_en.base_product_id, p_km.base_product_id, bp.base_product_id) as base_product_id,
+            $nameSelect as name,
+            p_en.name as name_en,
+            p_km.name as name_km,
+            $descSelect as description,
+            p_en.description as description_en,
+            p_km.description as description_km,
             COALESCE(p_en.price, p_km.price) as price,
             COALESCE(p_en.featured, p_km.featured, 0) as featured,
             COALESCE(p_en.best_seller, p_km.best_seller, 0) as best_seller,
+            COALESCE(p_en.enabled, p_km.enabled, 1) as enabled,
             COALESCE(p_en.image, p_km.image) as image,
-            COALESCE(p_en.category_id, p_km.category_id) as category_id,
+            $catIdSelect as category_id,
             COALESCE(p_en.custom_fields, p_km.custom_fields, '{}') as custom_fields,
             COALESCE(p_en.sort_order, p_km.sort_order, 0) as sort_order,
             c.name as category_name,
@@ -970,23 +1140,19 @@ $query = "
                 ELSE 'km'
             END as available_languages
         FROM (
-            SELECT DISTINCT base_product_id
+            SELECT DISTINCT COALESCE(base_product_id, id) as base_product_id
             FROM products
-            " . ($categoryFilter ? "WHERE category_id = ?" : "") . "
+            $catFilterSql
         ) bp
-        LEFT JOIN products p_en ON bp.base_product_id = p_en.base_product_id AND p_en.language = 'en'
-        LEFT JOIN products p_km ON bp.base_product_id = p_km.base_product_id AND p_km.language = 'km'
-        LEFT JOIN categories c ON COALESCE(p_en.category_id, p_km.category_id) = c.id AND c.language = ?
+        LEFT JOIN products p_en ON (p_en.base_product_id = bp.base_product_id OR (p_en.base_product_id IS NULL AND p_en.id = bp.base_product_id)) AND p_en.language = 'en'
+        LEFT JOIN products p_km ON (p_km.base_product_id = bp.base_product_id OR (p_km.base_product_id IS NULL AND p_km.id = bp.base_product_id)) AND p_km.language = 'km'
+        LEFT JOIN categories c ON ($catIdSelect) = c.id
         ORDER BY COALESCE(p_en.sort_order, p_km.sort_order, 0) ASC, COALESCE(p_en.id, p_km.id) DESC
     ) paginated_products
     LIMIT " . (int)$productsPerPage . " OFFSET " . (int)$offset;
 
 $stmt = $pdo->prepare($query);
-$params = [$currentLanguage];
-if ($categoryFilter) {
-    array_unshift($params, $categoryFilter);
-}
-$stmt->execute($params);
+$stmt->execute($catFilterParams);
 $products = $stmt->fetchAll();
 
 // Fetch all categories for current language with product counts
@@ -1092,11 +1258,14 @@ $categories = $stmt->fetchAll();
                                             </thead>
                                             <tbody id="sortableProducts">
                                                 <?php foreach ($products as $product): ?>
-                                                    <tr data-base-product-id="<?php echo $product['base_product_id']; ?>">
+                                                    <tr data-base-product-id="<?php echo $product['base_product_id']; ?>"
+                                                        data-product-id="<?php echo $product['id']; ?>"
+                                                        data-name-en="<?php echo htmlspecialchars($product['name_en'] ?? ''); ?>"
+                                                        data-name-km="<?php echo htmlspecialchars($product['name_km'] ?? ''); ?>">
                                                         <td class="text-center">
                                                             <i class="bi bi-grip-vertical text-muted sortable-handle" style="cursor: grab;"></i>
                                                         </td>
-                                                        <td class="fw-medium"><?php echo $product['id']; ?></td>
+                                                        <td class="fw-medium">#<?php echo $product['base_product_id'] ?: $product['id']; ?></td>
                                                         <td>
                                                             <?php if ($product['image']): ?>
                                                                 <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Product" class="rounded lazy" style="width: 50px; height: 50px; object-fit: contain; border: 1px solid #e5e7eb; background-color: #f8f9fa;" loading="lazy">
@@ -1106,7 +1275,14 @@ $categories = $stmt->fetchAll();
                                                                 </div>
                                                             <?php endif; ?>
                                                         </td>
-                                                        <td class="fw-medium"><?php echo htmlspecialchars($product['name']); ?></td>
+                                                        <td class="fw-medium">
+                                                            <div><?php echo htmlspecialchars($product['name']); ?></div>
+                                                            <?php if (!empty($product['name_en']) && !empty($product['name_km']) && $product['name_en'] !== $product['name_km']): ?>
+                                                                <small class="text-muted d-block" style="font-size: 0.78rem;">
+                                                                    EN: <?php echo htmlspecialchars($product['name_en']); ?> • KM: <?php echo htmlspecialchars($product['name_km']); ?>
+                                                                </small>
+                                                            <?php endif; ?>
+                                                        </td>
                                                         <td class="text-truncate" style="max-width: 200px;" title="<?php echo htmlspecialchars($product['description']); ?>">
                                                             <?php echo htmlspecialchars($product['description']); ?>
                                                         </td>
@@ -1152,10 +1328,15 @@ $categories = $stmt->fetchAll();
                                                                 <button class="btn btn-outline-dark btn-sm toggle-collection-btn" data-product-id="<?php echo $product['id']; ?>" title="<?php echo $show_in_collection ? 'Remove from collection list (Syrup/Powder)' : 'Show in collection list'; ?>">
                                                                     <i class="bi <?php echo $show_in_collection ? 'bi-collection-fill' : 'bi-collection'; ?>"></i>
                                                                 </button>
-                                                                <button class="btn btn-outline-info btn-sm settings-product-btn" data-base-product-id="<?php echo $product['base_product_id']; ?>" title="Edit detailed information">
+                                                                <button class="btn btn-outline-info btn-sm settings-product-btn" data-base-product-id="<?php echo $product['base_product_id']; ?>" data-product-id="<?php echo $product['id']; ?>" title="Edit detailed information">
                                                                     <i class="bi bi-gear"></i>
                                                                 </button>
-                                                                <button class="btn btn-outline-primary btn-sm edit-product-btn" data-base-product-id="<?php echo $product['base_product_id']; ?>" title="Edit product">
+                                                                <button class="btn btn-outline-primary btn-sm edit-product-btn" 
+                                                                    data-base-product-id="<?php echo $product['base_product_id']; ?>" 
+                                                                    data-product-id="<?php echo $product['id']; ?>"
+                                                                    data-name-en="<?php echo htmlspecialchars($product['name_en'] ?? ''); ?>"
+                                                                    data-name-km="<?php echo htmlspecialchars($product['name_km'] ?? ''); ?>"
+                                                                    title="Edit product">
                                                                     <i class="bi bi-pencil"></i>
                                                                 </button>
                                                                 <button class="btn btn-outline-secondary btn-sm toggle-enabled-btn" data-product-id="<?php echo $product['id']; ?>" title="Toggle enabled">
@@ -1384,6 +1565,7 @@ $categories = $stmt->fetchAll();
         </div>
         <div class="sidebar-content">
             <form method="POST" enctype="multipart/form-data" id="editProductForm" novalidate>
+                <input type="hidden" name="update_product" value="1">
                 <input type="hidden" id="base_product_id" name="base_product_id" value="">
                 <input type="hidden" id="custom_fields_data_edit" name="custom_fields_data_edit" value="">
                 
@@ -2334,39 +2516,9 @@ $categories = $stmt->fetchAll();
                     var descriptionKm = document.getElementById('edit_description_km').value.trim();
                     var price = document.getElementById('edit_price').value.trim();
 
-                    if (!nameEn) {
+                    if (!nameEn && !nameKm) {
                         e.preventDefault();
-                        var tabBtn = document.getElementById('edit-en-tab');
-                        if (tabBtn) tabBtn.click();
-                        document.getElementById('edit_name_en').focus();
-                        alert('Please enter product name in English.');
-                        return false;
-                    }
-
-                    if (!descriptionEn) {
-                        e.preventDefault();
-                        var tabBtn = document.getElementById('edit-en-tab');
-                        if (tabBtn) tabBtn.click();
-                        document.getElementById('edit_description_en').focus();
-                        alert('Please enter product description in English.');
-                        return false;
-                    }
-
-                    if (!nameKm) {
-                        e.preventDefault();
-                        var tabBtn = document.getElementById('edit-km-tab');
-                        if (tabBtn) tabBtn.click();
-                        document.getElementById('edit_name_km').focus();
-                        alert('Please enter product name in Khmer.');
-                        return false;
-                    }
-
-                    if (!descriptionKm) {
-                        e.preventDefault();
-                        var tabBtn = document.getElementById('edit-km-tab');
-                        if (tabBtn) tabBtn.click();
-                        document.getElementById('edit_description_km').focus();
-                        alert('Please enter product description in Khmer.');
+                        alert('Please enter a product name in English or Khmer.');
                         return false;
                     }
 
@@ -2467,16 +2619,18 @@ $categories = $stmt->fetchAll();
                 e.preventDefault();
                 var button = e.target.closest('.edit-product-btn');
                 var baseProductId = button.getAttribute('data-base-product-id');
+                var productId = button.getAttribute('data-product-id') || '';
 
-                // Find the product data from the table
                 var row = button.closest('tr');
                 var productData = {
                     base_product_id: baseProductId,
-                    name: row.cells[3] ? row.cells[3].textContent.trim() : '',
-                    price: row.cells[6] ? row.cells[6].textContent.replace('$', '').trim() : '',
-                    featured: row.cells[7] && row.cells[7].querySelector('.badge') ? row.cells[7].querySelector('.badge').textContent.includes('Yes') ? 1 : 0 : 0,
-                    best_seller: row.cells[8] && row.cells[8].querySelector('.badge') ? row.cells[8].querySelector('.badge').textContent.includes('Yes') ? 1 : 0 : 0,
-                    image: row.cells[2] && row.cells[2].querySelector('img') ? row.cells[2].querySelector('img').src : ''
+                    product_id: productId,
+                    name_en: button.getAttribute('data-name-en') || '',
+                    name_km: button.getAttribute('data-name-km') || '',
+                    price: row && row.cells[6] ? row.cells[6].textContent.replace('$', '').trim() : '',
+                    featured: row && row.cells[7] && row.cells[7].querySelector('.badge') ? (row.cells[7].querySelector('.badge').textContent.includes('Yes') ? 1 : 0) : 0,
+                    best_seller: row && row.cells[8] && row.cells[8].querySelector('.badge') ? (row.cells[8].querySelector('.badge').textContent.includes('Yes') ? 1 : 0) : 0,
+                    image: row && row.cells[2] && row.cells[2].querySelector('img') ? row.cells[2].querySelector('img').src : ''
                 };
 
                 populateEditModal(productData);
@@ -2487,26 +2641,28 @@ $categories = $stmt->fetchAll();
                 e.preventDefault();
                 var button = e.target.closest('.settings-product-btn');
                 var baseProductId = button.getAttribute('data-base-product-id');
+                var productId = button.getAttribute('data-product-id') || '';
+                var targetId = baseProductId || productId;
 
                 // Clear previous data
-                document.getElementById('detailed_base_product_id').value = baseProductId;
+                document.getElementById('detailed_base_product_id').value = targetId;
                 
                 // Fetch English version
-                var fetchEn = fetch(window.location.href, {
+                var fetchEn = fetch('products.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'get_product_data=1&base_product_id=' + baseProductId + '&language=en'
+                    body: 'get_product_data=1&base_product_id=' + encodeURIComponent(baseProductId) + '&product_id=' + encodeURIComponent(productId) + '&language=en'
                 }).then(r => r.json());
 
                 // Fetch Khmer version
-                var fetchKm = fetch(window.location.href, {
+                var fetchKm = fetch('products.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'get_product_data=1&base_product_id=' + baseProductId + '&language=km'
+                    body: 'get_product_data=1&base_product_id=' + encodeURIComponent(baseProductId) + '&product_id=' + encodeURIComponent(productId) + '&language=km'
                 }).then(r => r.json());
 
                 Promise.all([fetchEn, fetchKm]).then(([enData, kmData]) => {
-                    if (enData.success) {
+                    if (enData.success && enData.product) {
                         var p = enData.product;
                         document.getElementById('detailed_detailed_description_en').value = p.detailed_description || '';
                         document.getElementById('detailed_ingredients_en').value = p.ingredients || '';
@@ -2515,10 +2671,9 @@ $categories = $stmt->fetchAll();
                         document.getElementById('detailed_tasting_notes_en').value = p.tasting_notes || '';
                         document.getElementById('detailed_weight_en').value = p.weight || '';
                         document.getElementById('detailed_roast_level').value = p.roast_level || '';
-                        // Load custom fields from English version
                         loadCustomFields(p.custom_fields || '{}');
                     }
-                    if (kmData.success) {
+                    if (kmData.success && kmData.product) {
                         var p = kmData.product;
                         document.getElementById('detailed_detailed_description_km').value = p.detailed_description || '';
                         document.getElementById('detailed_ingredients_km').value = p.ingredients || '';
@@ -2526,7 +2681,6 @@ $categories = $stmt->fetchAll();
                         document.getElementById('detailed_brewing_instructions_km').value = p.brewing_instructions || '';
                         document.getElementById('detailed_tasting_notes_km').value = p.tasting_notes || '';
                         document.getElementById('detailed_weight_km').value = p.weight || '';
-                        // Roast level is shared
                     }
 
                     var detailedModal = new bootstrap.Modal(document.getElementById('detailedProductModal'));
@@ -2550,12 +2704,18 @@ $categories = $stmt->fetchAll();
         });
 
         function populateEditModal(productData) {
-            // Immediately populate basic row data so inputs are not empty
-            document.getElementById('base_product_id').value = productData.base_product_id;
-            document.getElementById('edit_name_en').value = productData.name || '';
+            // Reset form completely
+            var form = document.getElementById('editProductForm');
+            if (form) form.reset();
+
+            var currentBaseId = productData.base_product_id || productData.product_id || '';
+            document.getElementById('base_product_id').value = currentBaseId;
+            document.getElementById('edit_name_en').value = productData.name_en || '';
+            document.getElementById('edit_name_km').value = productData.name_km || '';
             document.getElementById('edit_description_en').value = '';
-            document.getElementById('edit_name_km').value = '';
             document.getElementById('edit_description_km').value = '';
+            document.getElementById('edit_weight_en').value = '';
+            document.getElementById('edit_weight_km').value = '';
             document.getElementById('edit_price').value = productData.price || '';
             document.getElementById('edit_featured').checked = productData.featured == 1;
             document.getElementById('edit_best_seller').checked = productData.best_seller == 1;
@@ -2571,10 +2731,11 @@ $categories = $stmt->fetchAll();
             document.getElementById('edit_image').value = '';
             document.getElementById('edit_image_url').value = '';
 
-            // Switch to English tab by default
-            var enTabBtn = document.getElementById('edit-en-tab');
-            if (enTabBtn) {
-                enTabBtn.click();
+            // Default to current page language tab
+            var currentLang = '<?php echo $currentLanguage; ?>';
+            var activeTabBtn = (currentLang === 'km') ? document.getElementById('edit-km-tab') : document.getElementById('edit-en-tab');
+            if (activeTabBtn) {
+                activeTabBtn.click();
             }
 
             // Reset and initialize related products
@@ -2586,79 +2747,70 @@ $categories = $stmt->fetchAll();
             }
             if (typeof initializeRelatedProducts === 'function') {
                 editRelatedProductsHandler = initializeRelatedProducts('edit');
-                loadRelatedProducts(productData.base_product_id);
+                loadRelatedProducts(currentBaseId);
             }
 
-            // Fetch English version
-            fetch(window.location.href, {
+            // Fetch BOTH English and Khmer product data atomically in one call
+            fetch('products.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: 'get_product_data=1&base_product_id=' + productData.base_product_id + '&language=en'
+                body: 'get_product_data=1&base_product_id=' + encodeURIComponent(currentBaseId) + '&product_id=' + encodeURIComponent(productData.product_id || '')
             })
             .then(function(response) { return response.json(); })
             .then(function(data) {
                 if (data.success) {
-                    var product = data.product;
-
-                    document.getElementById('base_product_id').value = productData.base_product_id;
-                    if (product.name) document.getElementById('edit_name_en').value = product.name;
-                    if (product.description) document.getElementById('edit_description_en').value = product.description;
-                    if (product.price) document.getElementById('edit_price').value = product.price;
-                    document.getElementById('edit_weight_en').value = product.weight || '';
-                    document.getElementById('edit_featured').checked = (product.featured == 1) || (productData.featured == 1);
-                    document.getElementById('edit_best_seller').checked = (product.best_seller == 1) || (productData.best_seller == 1);
-
-                    var imgPrev = document.getElementById('current_image_preview');
-                    var imageSrc = product.image || productData.image;
-                    if (imageSrc) {
-                        imgPrev.src = imageSrc;
-                        imgPrev.style.display = 'block';
-                    } else {
-                        imgPrev.style.display = 'none';
+                    if (data.base_product_id) {
+                        document.getElementById('base_product_id').value = data.base_product_id;
                     }
 
-                    document.getElementById('edit_image').value = '';
-                    document.getElementById('edit_image_url').value = '';
+                    var en = data.product_en || {};
+                    var km = data.product_km || {};
 
-                    document.getElementById('edit_category_id').value = product.category_id || productData.category_id || '';
+                    // EN fields
+                    document.getElementById('edit_name_en').value = en.name || productData.name_en || '';
+                    document.getElementById('edit_description_en').value = en.description || '';
+                    document.getElementById('edit_weight_en').value = en.weight || '';
 
-                    // Load custom fields from English version
-                    loadCustomFields(product.custom_fields || '{}', 'customFieldsContainerEdit');
+                    // KM fields
+                    document.getElementById('edit_name_km').value = km.name || productData.name_km || '';
+                    document.getElementById('edit_description_km').value = km.description || '';
+                    document.getElementById('edit_weight_km').value = km.weight || '';
+
+                    // Shared price & badges
+                    var price = en.price || km.price || productData.price || '';
+                    if (price) document.getElementById('edit_price').value = price;
+
+                    var feat = (en.featured == 1) || (km.featured == 1) || (productData.featured == 1);
+                    document.getElementById('edit_featured').checked = feat;
+
+                    var best = (en.best_seller == 1) || (km.best_seller == 1) || (productData.best_seller == 1);
+                    document.getElementById('edit_best_seller').checked = best;
+
+                    var img = en.image || km.image || productData.image || '';
+                    if (img) {
+                        imagePreview.src = img;
+                        imagePreview.style.display = 'block';
+                    }
+
+                    var catId = (currentLang === 'km') ? (km.category_id || en.category_id) : (en.category_id || km.category_id);
+                    if (catId) {
+                        document.getElementById('edit_category_id').value = catId;
+                    }
+
+                    loadCustomFields(en.custom_fields || km.custom_fields || '{}', 'customFieldsContainerEdit');
                 }
             })
             .catch(function(error) {
-                console.error('Error fetching English product data:', error);
-            });
-
-            // Fetch Khmer version
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'get_product_data=1&base_product_id=' + productData.base_product_id + '&language=km'
-            })
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    var product = data.product;
-
-                    if (product.name) document.getElementById('edit_name_km').value = product.name;
-                    if (product.description) document.getElementById('edit_description_km').value = product.description;
-                    document.getElementById('edit_weight_km').value = product.weight || '';
-                }
-            })
-            .catch(function(error) {
-                console.error('Error fetching Khmer product data:', error);
+                console.error('Error fetching product data:', error);
             });
 
             // Open the edit sidebar
             var editSidebar = document.getElementById('editProductSidebar');
             var sidebarOverlay = document.querySelector('.sidebar-overlay');
-            editSidebar.classList.add('open');
-            sidebarOverlay.classList.add('show');
+            if (editSidebar) editSidebar.classList.add('open');
+            if (sidebarOverlay) sidebarOverlay.classList.add('show');
             document.body.style.overflow = 'hidden';
         }
 
