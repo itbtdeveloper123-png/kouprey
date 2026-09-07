@@ -316,11 +316,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_product'])) {
             $target_file = $upload_dir . $file_name;
 
             if (move_uploaded_file($_FILES['edit_image']['tmp_name'], $target_file)) {
-                // Compress the uploaded image
                 require_once '../app/Config/image_utils.php';
-                $settings = getCompressionSettings('product');
-                compressImage($target_file, $target_file, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
-                
+                $webp_file_name = uniqid() . '_' . time() . '.webp';
+                $webp_target = $upload_dir . $webp_file_name;
+                $bgRes = removeBgAndConvertToWebp($target_file, $webp_target, null, ['size' => 'auto', 'type' => 'product', 'quality' => 90]);
+                if (!empty($bgRes['success']) && file_exists($webp_target)) {
+                    if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                    $file_name = $webp_file_name;
+                } else {
+                    $settings = getCompressionSettings('product');
+                    if (compressImage($target_file, $webp_target, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
+                        if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                        $file_name = $webp_file_name;
+                    }
+                }
                 $uploaded_image = '/kouprey/public/assets/images/products/' . $file_name;
             }
         }
@@ -512,11 +521,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
         $target_file = $upload_dir . $file_name;
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-            // Compress the uploaded image
             require_once '../app/Config/image_utils.php';
-            $settings = getCompressionSettings('product');
-            compressImage($target_file, $target_file, $settings['quality'], $settings['maxWidth'], $settings['maxHeight']);
-            
+            $webp_file_name = uniqid() . '_' . time() . '.webp';
+            $webp_target = $upload_dir . $webp_file_name;
+            $bgRes = removeBgAndConvertToWebp($target_file, $webp_target, null, ['size' => 'auto', 'type' => 'product', 'quality' => 90]);
+            if (!empty($bgRes['success']) && file_exists($webp_target)) {
+                if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                $file_name = $webp_file_name;
+            } else {
+                $settings = getCompressionSettings('product');
+                if (compressImage($target_file, $webp_target, $settings['quality'], $settings['maxWidth'], $settings['maxHeight'])) {
+                    if (file_exists($target_file) && $target_file !== $webp_target) @unlink($target_file);
+                    $file_name = $webp_file_name;
+                }
+            }
             $uploaded_image = '/kouprey/public/assets/images/products/' . $file_name;
         }
     }

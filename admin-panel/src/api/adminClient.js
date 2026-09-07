@@ -146,16 +146,22 @@ export const adminApi = {
     request('delete_admin_user', { method: 'POST', body: { id } }),
 
   // Image Upload
-  uploadImage: async (file, type = 'product') => {
+  uploadImage: async (file, type = 'product', options = {}) => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('type', type);
+    if (options.removeBg !== undefined) {
+      formData.append('remove_bg', options.removeBg ? '1' : '0');
+    }
     return request('upload_image', {
       method: 'POST',
       body: formData,
       isFormData: true,
     });
   },
+
+  checkRemoveBgCredits: () =>
+    request('check_remove_bg_credits'),
 
   // File Manager (Multi-folder Hosting Media)
   getFileManagerImages: (folder = 'products') =>
@@ -167,10 +173,13 @@ export const adminApi = {
       body: { filenames: Array.isArray(filenames) ? filenames : [filenames], folder },
     }),
 
-  uploadFileManager: async (files, folder = 'products') => {
+  uploadFileManager: async (files, folder = 'products', options = {}) => {
     const formData = new FormData();
     Array.from(files).forEach((f) => formData.append('images[]', f));
     formData.append('folder', folder);
+    if (options.removeBg !== undefined) {
+      formData.append('remove_bg', options.removeBg ? '1' : '0');
+    }
     return request('upload_file_manager', {
       method: 'POST',
       body: formData,

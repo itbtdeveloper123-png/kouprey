@@ -287,6 +287,27 @@ export default function SettingsPage() {
   // Flaticon browser state
   const [flaticonUrl, setFlaticonUrl] = useState('https://www.flaticon.com/');
 
+  // Remove.bg integration state
+  const [removeBgStatus, setRemoveBgStatus] = useState(null);
+  const [checkingRemoveBg, setCheckingRemoveBg] = useState(false);
+
+  const handleCheckRemoveBg = async () => {
+    setCheckingRemoveBg(true);
+    try {
+      const res = await adminApi.checkRemoveBgCredits();
+      if (res.success && res.data) {
+        setRemoveBgStatus(res.data);
+        showToast('ពិនិត្យ Remove.bg API ជោគជ័យ!');
+      } else {
+        showToast(res.error || 'Failed to check Remove.bg credits', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Error connecting to Remove.bg', 'error');
+    } finally {
+      setCheckingRemoveBg(false);
+    }
+  };
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
@@ -1917,6 +1938,53 @@ export default function SettingsPage() {
           {/* ───────────────────────────────────────────────────────── */}
           {activeTab === 'file_manager' && (
             <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-5">
+              {/* Remove.bg Integration & Credits Card */}
+              <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-amber-50/50 p-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-xl bg-amber-500 text-white shadow-sm shadow-amber-500/20 mt-0.5">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-gray-900 text-sm">Remove.bg AI Background Removal & Auto WebP</h4>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        រាល់ការ Upload រូបភាពផលិតផល នឹងត្រូវ auto remove background តាម Remove.bg API និងបម្លែងជា WebP គុណភាពខ្ពស់។
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-600 font-mono">
+                        <span className="bg-white/80 border border-gray-200/80 px-2 py-0.5 rounded-md text-[11px]">
+                          Key: <strong className="text-gray-900 font-mono">Q9jdVLq5...Jrik</strong>
+                        </span>
+                        {removeBgStatus?.attributes?.api && (
+                          <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded-md text-[11px] font-sans font-semibold">
+                            Free API Calls: <strong>{removeBgStatus.attributes.api.free_calls}</strong> / month
+                          </span>
+                        )}
+                        {removeBgStatus?.attributes?.credits && (
+                          <span className="bg-amber-100/70 border border-amber-200 text-amber-900 px-2 py-0.5 rounded-md text-[11px] font-sans font-semibold">
+                            Credits: <strong>{removeBgStatus.attributes.credits.total}</strong>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCheckRemoveBg}
+                    disabled={checkingRemoveBg}
+                    className="self-start sm:self-center px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-sm shadow-amber-600/20 transition active:scale-95 disabled:opacity-50"
+                  >
+                    {checkingRemoveBg ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                    <span>{checkingRemoveBg ? 'កំពុងពិនិត្យ...' : 'ពិនិត្យ Credits'}</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Actions Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-2.5">

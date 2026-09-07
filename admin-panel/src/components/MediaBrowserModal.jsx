@@ -19,6 +19,7 @@ export default function MediaBrowserModal({ isOpen, onClose, onSelectImage, titl
   const [search, setSearch] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [autoRemoveBg, setAutoRemoveBg] = useState(true);
   const [copySuccess, setCopySuccess] = useState('');
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function MediaBrowserModal({ isOpen, onClose, onSelectImage, titl
     if (!files || files.length === 0) return;
     setUploading(true);
     try {
-      await adminApi.uploadFileManager(files, activeFolder);
+      await adminApi.uploadFileManager(files, activeFolder, { removeBg: autoRemoveBg });
       await loadImages(activeFolder);
     } catch (err) {
       alert('Upload failed: ' + (err.message || 'Unknown error'));
@@ -126,6 +127,18 @@ export default function MediaBrowserModal({ isOpen, onClose, onSelectImage, titl
           </div>
 
           <div className="flex items-center gap-2 min-w-max">
+            {activeFolder === 'products' && (
+              <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium cursor-pointer select-none hover:bg-amber-100 transition-all">
+                <input
+                  type="checkbox"
+                  checked={autoRemoveBg}
+                  onChange={(e) => setAutoRemoveBg(e.target.checked)}
+                  className="w-3.5 h-3.5 text-amber-600 rounded"
+                />
+                <span>✨ Auto Remove BG (AI)</span>
+              </label>
+            )}
+
             {/* Upload Button into this folder */}
             <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium cursor-pointer shadow-sm shadow-emerald-600/20 transition-all">
               <i className="bi bi-cloud-arrow-up-fill"></i>

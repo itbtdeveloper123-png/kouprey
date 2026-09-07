@@ -1078,12 +1078,17 @@ switch ($action) {
                 echo json_encode(['success' => false, 'error' => 'Invalid file type. Allowed: JPG, PNG, GIF, WebP']);
                 break;
             }
-            if ($file['size'] > 10 * 1024 * 1024) {
-                echo json_encode(['success' => false, 'error' => 'File too large (max 10MB)']);
+            if ($file['size'] > 15 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'error' => 'File too large (max 15MB)']);
                 break;
             }
 
             $type = $_POST['type'] ?? 'product'; // product, logo, banner
+            $removeBgParam = $_POST['remove_bg'] ?? null;
+            $removeBg = ($removeBgParam !== null)
+                ? filter_var($removeBgParam, FILTER_VALIDATE_BOOLEAN)
+                : ($type === 'product');
+
             $ext = match($mimeType) {
                 'image/jpeg', 'image/jpg' => 'jpg',
                 'image/png'  => 'png',
@@ -1093,51 +1098,105 @@ switch ($action) {
             };
 
             $uploadDir = match($type) {
-                'logo'   => __DIR__ . '/uploads/',
-                'banner' => __DIR__ . '/uploads/banners/',
-                default  => __DIR__ . '/uploads/',
+                'logo'     => __DIR__ . '/uploads/',
+                'banner'   => __DIR__ . '/uploads/banners/',
+                'product'  => __DIR__ . '/assets/images/products/',
+                default    => __DIR__ . '/uploads/',
             };
 
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
             $prefix = match($type) {
-                'logo'   => 'company-logo-',
-                'banner' => 'banner-',
-                default  => 'product-',
+                'logo'     => 'company-logo-',
+                'banner'   => 'banner-',
+                'product'  => 'product-',
+                default    => 'file-',
             };
 
-            $filename = $prefix . time() . '.' . $ext;
+            $uniqueId = uniqid();
+            $timestamp = time();
+            $filename = $prefix . $uniqueId . '_' . $timestamp . '.' . $ext;
             $targetPath = $uploadDir . $filename;
 
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-                // Ensure image is converted to WebP while preserving transparency
-                if ($ext !== 'webp' && function_exists('imagewebp') && file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
-                    require_once __DIR__ . '/../app/Config/image_utils.php';
-                    $webpFilename = $prefix . time() . '.webp';
-                    $webpPath = $uploadDir . $webpFilename;
-                    if (function_exists('compressImage') && compressImage($targetPath, $webpPath, 88, 1920, 1920)) {
-                        if (file_exists($targetPath) && $targetPath !== $webpPath) {
+                require_once __DIR__ . '/../app/Config/image_utils.php';
+
+                $bgRemoved = false;
+                $bgWarning = null;
+                $webpFilename = $prefix . $uniqueId . '_' . $timestamp . '.webp';
+                $webpPath = $uploadDir . $webpFilename;
+
+                if ($removeBg && function_exists('removeBgAndConvertToWebp')) {
+                    $bgResult = removeBgAndConvertToWebp($targetPath, $webpPath, null, [
+                        'size' => 'auto',
+                        'type' => ($type === 'product' ? 'product' : 'auto'),
+                        'quality' => 90
+                    ]);
+
+                    if (!empty($bgResult['success']) && file_exists($webpPath) && filesize($webpPath) > 0) {
+                        if ($targetPath !== $webpPath && file_exists($targetPath)) {
                             @unlink($targetPath);
                         }
                         $filename = $webpFilename;
                         $targetPath = $webpPath;
+                        $bgRemoved = true;
+                    } else {
+                        $bgWarning = $bgResult['error'] ?? 'Remove.bg failed';
+                        error_log("Remove.bg failed for {$targetPath}: {$bgWarning}. Falling back to standard WebP.");
+                        
+                        // Fallback: convert original to WebP
+                        if ($ext !== 'webp' && function_exists('imagewebp')) {
+                            if (function_exists('compressImage') && compressImage($targetPath, $webpPath, 88, 1920, 1920)) {
+                                if (file_exists($targetPath) && $targetPath !== $webpPath) {
+                                    @unlink($targetPath);
+                                }
+                                $filename = $webpFilename;
+                                $targetPath = $webpPath;
+                            }
+                        }
                     }
-                } elseif (file_exists(__DIR__ . '/../app/Config/image_utils.php') && $file['size'] > 100 * 1024) {
-                    require_once __DIR__ . '/../app/Config/image_utils.php';
-                    if (function_exists('compressImage')) {
-                        compressImage($targetPath, $targetPath, 88, 1920, 1920);
+                } else {
+                    // Standard WebP conversion if not removing BG
+                    if ($ext !== 'webp' && function_exists('imagewebp')) {
+                        if (function_exists('compressImage') && compressImage($targetPath, $webpPath, 88, 1920, 1920)) {
+                            if (file_exists($targetPath) && $targetPath !== $webpPath) {
+                                @unlink($targetPath);
+                            }
+                            $filename = $webpFilename;
+                            $targetPath = $webpPath;
+                        }
                     }
                 }
 
                 $relPath = match($type) {
-                    'logo'   => '/uploads/' . $filename,
-                    'banner' => '/uploads/banners/' . $filename,
-                    default  => '/uploads/' . $filename,
+                    'logo'     => '/uploads/' . $filename,
+                    'banner'   => '/uploads/banners/' . $filename,
+                    'product'  => '/kouprey/public/assets/images/products/' . $filename,
+                    default    => '/uploads/' . $filename,
                 };
-                echo json_encode(['success' => true, 'path' => $relPath, 'filename' => $filename]);
+
+                echo json_encode([
+                    'success'    => true,
+                    'path'       => $relPath,
+                    'filename'   => $filename,
+                    'bg_removed' => $bgRemoved,
+                    'warning'    => $bgWarning,
+                    'format'     => 'webp'
+                ]);
             } else {
                 echo json_encode(['success' => false, 'error' => 'Failed to save file']);
             }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── CHECK REMOVE.BG CREDITS ─────────────────
+    case 'check_remove_bg_credits':
+        try {
+            require_once __DIR__ . '/../app/Config/image_utils.php';
+            $res = checkRemoveBgAccount();
+            echo json_encode($res);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -1259,6 +1318,9 @@ switch ($action) {
             $tmps  = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
             $errs  = is_array($files['error']) ? $files['error'] : [$files['error']];
 
+            $removeBgParam = $_POST['remove_bg'] ?? null;
+            $removeBg = ($removeBgParam !== null) ? filter_var($removeBgParam, FILTER_VALIDATE_BOOLEAN) : false;
+
             $uploaded = 0;
             $uploadedFiles = [];
             foreach ($names as $i => $name) {
@@ -1270,16 +1332,26 @@ switch ($action) {
                     if (move_uploaded_file($tmps[$i], $dest)) {
                         $lowExt = strtolower($ext);
                         // Auto-convert to WebP on server to ensure consistent WebP format
-                        if ($lowExt !== 'webp' && function_exists('imagewebp') && file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
+                        if (file_exists(__DIR__ . '/../app/Config/image_utils.php')) {
                             require_once __DIR__ . '/../app/Config/image_utils.php';
                             $baseNameNoExt = pathinfo($safe, PATHINFO_FILENAME);
                             $webpName = $baseNameNoExt . '.webp';
                             $webpDest = $dir . $webpName;
-                            if (function_exists('compressImage') && compressImage($dest, $webpDest, 88, 1920, 1920)) {
-                                if (file_exists($dest) && $dest !== $webpDest) {
-                                    @unlink($dest);
+
+                            if ($removeBg && $folder === 'products' && function_exists('removeBgAndConvertToWebp')) {
+                                $bgRes = removeBgAndConvertToWebp($dest, $webpDest, null, ['size' => 'auto', 'type' => 'product', 'quality' => 90]);
+                                if (!empty($bgRes['success']) && file_exists($webpDest)) {
+                                    if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
+                                    $safe = $webpName;
+                                } elseif (function_exists('compressImage') && compressImage($dest, $webpDest, 88, 1920, 1920)) {
+                                    if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
+                                    $safe = $webpName;
                                 }
-                                $safe = $webpName;
+                            } elseif ($lowExt !== 'webp' && function_exists('compressImage')) {
+                                if (compressImage($dest, $webpDest, 88, 1920, 1920)) {
+                                    if (file_exists($dest) && $dest !== $webpDest) @unlink($dest);
+                                    $safe = $webpName;
+                                }
                             }
                         }
                         $uploaded++;

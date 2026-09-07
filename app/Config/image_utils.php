@@ -221,4 +221,165 @@ function getAggressiveCompressionSettings($useCase = 'product') {
             return ['quality' => 80, 'maxWidth' => 1000, 'maxHeight' => 1000];
     }
 }
+
+if (!defined('DEFAULT_REMOVE_BG_API_KEY')) {
+    define('DEFAULT_REMOVE_BG_API_KEY', 'Q9jdVLq5EYCem7AE5mTbJrik');
+}
+
+/**
+ * Get active Remove.bg API key from settings or default
+ */
+function getRemoveBgApiKey() {
+    if (function_exists('getSetting')) {
+        $key = getSetting('remove_bg_api_key', '');
+        if (!empty($key)) return trim($key);
+    }
+    return DEFAULT_REMOVE_BG_API_KEY;
+}
+
+/**
+ * Remove background of an image using Remove.bg API and convert directly to WebP with alpha transparency
+ *
+ * @param string $sourcePath Path to input image
+ * @param string $targetWebpPath Path to save the final transparent WebP image
+ * @param string|null $apiKey Remove.bg API key (optional)
+ * @param array $options Additional options: ['size' => 'auto', 'type' => 'product', 'quality' => 90]
+ * @return array ['success' => bool, 'error' => string|null, 'bg_removed' => bool, 'target' => string|null]
+ */
+function removeBgAndConvertToWebp($sourcePath, $targetWebpPath, $apiKey = null, $options = []) {
+    if (empty($apiKey)) {
+        $apiKey = getRemoveBgApiKey();
+    }
+
+    if (empty($apiKey)) {
+        return ['success' => false, 'error' => 'Remove.bg API key is missing', 'bg_removed' => false];
+    }
+
+    if (!file_exists($sourcePath)) {
+        return ['success' => false, 'error' => 'Source image file does not exist: ' . $sourcePath, 'bg_removed' => false];
+    }
+
+    if (!function_exists('curl_init')) {
+        return ['success' => false, 'error' => 'cURL PHP extension is not installed', 'bg_removed' => false];
+    }
+
+    $size = $options['size'] ?? 'auto';
+    $type = $options['type'] ?? 'product';
+    $quality = $options['quality'] ?? 90;
+
+    $ch = curl_init();
+    $mimeType = function_exists('mime_content_type') ? mime_content_type($sourcePath) : 'image/jpeg';
+    $cfile = new CURLFile($sourcePath, $mimeType, basename($sourcePath));
+
+    $postFields = [
+        'image_file' => $cfile,
+        'size' => $size,
+        'type' => $type,
+        'format' => 'png',
+    ];
+
+    curl_setopt($ch, CURLOPT_URL, 'https://api.remove.bg/v1.0/removebg');
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'X-Api-Key: ' . $apiKey,
+    ]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($response === false || !empty($curlError)) {
+        return ['success' => false, 'error' => 'cURL Error: ' . $curlError, 'bg_removed' => false];
+    }
+
+    if ($httpCode !== 200) {
+        $json = json_decode($response, true);
+        $errMsg = 'Remove.bg error (HTTP ' . $httpCode . ')';
+        if (!empty($json['errors']) && is_array($json['errors'])) {
+            $errTitles = array_column($json['errors'], 'title');
+            $errMsg = implode(', ', $errTitles);
+        }
+        return ['success' => false, 'error' => $errMsg, 'bg_removed' => false];
+    }
+
+    // Convert PNG binary response to WebP with preserved alpha transparency
+    if (!function_exists('imagewebp') || !function_exists('imagecreatefromstring')) {
+        $pngPath = preg_replace('/\.webp$/i', '.png', $targetWebpPath);
+        file_put_contents($pngPath, $response);
+        return ['success' => true, 'target' => $pngPath, 'bg_removed' => true, 'format' => 'png'];
+    }
+
+    $image = @imagecreatefromstring($response);
+    if (!$image) {
+        return ['success' => false, 'error' => 'Failed to decode image from Remove.bg', 'bg_removed' => false];
+    }
+
+    // Preserve transparency
+    imagealphablending($image, false);
+    imagesavealpha($image, true);
+
+    $targetDir = dirname($targetWebpPath);
+    if (!is_dir($targetDir)) {
+        @mkdir($targetDir, 0755, true);
+    }
+
+    $saved = imagewebp($image, $targetWebpPath, $quality);
+    imagedestroy($image);
+
+    if (!$saved) {
+        return ['success' => false, 'error' => 'Failed to save WebP image to: ' . $targetWebpPath, 'bg_removed' => false];
+    }
+
+    return [
+        'success' => true,
+        'target' => $targetWebpPath,
+        'bg_removed' => true,
+        'format' => 'webp',
+    ];
+}
+
+/**
+ * Check Remove.bg account status and credits
+ */
+function checkRemoveBgAccount($apiKey = null) {
+    if (empty($apiKey)) {
+        $apiKey = getRemoveBgApiKey();
+    }
+    if (empty($apiKey)) {
+        return ['success' => false, 'error' => 'API key is missing'];
+    }
+    if (!function_exists('curl_init')) {
+        return ['success' => false, 'error' => 'cURL PHP extension is not installed'];
+    }
+
+    $ch = curl_init('https://api.remove.bg/v1.0/account');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-Api-Key: ' . $apiKey]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($response === false || !empty($curlError)) {
+        return ['success' => false, 'error' => 'cURL error: ' . $curlError];
+    }
+
+    $json = json_decode($response, true);
+    if ($httpCode !== 200) {
+        $errMsg = 'HTTP ' . $httpCode;
+        if (!empty($json['errors'])) {
+            $errMsg = implode(', ', array_column($json['errors'], 'title'));
+        }
+        return ['success' => false, 'error' => $errMsg];
+    }
+
+    return ['success' => true, 'data' => $json['data'] ?? $json];
+}
 ?>

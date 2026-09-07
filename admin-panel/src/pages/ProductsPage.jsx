@@ -215,6 +215,8 @@ export default function ProductsPage() {
   const [showDetailedSpecs, setShowDetailedSpecs] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [autoRemoveBg, setAutoRemoveBg] = useState(true);
+  const [uploadProgressText, setUploadProgressText] = useState('');
   const [productForm, setProductForm] = useState({
     base_product_id: 0,
     price: '',
@@ -1650,9 +1652,11 @@ export default function ProductsPage() {
                   {/* Thumbnail Preview */}
                   <div className="relative w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white p-1 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
                     {uploadingImage && (
-                      <div className="absolute inset-0 bg-white/85 backdrop-blur-[1px] flex flex-col items-center justify-center z-10">
-                        <Loader2 size={20} className="animate-spin text-amber-600 mb-0.5" />
-                        <span className="text-[9px] font-bold text-amber-800">កំពុង Upload...</span>
+                      <div className="absolute inset-0 bg-white/90 backdrop-blur-[1px] flex flex-col items-center justify-center z-10 px-1 text-center">
+                        <Loader2 size={18} className="animate-spin text-amber-600 mb-0.5" />
+                        <span className="text-[8.5px] font-bold text-amber-800 leading-tight">
+                          {uploadProgressText || 'កំពុង Upload...'}
+                        </span>
                       </div>
                     )}
                     <img
@@ -1676,14 +1680,14 @@ export default function ProductsPage() {
                       placeholder="e.g. /uploads/product-coffee.jpg"
                       className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <label className={`inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 cursor-pointer transition shadow-2xs ${uploadingImage ? 'opacity-60 pointer-events-none' : ''}`}>
                         {uploadingImage ? (
                           <Loader2 size={12} className="animate-spin text-amber-600" />
                         ) : (
                           <Upload size={12} />
                         )}
-                        <span>{uploadingImage ? 'កំពុង Upload...' : 'Upload ថ្មី'}</span>
+                        <span>{uploadingImage ? (uploadProgressText || 'កំពុង Upload...') : 'Upload ថ្មី'}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1695,15 +1699,22 @@ export default function ProductsPage() {
                               const localUrl = URL.createObjectURL(rawFile);
                               setImagePreview(localUrl);
                               setUploadingImage(true);
+                              setUploadProgressText(autoRemoveBg ? 'Remove BG & WebP...' : 'កំពុង Upload...');
                               try {
                                 const file = await compressImageClient(rawFile);
-                                const res = await adminApi.uploadImage(file, 'product');
+                                const res = await adminApi.uploadImage(file, 'product', { removeBg: autoRemoveBg });
                                 if (res.success && res.path) {
                                   const cleanPath = res.path.includes('/uploads/')
                                     ? res.path.substring(res.path.indexOf('/uploads/'))
                                     : res.path;
                                   setProductForm((prev) => ({ ...prev, image: cleanPath }));
-                                  showToast('បានផ្ទុកឡើងរូបភាពជោគជ័យ!');
+                                  if (res.bg_removed) {
+                                    showToast('បាន Remove Background និងបម្លែងជា WebP ជោគជ័យ! 🎉');
+                                  } else if (res.warning) {
+                                    showToast(`បាន Upload ជា WebP (${res.warning})`, 'warning');
+                                  } else {
+                                    showToast('បានផ្ទុកឡើងរូបភាព (WebP) ជោគជ័យ!');
+                                  }
                                 } else {
                                   showToast(res.error || 'Upload failed', 'error');
                                   setImagePreview('');
@@ -1713,6 +1724,7 @@ export default function ProductsPage() {
                                 setImagePreview('');
                               } finally {
                                 setUploadingImage(false);
+                                setUploadProgressText('');
                                 e.target.value = '';
                               }
                             }
@@ -1720,6 +1732,22 @@ export default function ProductsPage() {
                         />
                       </label>
                       <span className="text-[11px] text-gray-400">ឬជ្រើសរើសពី Hosting Media ខាងលើ</span>
+                    </div>
+
+                    {/* Auto Remove BG Toggle Switch */}
+                    <div className="pt-0.5">
+                      <label className="inline-flex items-center gap-2 cursor-pointer select-none bg-amber-50/80 border border-amber-200/90 px-2.5 py-1 rounded-lg hover:bg-amber-100/70 transition">
+                        <input
+                          type="checkbox"
+                          checked={autoRemoveBg}
+                          onChange={(e) => setAutoRemoveBg(e.target.checked)}
+                          className="w-3.5 h-3.5 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+                        />
+                        <span className="text-[11px] font-semibold text-amber-950 flex items-center gap-1.5">
+                          <Sparkles size={13} className="text-amber-600 animate-pulse" />
+                          <span>Auto Remove Background (Remove.bg AI) & WebP</span>
+                        </span>
+                      </label>
                     </div>
                   </div>
                 </div>
