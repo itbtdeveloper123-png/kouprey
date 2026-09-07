@@ -45,6 +45,9 @@ function replaceCoffeeKhmer($data) {
     return $data;
 }
 
+// Include shared catalog cache
+require_once __DIR__ . '/catalog_cache.php';
+
 /**
  * Load all settings for requested language (and English fallback) in 1 query
  */
@@ -65,6 +68,17 @@ function loadAllSettingsIntoCache($language = null) {
         $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$language] = [];
     }
 
+    // Try reading persistent settings cache file (expires in 1 hour or on admin save)
+    $settingsCacheFile = sys_get_temp_dir() . '/kouprey_settings_' . md5($language) . '.cache';
+    if (file_exists($settingsCacheFile) && (time() - filemtime($settingsCacheFile) < 3600)) {
+        $cached = @unserialize(@file_get_contents($settingsCacheFile));
+        if (is_array($cached) && isset($cached['settings']) && isset($cached['categories'])) {
+            $GLOBALS['__SETTINGS_CACHE__'][$language] = $cached['settings'];
+            $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$language] = $cached['categories'];
+            return;
+        }
+    }
+
     try {
         $langs = array_values(array_unique([$language, 'en']));
         $inClause = implode(',', array_fill(0, count($langs), '?'));
@@ -82,6 +96,13 @@ function loadAllSettingsIntoCache($language = null) {
             $GLOBALS['__SETTINGS_CACHE__'][$lang][$key] = $val;
             $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$lang][$cat][$key] = $val;
         }
+
+        // Persist to file cache
+        @file_put_contents($settingsCacheFile, serialize([
+            'settings' => $GLOBALS['__SETTINGS_CACHE__'][$language],
+            'categories' => $GLOBALS['__SETTINGS_CATEGORY_CACHE__'][$language]
+        ]), LOCK_EX);
+
     } catch (Exception $e) {
         error_log("Settings cache error: " . $e->getMessage());
     }
@@ -93,9 +114,9 @@ function loadAllSettingsIntoCache($language = null) {
 function clearSettingsCache() {
     $GLOBALS['__SETTINGS_CACHE__'] = [];
     $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
-    // Invalidate product catalog cache
+    // Invalidate product catalog cache and settings cache files
     $cacheDir = sys_get_temp_dir();
-    $files = glob($cacheDir . '/kouprey_catalog_*.cache');
+    $files = glob($cacheDir . '/kouprey_*.cache');
     if ($files) {
         foreach ($files as $f) {
             @unlink($f);

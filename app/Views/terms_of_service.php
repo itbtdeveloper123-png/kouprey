@@ -22,49 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_language'])) {
 $current_page = basename($_SERVER['PHP_SELF']);
 $currentLanguage = getCurrentLanguage();
 
-// Fetch products for search functionality
-$productStmt = $pdo->prepare("SELECT * FROM products ORDER BY featured DESC, best_seller DESC, id DESC");
-$productStmt->execute();
-$allProducts = $productStmt->fetchAll();
-
-$productsByBaseId = [];
-foreach ($allProducts as $product) {
-    $baseId = $product['base_product_id'];
-    if (!isset($productsByBaseId[$baseId])) {
-        $productsByBaseId[$baseId] = [];
-    }
-    $productsByBaseId[$baseId][$product['language']] = $product;
-}
-
-$products = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    if (isset($langVersions[$currentLanguage])) {
-        $products[] = $langVersions[$currentLanguage];
-    } elseif (isset($langVersions['en'])) {
-        $products[] = $langVersions['en'];
-    } else {
-        $products[] = reset($langVersions);
-    }
-}
-
-$searchProducts = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    $searchProduct = [
-        'base_product_id' => $baseId,
-        'languages' => $langVersions,
-        'all_names' => '',
-        'all_descriptions' => ''
-    ];
-    $allNames = [];
-    $allDescriptions = [];
-    foreach ($langVersions as $lang => $product) {
-        $allNames[] = $product['name'];
-        $allDescriptions[] = $product['description'];
-    }
-    $searchProduct['all_names'] = implode(' ', $allNames);
-    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-    $searchProducts[] = $searchProduct;
-}
+// Get shared catalog and search data from cache
+$catalogData = getCatalogData($currentLanguage);
+$products = $catalogData['products'] ?? [];
+$searchProducts = $catalogData['searchProducts'] ?? [];
 
 // Get terms of service content from settings
 $termsContent = getSetting('terms_of_service', '');
@@ -648,5 +609,7 @@ $termsContent = getSetting('terms_of_service', '');
             }
         }
     </style>
+    <!-- Instant Navigation & Touch Prefetcher -->
+    <script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>

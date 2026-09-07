@@ -395,11 +395,12 @@ $useOutput = $cssFile && file_exists($cssFile) && filesize($cssFile) > 50;
                             }
                         }
                     });
-                });
             } catch (err) {
                 console.error('Anchor scroll helper error:', err);
             }
         });
     </script>
+    <!-- Instant Navigation & Touch Prefetcher -->
+    <script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>

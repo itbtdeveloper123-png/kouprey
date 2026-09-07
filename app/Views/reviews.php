@@ -47,54 +47,13 @@ foreach ($reviews as $review) {
 }
 
 // Fetch products for search functionality (all languages)
+// Get shared catalog and search data from cache
 $currentLanguage = getCurrentLanguage();
-$productStmt = $pdo->prepare("SELECT * FROM products WHERE enabled = 1 ORDER BY featured DESC, best_seller DESC, id DESC");
-$productStmt->execute();
-$allProducts = $productStmt->fetchAll();
-
-// Group products by base_product_id
-$productsByBaseId = [];
-foreach ($allProducts as $product) {
-    $baseId = $product['base_product_id'];
-    if (!isset($productsByBaseId[$baseId])) {
-        $productsByBaseId[$baseId] = [];
-    }
-    $productsByBaseId[$baseId][$product['language']] = $product;
-}
-
-// For display, use current language products
-$products = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    if (isset($langVersions[$currentLanguage])) {
-        $products[] = $langVersions[$currentLanguage];
-    } elseif (isset($langVersions['en'])) {
-        $products[] = $langVersions['en'];
-    } else {
-        $products[] = reset($langVersions);
-    }
-}
-
-// Create search index with all language versions
-$searchProducts = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    $searchProduct = [
-        'base_product_id' => $baseId,
-        'languages' => $langVersions,
-        'all_names' => '',
-        'all_descriptions' => ''
-    ];
-
-    $allNames = [];
-    $allDescriptions = [];
-    foreach ($langVersions as $lang => $product) {
-        $allNames[] = $product['name'];
-        $allDescriptions[] = $product['description'];
-    }
-
-    $searchProduct['all_names'] = implode(' ', $allNames);
-    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-    $searchProducts[] = $searchProduct;
-}
+$catalogData = getCatalogData($currentLanguage);
+$products = $catalogData['products'] ?? [];
+$allAvailableProducts = $catalogData['allAvailableProducts'] ?? [];
+$searchProducts = $catalogData['searchProducts'] ?? [];
+$productsByBaseId = $catalogData['productsByBaseId'] ?? [];
 
 // Function to generate star rating
 function generateStars($rating) {
@@ -945,5 +904,7 @@ function generateStars($rating) {
 			}
 		}
 	</style>
+	<!-- Instant Navigation & Touch Prefetcher -->
+	<script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>

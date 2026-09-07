@@ -41,55 +41,13 @@ $features = array_map(function($group) {
     return $group[getCurrentLanguage()] ?? ($group['en'] ?? reset($group));
 }, $featuresGrouped);
 
-// Fetch products for search functionality (all languages)
+// Get shared catalog and search data from cache
 $currentLanguage = getCurrentLanguage();
-$productStmt = $pdo->prepare("SELECT * FROM products ORDER BY sort_order ASC, featured DESC, best_seller DESC, id DESC");
-$productStmt->execute();
-$allProducts = $productStmt->fetchAll();
-
-// Group products by base_product_id
-$productsByBaseId = [];
-foreach ($allProducts as $product) {
-    $baseId = $product['base_product_id'];
-    if (!isset($productsByBaseId[$baseId])) {
-        $productsByBaseId[$baseId] = [];
-    }
-    $productsByBaseId[$baseId][$product['language']] = $product;
-}
-
-// For display, use current language products
-$products = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    if (isset($langVersions[$currentLanguage])) {
-        $products[] = $langVersions[$currentLanguage];
-    } elseif (isset($langVersions['en'])) {
-        $products[] = $langVersions['en'];
-    } else {
-        $products[] = reset($langVersions);
-    }
-}
-
-// Create search index with all language versions
-$searchProducts = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    $searchProduct = [
-        'base_product_id' => $baseId,
-        'languages' => $langVersions,
-        'all_names' => '',
-        'all_descriptions' => ''
-    ];
-
-    $allNames = [];
-    $allDescriptions = [];
-    foreach ($langVersions as $lang => $product) {
-        $allNames[] = $product['name'];
-        $allDescriptions[] = $product['description'];
-    }
-
-    $searchProduct['all_names'] = implode(' ', $allNames);
-    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-    $searchProducts[] = $searchProduct;
-}
+$catalogData = getCatalogData($currentLanguage);
+$products = $catalogData['products'] ?? [];
+$allAvailableProducts = $catalogData['allAvailableProducts'] ?? [];
+$searchProducts = $catalogData['searchProducts'] ?? [];
+$productsByBaseId = $catalogData['productsByBaseId'] ?? [];
 
 // Fetch reviews for products (will be used in product detail modal)
 $reviewsStmt = $pdo->query("
@@ -1640,5 +1598,7 @@ foreach ($rawAssignments as $featureId => $productIds) {
 		});
 	</script>
 	<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+	<!-- Instant Navigation & Touch Prefetcher -->
+	<script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>

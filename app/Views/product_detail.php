@@ -36,42 +36,9 @@ $totalReviews = $reviewsResult['total_reviews'] ?? 0;
 $relatedProducts = $relatedResult['related_products'] ?? [];
 
 
-// Fetch all products for search functionality
-$productStmt = $pdo->prepare("SELECT * FROM products ORDER BY featured DESC, best_seller DESC, id DESC");
-$productStmt->execute();
-$allProducts = $productStmt->fetchAll();
-
-// Group products by base_product_id for search index
-$productsByBaseId = [];
-foreach ($allProducts as $p) {
-    $baseId = $p['base_product_id'];
-    if (!isset($productsByBaseId[$baseId])) {
-        $productsByBaseId[$baseId] = [];
-    }
-    $productsByBaseId[$baseId][$p['language']] = $p;
-}
-
-// Create search index with all language versions
-$searchProducts = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    $searchProduct = [
-        'base_product_id' => $baseId,
-        'languages' => $langVersions,
-        'all_names' => '',
-        'all_descriptions' => ''
-    ];
-
-    $allNames = [];
-    $allDescriptions = [];
-    foreach ($langVersions as $lang => $p) {
-        $allNames[] = $p['name'];
-        $allDescriptions[] = $p['description'];
-    }
-
-    $searchProduct['all_names'] = implode(' ', $allNames);
-    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-    $searchProducts[] = $searchProduct;
-}
+// Get shared catalog and search data from cache
+$catalogData = getCatalogData($currentLanguage);
+$searchProducts = $catalogData['searchProducts'] ?? [];
 ?>
 <!doctype html>
 <html lang="<?php echo htmlspecialchars($currentLanguage); ?>">
@@ -961,5 +928,7 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
         })();
 
     </script>
+    <!-- Instant Navigation & Touch Prefetcher -->
+    <script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>

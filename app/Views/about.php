@@ -28,55 +28,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $stmt = $pdo->query("SELECT * FROM about ORDER BY id DESC LIMIT 1");
 $about = $stmt->fetch();
 
-// Fetch products for search functionality (all languages)
+// Get shared catalog and search data from cache
 $currentLanguage = getCurrentLanguage();
-$productStmt = $pdo->prepare("SELECT * FROM products ORDER BY featured DESC, best_seller DESC, id DESC");
-$productStmt->execute();
-$allProducts = $productStmt->fetchAll();
-
-// Group products by base_product_id
-$productsByBaseId = [];
-foreach ($allProducts as $product) {
-    $baseId = $product['base_product_id'];
-    if (!isset($productsByBaseId[$baseId])) {
-        $productsByBaseId[$baseId] = [];
-    }
-    $productsByBaseId[$baseId][$product['language']] = $product;
-}
-
-// For display, use current language products
-$products = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    if (isset($langVersions[$currentLanguage])) {
-        $products[] = $langVersions[$currentLanguage];
-    } elseif (isset($langVersions['en'])) {
-        $products[] = $langVersions['en'];
-    } else {
-        $products[] = reset($langVersions);
-    }
-}
-
-// Create search index with all language versions
-$searchProducts = [];
-foreach ($productsByBaseId as $baseId => $langVersions) {
-    $searchProduct = [
-        'base_product_id' => $baseId,
-        'languages' => $langVersions,
-        'all_names' => '',
-        'all_descriptions' => ''
-    ];
-
-    $allNames = [];
-    $allDescriptions = [];
-    foreach ($langVersions as $lang => $product) {
-        $allNames[] = $product['name'];
-        $allDescriptions[] = $product['description'];
-    }
-
-    $searchProduct['all_names'] = implode(' ', $allNames);
-    $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-    $searchProducts[] = $searchProduct;
-}
+$catalogData = getCatalogData($currentLanguage);
+$products = $catalogData['products'] ?? [];
+$allAvailableProducts = $catalogData['allAvailableProducts'] ?? [];
+$searchProducts = $catalogData['searchProducts'] ?? [];
 ?>
 <!doctype html>
 <html lang="<?php echo htmlspecialchars(getCurrentLanguage()); ?>">
@@ -896,5 +853,7 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
 			}
 		}
 	</style>
+	<!-- Instant Navigation & Touch Prefetcher -->
+	<script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>

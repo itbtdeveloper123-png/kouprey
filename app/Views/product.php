@@ -19,103 +19,13 @@ $heroImages = glob(realpath(__DIR__ . '/../../public/uploads/') . '/hero-bg-*.pn
 // Fetch products from database with average ratings for all languages
 $currentLanguage = getCurrentLanguage();
 
-// High performance catalog cache (invalidated when products or settings are modified)
-$catalogCacheFile = sys_get_temp_dir() . '/kouprey_catalog_' . md5($currentLanguage) . '.cache';
-$catalogData = null;
-if (file_exists($catalogCacheFile) && (time() - filemtime($catalogCacheFile) < 300)) {
-    $catalogData = @unserialize(@file_get_contents($catalogCacheFile));
-}
-
-if (!is_array($catalogData) || empty($catalogData['products'])) {
-    $stmt = $pdo->prepare("
-        SELECT
-            p.*,
-            c.base_category_id,
-            COALESCE(review_stats.avg_rating, 0) as avg_rating,
-            COALESCE(review_stats.review_count, 0) as review_count
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN (
-            SELECT
-                base_product_id,
-                AVG(r.rating) as avg_rating,
-                COUNT(r.id) as review_count
-            FROM reviews r
-            JOIN products pr ON r.product_id = pr.id
-            GROUP BY pr.base_product_id
-        ) review_stats ON p.base_product_id = review_stats.base_product_id
-        WHERE p.enabled = 1
-        ORDER BY p.sort_order ASC, p.featured DESC, p.id DESC
-    ");
-    $stmt->execute();
-    $allProducts = $stmt->fetchAll();
-
-    // Group products by base_product_id and keep only current language version for display
-    $productsByBaseId = [];
-    foreach ($allProducts as $product) {
-        $baseId = $product['base_product_id'];
-        if (!isset($productsByBaseId[$baseId])) {
-            $productsByBaseId[$baseId] = [];
-        }
-        $productsByBaseId[$baseId][$product['language']] = $product;
-    }
-
-    // For display, use current language products, fallback to English if not available
-    $products = [];
-    foreach ($productsByBaseId as $baseId => $langVersions) {
-        if (isset($langVersions[$currentLanguage])) {
-            $products[] = $langVersions[$currentLanguage];
-        } elseif (isset($langVersions['en'])) {
-            $products[] = $langVersions['en'];
-        } else {
-            // Use first available language version
-            $products[] = reset($langVersions);
-        }
-    }
-    $allAvailableProducts = $products;
-
-    // Create a search index with all language versions
-    $searchProducts = [];
-    foreach ($productsByBaseId as $baseId => $langVersions) {
-        $searchProduct = [
-            'base_product_id' => $baseId,
-            'languages' => $langVersions, // Include all language versions
-            'all_names' => '',
-            'all_descriptions' => ''
-        ];
-
-        // Collect all language versions for search
-        $allNames = [];
-        $allDescriptions = [];
-
-        foreach ($langVersions as $lang => $product) {
-            $allNames[] = $product['name'];
-            $allDescriptions[] = $product['description'];
-        }
-
-        $searchProduct['all_names'] = implode(' ', $allNames);
-        $searchProduct['all_descriptions'] = implode(' ', $allDescriptions);
-        $searchProducts[] = $searchProduct;
-    }
-
-    // Fetch categories for current language
-    $stmt = $pdo->prepare("SELECT * FROM categories WHERE language = ? ORDER BY name ASC");
-    $stmt->execute([$currentLanguage]);
-    $categories = $stmt->fetchAll();
-
-    $catalogData = [
-        'products' => $products,
-        'allAvailableProducts' => $allAvailableProducts,
-        'searchProducts' => $searchProducts,
-        'categories' => $categories
-    ];
-    @file_put_contents($catalogCacheFile, serialize($catalogData), LOCK_EX);
-}
-
+// Get shared catalog and search data from cache
+$catalogData = getCatalogData($currentLanguage);
 $products = $catalogData['products'];
 $allAvailableProducts = $catalogData['allAvailableProducts'];
 $searchProducts = $catalogData['searchProducts'];
 $categories = $catalogData['categories'];
+
 
 // Function to generate star rating
 function generateStars($rating) {
@@ -3944,6 +3854,8 @@ $topProducts = array_slice($topProducts, 0, 6);
 			<img id="relatedProductZoomImage" src="" alt="Zoomed Product">
 		</div>
 		
+		<!-- Instant Navigation & Touch Prefetcher -->
+		<script src="/kouprey/public/assets/js/instant-nav.js" defer></script>
 </body>
 </html>
 
