@@ -253,4 +253,27 @@ function getAllSettings($language = null) {
 function isSettingEnabled($key) {
     return getSetting($key, '0') === '1';
 }
+
+/**
+ * Clear all persistent file caches (catalog and settings)
+ */
+if (!function_exists('clearAllKoupreyCaches')) {
+    function clearAllKoupreyCaches() {
+        $cacheDir = sys_get_temp_dir();
+        $patterns = [
+            $cacheDir . '/kouprey_catalog_*.cache',
+            $cacheDir . '/kouprey_settings_*.cache'
+        ];
+        foreach ($patterns as $pattern) {
+            $files = glob($pattern);
+            if ($files) {
+                foreach ($files as $f) {
+                    @unlink($f);
+                }
+            }
+        }
+        $GLOBALS['__SETTINGS_CACHE__'] = [];
+        $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
+    }
+}
 ?>

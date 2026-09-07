@@ -318,28 +318,67 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax_toggle_enabled'])
 
 // Handle Ajax toggle collection visibility
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax_toggle_collection_visibility'])) {
-    $product_id = $_POST['product_id'];
+    $product_id = intval($_POST['product_id'] ?? 0);
 
-    $stmt = $pdo->prepare("SELECT custom_fields FROM products WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, base_product_id, category_id, custom_fields FROM products WHERE id = ?");
     $stmt->execute([$product_id]);
-    $product = $stmt->fetch();
+    $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($product) {
+        $base_product_id = !empty($product['base_product_id']) ? intval($product['base_product_id']) : $product['id'];
         $custom_fields = json_decode($product['custom_fields'] ?? '{}', true);
         if (!is_array($custom_fields)) $custom_fields = [];
         
-        // Toggle the value (default is true if not set)
+        // Toggle the value
         $current_status = $custom_fields['show_in_collection'] ?? true;
-        $custom_fields['show_in_collection'] = !$current_status;
+        $new_status = !$current_status;
+        $custom_fields['show_in_collection'] = $new_status;
         
         $new_custom_fields_json = json_encode($custom_fields, JSON_UNESCAPED_UNICODE);
 
-        // Update for this specific record
-        $stmt = $pdo->prepare("UPDATE products SET custom_fields = ? WHERE id = ?");
-        $result = $stmt->execute([$new_custom_fields_json, $product_id]);
+        // Update all rows for this product across all languages
+        $stmt = $pdo->prepare("UPDATE products SET custom_fields = ? WHERE base_product_id = ? OR id = ?");
+        $result = $stmt->execute([$new_custom_fields_json, $base_product_id, $base_product_id]);
+
+        // Keep settings in sync if Powder or Syrup
+        $catId = $product['category_id'] ?? 0;
+        $catName = '';
+        if ($catId) {
+            $catSt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+            $catSt->execute([$catId]);
+            $catName = mb_strtolower($catSt->fetchColumn() ?: '', 'UTF-8');
+        }
+
+        $settingKey = null;
+        if (strpos($catName, 'powder') !== false || strpos($catName, 'ម្សៅ') !== false) {
+            $settingKey = 'powder_selection_products';
+        } elseif (strpos($catName, 'syrup') !== false || strpos($catName, 'ស៊ីរ៉ូ') !== false) {
+            $settingKey = 'syrup_collection_products';
+        }
+
+        if ($settingKey) {
+            $setSt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1");
+            $setSt->execute([$settingKey]);
+            $raw = $setSt->fetchColumn();
+            $arr = json_decode($raw ?: '[]', true) ?: [];
+            $strId = (string)$base_product_id;
+            if ($new_status) {
+                if (!in_array($strId, array_map('strval', $arr))) {
+                    $arr[] = $strId;
+                }
+            } else {
+                $arr = array_values(array_filter($arr, fn($x) => (string)$x !== $strId));
+            }
+            $newSettingJson = json_encode($arr);
+            $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?")->execute([$newSettingJson, $settingKey]);
+        }
+
+        if (function_exists('clearAllKoupreyCaches')) {
+            clearAllKoupreyCaches();
+        }
 
         if ($result) {
-            echo json_encode(['success' => true, 'show_in_collection' => $custom_fields['show_in_collection']]);
+            echo json_encode(['success' => true, 'show_in_collection' => $new_status]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to update status']);
         }

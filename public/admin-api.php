@@ -489,26 +489,69 @@ switch ($action) {
                 $stmt = $pdo->prepare("UPDATE products SET featured = CASE WHEN featured = 1 THEN 0 ELSE 1 END WHERE base_product_id = ?");
                 $stmt->execute([$base_product_id]);
                 $newVal = $pdo->query("SELECT featured FROM products WHERE base_product_id = {$base_product_id} LIMIT 1")->fetchColumn();
+                if (function_exists('clearAllKoupreyCaches')) clearAllKoupreyCaches();
                 echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'featured', 'value' => (int)$newVal]);
             } elseif ($field === 'best_seller') {
                 $stmt = $pdo->prepare("UPDATE products SET best_seller = CASE WHEN best_seller = 1 THEN 0 ELSE 1 END WHERE base_product_id = ?");
                 $stmt->execute([$base_product_id]);
                 $newVal = $pdo->query("SELECT best_seller FROM products WHERE base_product_id = {$base_product_id} LIMIT 1")->fetchColumn();
+                if (function_exists('clearAllKoupreyCaches')) clearAllKoupreyCaches();
                 echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'best_seller', 'value' => (int)$newVal]);
             } elseif ($field === 'enabled') {
                 $stmt = $pdo->prepare("UPDATE products SET enabled = CASE WHEN enabled = 1 THEN 0 ELSE 1 END WHERE base_product_id = ?");
                 $stmt->execute([$base_product_id]);
                 $newVal = $pdo->query("SELECT enabled FROM products WHERE base_product_id = {$base_product_id} LIMIT 1")->fetchColumn();
+                if (function_exists('clearAllKoupreyCaches')) clearAllKoupreyCaches();
                 echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'enabled', 'value' => (int)$newVal]);
             } elseif ($field === 'collection') {
-                $stmt = $pdo->prepare("SELECT custom_fields FROM products WHERE base_product_id = ? LIMIT 1");
-                $stmt->execute([$base_product_id]);
-                $cf = json_decode($stmt->fetchColumn() ?: '{}', true) ?: [];
+                $stmt = $pdo->prepare("SELECT custom_fields, category_id FROM products WHERE (base_product_id = ? OR id = ?) LIMIT 1");
+                $stmt->execute([$base_product_id, $base_product_id]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $cf = json_decode($row['custom_fields'] ?? '{}', true) ?: [];
                 $cur = $cf['show_in_collection'] ?? true;
-                $cf['show_in_collection'] = !$cur;
+                $newVal = !$cur;
+                $cf['show_in_collection'] = $newVal;
                 $newJson = json_encode($cf, JSON_UNESCAPED_UNICODE);
-                $pdo->prepare("UPDATE products SET custom_fields = ? WHERE base_product_id = ?")->execute([$newJson, $base_product_id]);
-                echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'collection', 'value' => $cf['show_in_collection']]);
+                $pdo->prepare("UPDATE products SET custom_fields = ? WHERE base_product_id = ? OR id = ?")->execute([$newJson, $base_product_id, $base_product_id]);
+
+                // Determine category (Powder or Syrup) to keep settings in sync
+                $catId = $row['category_id'] ?? 0;
+                $catName = '';
+                if ($catId) {
+                    $catSt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+                    $catSt->execute([$catId]);
+                    $catName = mb_strtolower($catSt->fetchColumn() ?: '', 'UTF-8');
+                }
+
+                $settingKey = null;
+                if (strpos($catName, 'powder') !== false || strpos($catName, 'ម្សៅ') !== false) {
+                    $settingKey = 'powder_selection_products';
+                } elseif (strpos($catName, 'syrup') !== false || strpos($catName, 'ស៊ីរ៉ូ') !== false) {
+                    $settingKey = 'syrup_collection_products';
+                }
+
+                if ($settingKey) {
+                    $setSt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ? LIMIT 1");
+                    $setSt->execute([$settingKey]);
+                    $raw = $setSt->fetchColumn();
+                    $arr = json_decode($raw ?: '[]', true) ?: [];
+                    $strId = (string)$base_product_id;
+                    if ($newVal) {
+                        if (!in_array($strId, array_map('strval', $arr))) {
+                            $arr[] = $strId;
+                        }
+                    } else {
+                        $arr = array_values(array_filter($arr, fn($x) => (string)$x !== $strId));
+                    }
+                    $newSettingJson = json_encode($arr);
+                    $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?")->execute([$newSettingJson, $settingKey]);
+                }
+
+                if (function_exists('clearAllKoupreyCaches')) {
+                    clearAllKoupreyCaches();
+                }
+
+                echo json_encode(['success' => true, 'base_product_id' => $base_product_id, 'field' => 'collection', 'value' => $newVal]);
             } else {
                 echo json_encode(['success' => false, 'error' => 'Invalid field']);
             }

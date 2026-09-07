@@ -1602,12 +1602,22 @@ $topProducts = array_slice($topProducts, 0, 6);
 		foreach ($allAvailableProducts as $p) {
 			$pBaseCatId = $p['base_category_id'] ?? null;
 			if ($pBaseCatId != null && (string)$pBaseCatId === (string)$syrupBaseId) {
+				$cf = json_decode($p['custom_fields'] ?? '{}', true);
+				$hasExplicitFalse = (is_array($cf) && array_key_exists('show_in_collection', $cf) && $cf['show_in_collection'] === false);
+				$hasExplicitTrue = (is_array($cf) && !empty($cf['show_in_collection']));
+
+				// If user explicitly turned off collection for this product, NEVER show it
+				if ($hasExplicitFalse) {
+					continue;
+				}
+
 				if (!empty($selectedSyrupIds)) {
-					if (in_array((string)$p['base_product_id'], array_map('strval', $selectedSyrupIds))) {
+					// Show if in settings selection OR explicitly enabled via collection toggle
+					if (in_array((string)$p['base_product_id'], array_map('strval', $selectedSyrupIds)) || $hasExplicitTrue) {
 						$foundSyrupProducts[] = $p;
 					}
 				} else {
-					$syrupProducts[] = $p;
+					$foundSyrupProducts[] = $p;
 				}
 			}
 		}
@@ -1623,7 +1633,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 			$syrupProducts = $foundSyrupProducts;
 		} else {
 			// If not manually selected, limit to newest 15 to keep it fresh
-			$syrupProducts = array_slice($syrupProducts, 0, 15);
+			$syrupProducts = array_slice($foundSyrupProducts, 0, 15);
 		}
 	}
 
@@ -1632,12 +1642,22 @@ $topProducts = array_slice($topProducts, 0, 6);
 		foreach ($allAvailableProducts as $p) {
 			$pBaseCatId = $p['base_category_id'] ?? null;
 			if ($pBaseCatId != null && (string)$pBaseCatId === (string)$powderBaseId) {
+				$cf = json_decode($p['custom_fields'] ?? '{}', true);
+				$hasExplicitFalse = (is_array($cf) && array_key_exists('show_in_collection', $cf) && $cf['show_in_collection'] === false);
+				$hasExplicitTrue = (is_array($cf) && !empty($cf['show_in_collection']));
+
+				// If user explicitly turned off collection for this product, NEVER show it
+				if ($hasExplicitFalse) {
+					continue;
+				}
+
 				if (!empty($selectedPowderIds)) {
-					if (in_array((string)$p['base_product_id'], array_map('strval', $selectedPowderIds))) {
+					// Show if in settings selection OR explicitly enabled via collection toggle
+					if (in_array((string)$p['base_product_id'], array_map('strval', $selectedPowderIds)) || $hasExplicitTrue) {
 						$foundPowderProducts[] = $p;
 					}
 				} else {
-					$powderProducts[] = $p;
+					$foundPowderProducts[] = $p;
 				}
 			}
 		}
@@ -1653,7 +1673,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 			$powderProducts = $foundPowderProducts;
 		} else {
 			// If not manually selected, limit to newest 15 to keep it fresh
-			$powderProducts = array_slice($powderProducts, 0, 15);
+			$powderProducts = array_slice($foundPowderProducts, 0, 15);
 		}
 	}
 
