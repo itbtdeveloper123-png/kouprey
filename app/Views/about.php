@@ -860,39 +860,31 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
 		});
 	</script>
 
-	<!-- Mobile Bottom Navigation (iOS 26 Floating Island) -->
-	<nav class="md:hidden fixed bottom-6 left-6 right-6 bg-white/15 backdrop-blur-[30px] backdrop-saturate-[180%] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] z-40 pb-safe px-2 overflow-hidden">
-		<div class="flex items-center justify-around py-1">
-			<a href="product.php#products" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
-				<?php if ($current_page == 'product.php' || $current_page == 'product_detail.php'): ?>
-					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
-				<?php endif; ?>
-				<i class="fas fa-mug-hot text-xl mb-1 <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
-				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_product', 'Products')); ?></span>
+	<!-- Mobile Bottom Navigation (Docked Style) -->
+	<nav class="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-xl border-t border-gray-200/80 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] z-50 transition-all duration-300" style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);">
+		<div class="grid grid-cols-4 items-center max-w-md mx-auto py-1 px-2 gap-1">
+			<!-- Tab 1: Products -->
+			<a href="product.php#products" class="relative group flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all active:scale-95 <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'bg-orange-50 text-orange-600 rounded-2xl border border-orange-200/70 shadow-2xs' : 'text-gray-500 hover:text-gray-800'; ?>">
+				<i class="fas fa-mug-hot text-lg mb-1 <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-orange-600 scale-110' : 'text-gray-500 group-hover:text-gray-700'; ?> transition-transform"></i>
+				<span class="text-[11px] <?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'font-black text-orange-600' : 'font-bold text-gray-600 group-hover:text-gray-900'; ?> tracking-tight text-center leading-tight truncate w-full px-0.5"><?php echo htmlspecialchars(getSetting('nav_product', $currentLanguage == 'km' ? 'ផលិតផល' : 'Products')); ?></span>
 			</a>
 			
-			<a href="features.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
-				<?php if ($current_page == 'features.php'): ?>
-					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
-				<?php endif; ?>
-				<i class="fas fa-bolt text-xl mb-1 <?php echo ($current_page == 'features.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
-				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'features.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></span>
+			<!-- Tab 2: Features -->
+			<a href="features.php" class="relative group flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all active:scale-95 <?php echo ($current_page == 'features.php') ? 'bg-orange-50 text-orange-600 rounded-2xl border border-orange-200/70 shadow-2xs' : 'text-gray-500 hover:text-gray-800'; ?>">
+				<i class="fas fa-bolt text-lg mb-1 <?php echo ($current_page == 'features.php') ? 'text-orange-600 scale-110' : 'text-gray-500 group-hover:text-gray-700'; ?> transition-transform"></i>
+				<span class="text-[11px] <?php echo ($current_page == 'features.php') ? 'font-black text-orange-600' : 'font-bold text-gray-600 group-hover:text-gray-900'; ?> tracking-tight text-center leading-tight truncate w-full px-0.5"><?php echo htmlspecialchars(getSetting('nav_features', $currentLanguage == 'km' ? 'លក្ខណៈពិសេស' : 'Features')); ?></span>
 			</a>
 
-			<a href="reviews.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
-				<?php if ($current_page == 'reviews.php'): ?>
-					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
-				<?php endif; ?>
-				<i class="fas fa-star text-xl mb-1 <?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
-				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></span>
+			<!-- Tab 3: Reviews -->
+			<a href="reviews.php" class="relative group flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all active:scale-95 <?php echo ($current_page == 'reviews.php') ? 'bg-orange-50 text-orange-600 rounded-2xl border border-orange-200/70 shadow-2xs' : 'text-gray-500 hover:text-gray-800'; ?>">
+				<i class="fas fa-star text-lg mb-1 <?php echo ($current_page == 'reviews.php') ? 'text-orange-600 scale-110' : 'text-gray-500 group-hover:text-gray-700'; ?> transition-transform"></i>
+				<span class="text-[11px] <?php echo ($current_page == 'reviews.php') ? 'font-black text-orange-600' : 'font-bold text-gray-600 group-hover:text-gray-900'; ?> tracking-tight text-center leading-tight truncate w-full px-0.5"><?php echo htmlspecialchars(getSetting('nav_reviews', $currentLanguage == 'km' ? 'ការពិនិត្យ' : 'Reviews')); ?></span>
 			</a>
 
-			<a href="about.php" class="relative group flex flex-col items-center justify-center py-4 px-2 min-w-0 flex-1 transition-all">
-				<?php if ($current_page == 'about.php'): ?>
-					<div class="absolute inset-x-2 top-2 bottom-2 bg-[#92adc5]/20 rounded-[1.5rem] -z-10 shadow-[inset_0_0_0_1px_rgba(146,173,197,0.2)]"></div>
-				<?php endif; ?>
-				<i class="fas fa-user text-xl mb-1 <?php echo ($current_page == 'about.php') ? 'text-[#92adc5] scale-110' : 'text-gray-400 group-hover:text-gray-600'; ?> transition-all duration-300"></i>
-				<span class="text-[10px] font-bold tracking-widest <?php echo ($current_page == 'about.php') ? 'text-[#92adc5]' : 'text-gray-400'; ?> text-center uppercase"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></span>
+			<!-- Tab 4: About -->
+			<a href="about.php" class="relative group flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all active:scale-95 <?php echo ($current_page == 'about.php') ? 'bg-orange-50 text-orange-600 rounded-2xl border border-orange-200/70 shadow-2xs' : 'text-gray-500 hover:text-gray-800'; ?>">
+				<i class="fas fa-user text-lg mb-1 <?php echo ($current_page == 'about.php') ? 'text-orange-600 scale-110' : 'text-gray-500 group-hover:text-gray-700'; ?> transition-transform"></i>
+				<span class="text-[11px] <?php echo ($current_page == 'about.php') ? 'font-black text-orange-600' : 'font-bold text-gray-600 group-hover:text-gray-900'; ?> tracking-tight text-center leading-tight truncate w-full px-0.5"><?php echo htmlspecialchars(getSetting('nav_about', $currentLanguage == 'km' ? 'អំពីយើង' : 'About')); ?></span>
 			</a>
 		</div>
 	</nav>
@@ -900,7 +892,7 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
 	<style>
 		@media (max-width: 768px) {
 			body {
-				padding-bottom: 120px;
+				padding-bottom: 84px;
 			}
 		}
 	</style>
