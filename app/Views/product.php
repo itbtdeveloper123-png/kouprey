@@ -209,39 +209,41 @@ if (isset($_GET['ajax_pagination'])) {
                              style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
                     </div>
                     
-                    <!-- Mobile Quick Add/View Button (Overlay) -->
-                    <button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-yellow-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
-                        <i class="fas fa-plus"></i>
+                    <!-- Mobile Quick View Button (Overlay) -->
+                    <button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-orange-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
+                        <i class="fas fa-arrow-right text-xs"></i>
                     </button>
                 </div>
 
                 <!-- Content -->
                 <div class="product-info flex-1 flex flex-col pt-2">
                     <!-- Title -->
-                    <h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
+                    <h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-1.5 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
                         <?php echo htmlspecialchars($product['name']); ?>
                     </h4>
 
-                    <!-- Rating (Small) -->
-                    <div class="flex items-center gap-2 mb-4 md:mb-6">
-                        <div class="flex text-xs text-yellow-400">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <span class="text-xs md:text-sm text-gray-500 font-medium"><?php echo round($product['avg_rating'], 1); ?> (<?php echo $product['review_count']; ?>)</span>
-                    </div>
+                    <!-- Product Detail (Short Description) -->
+                    <?php 
+                    $shortDesc = trim(strip_tags($product['description'] ?? ''));
+                    if (!empty($shortDesc)): 
+                    ?>
+                        <p class="text-xs md:text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">
+                            <?php echo htmlspecialchars(mb_substr($shortDesc, 0, 90, 'UTF-8')) . (mb_strlen($shortDesc, 'UTF-8') > 90 ? '...' : ''); ?>
+                        </p>
+                    <?php else: ?>
+                        <p class="text-xs md:text-sm text-gray-400 italic mb-3">
+                            <?php echo $currentLanguage == 'km' ? 'គុណភាពខ្ពស់ រសជាតិឈ្ងុយឆ្ងាញ់' : 'Premium quality beverage ingredient'; ?>
+                        </p>
+                    <?php endif; ?>
 
-                    <!-- Price & Action (Desktop Only) -->
-                    <div class="mt-auto flex items-center justify-between">
-                        <div class="flex flex-col">
-                            <?php if(!empty($product['old_price']) && $product['old_price'] > $product['price']): ?>
-                                <span class="text-xs text-gray-400 line-through">$<?php echo number_format($product['old_price'], 2); ?></span>
-                            <?php endif; ?>
-                            <span class="text-lg md:text-2xl font-black text-gray-900">$<?php echo number_format($product['price'], 2); ?></span>
-                        </div>
-                        
-                        <!-- Desktop View Arrow -->
-                        <div class="hidden md:flex w-12 h-12 rounded-full bg-yellow-50 items-center justify-center text-yellow-600 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                            <i class="fas fa-arrow-right text-base"></i>
+                    <!-- View Details Action -->
+                    <div class="mt-auto pt-3 flex items-center justify-between border-t border-gray-100/70">
+                        <span class="text-xs font-bold text-gray-600 group-hover:text-orange-600 flex items-center gap-1.5 transition-colors">
+                            <span><?php echo $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details'; ?></span>
+                            <i class="fas fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                        <div class="w-8 h-8 rounded-full bg-orange-50 group-hover:bg-orange-500 text-orange-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs">
+                            <i class="fas fa-chevron-right text-xs"></i>
                         </div>
                     </div>
                 </div>
@@ -2177,39 +2179,41 @@ $topProducts = array_slice($topProducts, 0, 6);
 											 style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));">
 									</div>
 									
-									<!-- Mobile Quick Add/View Button (Overlay) -->
-									<button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-yellow-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
-										<i class="fas fa-plus"></i>
+									<!-- Mobile Quick View Button (Overlay) -->
+									<button class="md:hidden absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-orange-600 active:scale-90 transition-transform z-30 border border-gray-100" onclick="event.stopPropagation(); window.location.href='product_detail.php?base_id=<?php echo $product['base_product_id']; ?>'">
+										<i class="fas fa-arrow-right text-xs"></i>
 									</button>
 								</div>
 
 								<!-- Content -->
 								<div class="product-info flex-1 flex flex-col pt-2">
 									<!-- Title -->
-									<h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-2 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
+									<h4 class="product-title text-base md:text-xl font-bold text-gray-900 mb-1.5 line-clamp-2 leading-normal min-h-[3.2rem] group-hover:text-orange-600 transition-colors">
 										<?php echo htmlspecialchars($product['name']); ?>
 									</h4>
 
-									<!-- Rating (Small) -->
-									<div class="flex items-center gap-2 mb-4 md:mb-6">
-										<div class="flex text-xs text-yellow-400">
-											<i class="fas fa-star"></i>
-										</div>
-										<span class="text-xs md:text-sm text-gray-500 font-medium"><?php echo round($product['avg_rating'], 1); ?> (<?php echo $product['review_count']; ?>)</span>
-									</div>
+									<!-- Product Detail (Short Description) -->
+									<?php 
+									$shortDesc = trim(strip_tags($product['description'] ?? ''));
+									if (!empty($shortDesc)): 
+									?>
+										<p class="text-xs md:text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">
+											<?php echo htmlspecialchars(mb_substr($shortDesc, 0, 90, 'UTF-8')) . (mb_strlen($shortDesc, 'UTF-8') > 90 ? '...' : ''); ?>
+										</p>
+									<?php else: ?>
+										<p class="text-xs md:text-sm text-gray-400 italic mb-3">
+											<?php echo $currentLanguage == 'km' ? 'គុណភាពខ្ពស់ រសជាតិឈ្ងុយឆ្ងាញ់' : 'Premium quality beverage ingredient'; ?>
+										</p>
+									<?php endif; ?>
 
-									<!-- Price & Action (Desktop Only) -->
-									<div class="mt-auto flex items-center justify-between">
-										<div class="flex flex-col">
-											<?php if(!empty($product['old_price']) && $product['old_price'] > $product['price']): ?>
-												<span class="text-xs text-gray-400 line-through">$<?php echo number_format($product['old_price'], 2); ?></span>
-											<?php endif; ?>
-											<span class="text-lg md:text-2xl font-black text-gray-900">$<?php echo number_format($product['price'], 2); ?></span>
-										</div>
-										
-										<!-- Desktop View Arrow -->
-										<div class="hidden md:flex w-12 h-12 rounded-full bg-yellow-50 items-center justify-center text-yellow-600 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 shadow-sm">
-											<i class="fas fa-arrow-right text-base"></i>
+									<!-- View Details Action -->
+									<div class="mt-auto pt-3 flex items-center justify-between border-t border-gray-100/70">
+										<span class="text-xs font-bold text-gray-600 group-hover:text-orange-600 flex items-center gap-1.5 transition-colors">
+											<span><?php echo $currentLanguage == 'km' ? 'មើលលម្អិត' : 'View Details'; ?></span>
+											<i class="fas fa-arrow-right text-[10px] transform group-hover:translate-x-1 transition-transform"></i>
+										</span>
+										<div class="w-8 h-8 rounded-full bg-orange-50 group-hover:bg-orange-500 text-orange-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs">
+											<i class="fas fa-chevron-right text-xs"></i>
 										</div>
 									</div>
 								</div>
