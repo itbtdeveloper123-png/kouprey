@@ -257,168 +257,189 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
 </head>
 <body class="bg-white text-gray-800 font-freeman min-h-screen pb-20 flex flex-col">
 
-    <!-- Header (simplified from product.php) -->
-    <header class="px-4 py-4 md:px-6 md:py-3 sticky top-0 z-50 transition-all duration-500">
-        <div class="flex items-center justify-center max-w-6xl mx-auto h-full">
-            <!-- Logo -->
-            <div class="flex items-center justify-center w-full">
+    <!-- Header (Native App Bar Layout) -->
+    <header class="px-3 sm:px-4 md:px-6 py-2.5 md:py-3 sticky top-0 z-50 transition-all duration-300 bg-white/70 backdrop-blur-xl border-b border-gray-100">
+        <div class="flex items-center justify-between max-w-6xl mx-auto h-full">
+            <!-- Left: Back Button -->
+            <div class="flex items-center">
+                <a href="product.php#products" class="h-10 px-3 rounded-full bg-gray-100/90 hover:bg-orange-50 hover:text-orange-600 text-gray-700 transition-all duration-200 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-2xs border border-gray-200/50">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                    <span class="hidden sm:inline"><?php echo $currentLanguage == 'km' ? 'ត្រឡប់ក្រោយ' : 'Back'; ?></span>
+                </a>
+            </div>
+
+            <!-- Center: Brand Logo -->
+            <div class="flex items-center justify-center">
                 <a href="product.php" class="flex items-center transform active:scale-95 transition-transform">
-                    <?php 
-                    $logoUrl = getSetting('company_logo'); 
-                    if (empty($logoUrl)) {
-                        $logoUrl = getSetting('company_logo', '', 'en');
-                    }
-                    ?>
-                    <?php if (!empty($logoUrl)): ?>
-                        <img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-14 w-auto object-contain" style="height: 56px;">
-                    <?php endif; ?>
+                    <img src="/kouprey/public/assets/images/logo.png" onerror="if(this.src.indexOf('assets/images/logo.png')===-1){this.src='assets/images/logo.png';}else{this.src='https://i.ibb.co/Wv0j3ZTQ/logo.png';}" alt="<?php echo htmlspecialchars(getSetting('company_name', 'KouPrey')); ?>" class="h-10 sm:h-12 w-auto object-contain">
                 </a>
             </div>
             
-            <!-- Desktop Navigation -->
-            <!-- Desktop Navigation - HIDDEN -->
-            <nav class="hidden">
-                <a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', 'Product')); ?></a>
-                <a href="features.php" class="<?php echo ($current_page == 'features.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></a>
-                <a href="reviews.php" class="<?php echo ($current_page == 'reviews.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></a>
-                <a href="about.php" class="<?php echo ($current_page == 'about.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></a>
-            </nav>
-            
-            <!-- Mobile Actions -->
-            <!-- Mobile Actions - REMOVED -->
-            <!-- Mobile Actions - HIDDEN -->
-            <div class="hidden">
-                <!-- Language Switcher -->
-                <button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-full px-4 py-2 transition-all active:scale-95 border border-gray-100 shadow-sm" title="Switch Language">
-                    <img src="<?php echo getCurrentLanguage() === 'en' ? 'https://img.freepik.com/premium-photo/flag-great-britain_406939-4606.jpg?semt=ais_hybrid&w=740&q=80' : 'https://cdn-icons-png.flaticon.com/512/16022/16022033.png'; ?>" 
-                         alt="<?php echo getCurrentLanguage() === 'en' ? 'English' : 'Khmer'; ?>" 
-                         class="w-6 h-6 object-cover rounded-full shadow-sm">
-                    <span class="font-bold text-sm text-gray-700"><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
-                </button>
-                <button id="searchButton" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="Search">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
+            <!-- Right: Language Switcher -->
+            <div class="flex items-center gap-2">
+                <button onclick="changeLanguage('<?php echo getCurrentLanguage() === 'en' ? 'km' : 'en'; ?>')" class="flex items-center gap-1.5 bg-gray-100/90 hover:bg-gray-200/90 rounded-full px-3 py-1.5 transition-all active:scale-95 border border-gray-200/50 shadow-2xs text-xs font-bold text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span><?php echo getCurrentLanguage() === 'en' ? 'EN' : 'KM'; ?></span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-12">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 pb-24 md:pb-16">
         
         <!-- Breadcrumb -->
-        <nav class="flex text-sm text-gray-500 mb-6 overflow-x-auto whitespace-nowrap pb-2" aria-label="Breadcrumb">
-            <ol class="flex items-center space-x-2">
+        <nav class="flex items-center text-xs md:text-sm text-gray-500 mb-3 md:mb-6 overflow-x-auto scrollbar-none whitespace-nowrap py-1" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-1.5 md:space-x-2">
                 <li class="flex items-center">
-                    <a href="product.php" class="hover:text-orange-600 transition-colors"><i class="fas fa-home mr-1.5"></i><?php echo htmlspecialchars(getSetting('nav_home', 'Home')); ?></a>
-                    <i class="fas fa-chevron-right text-[10px] mx-2 transition-colors"></i>
+                    <a href="product.php" class="hover:text-orange-600 transition-colors flex items-center gap-1">
+                        <i class="fas fa-home text-xs"></i>
+                        <span class="hidden sm:inline"><?php echo htmlspecialchars(getSetting('nav_home', 'Home')); ?></span>
+                    </a>
+                    <i class="fas fa-chevron-right text-[9px] mx-1.5 text-gray-300"></i>
                 </li>
                 <li class="flex items-center">
-                    <a href="product.php#products" class="hover:text-orange-600 transition-colors"><i class="fas fa-box-open mr-1.5"></i><?php echo htmlspecialchars(getSetting('nav_product', 'Products')); ?></a>
-                    <i class="fas fa-chevron-right text-[10px] mx-2 transition-colors"></i>
+                    <a href="product.php#products" class="hover:text-orange-600 transition-colors">
+                        <?php echo htmlspecialchars(getSetting('nav_product', $currentLanguage == 'km' ? 'ផលិតផល' : 'Products')); ?>
+                    </a>
+                    <i class="fas fa-chevron-right text-[9px] mx-1.5 text-gray-300"></i>
                 </li>
                 <?php if ($categoryId): ?>
                 <li class="flex items-center">
-                    <a href="product.php?category=<?php echo $categoryId; ?>#products" class="hover:text-orange-600 transition-colors"><i class="fas fa-tag mr-1.5"></i><?php echo htmlspecialchars($categoryName); ?></a>
-                    <i class="fas fa-chevron-right text-[10px] mx-2 transition-colors"></i>
+                    <a href="product.php?category=<?php echo $categoryId; ?>#products" class="hover:text-orange-600 transition-colors">
+                        <?php echo htmlspecialchars($categoryName); ?>
+                    </a>
+                    <i class="fas fa-chevron-right text-[9px] mx-1.5 text-gray-300"></i>
                 </li>
                 <?php endif; ?>
-                <li class="text-gray-800 font-bold truncate max-w-[150px] md:max-w-xs" aria-current="page">
-                    <i class="fas fa-mug-hot mr-1.5 text-orange-600"></i><?php echo htmlspecialchars($product['name']); ?>
+                <li class="text-gray-900 font-bold truncate max-w-[140px] sm:max-w-[200px] md:max-w-xs" aria-current="page">
+                    <?php echo htmlspecialchars($product['name']); ?>
                 </li>
             </ol>
         </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-14 items-start">
             
-            <!-- Left: Image Gallery -->
-            <div class="space-y-6 lg:sticky lg:top-24" data-aos="fade-right">
-                <div class="product-image-frame p-8 flex justify-center items-center shadow-inner aspect-square overflow-hidden relative" style="height: 500px;">
+            <!-- Left: Image Gallery Showcase -->
+            <div class="space-y-4 lg:sticky lg:top-24" data-aos="fade-right">
+                <div class="product-image-frame w-full h-72 sm:h-84 md:h-[420px] lg:h-[480px] p-4 sm:p-6 md:p-8 flex justify-center items-center rounded-3xl bg-gradient-to-b from-gray-50/90 via-amber-50/15 to-white border border-gray-100/90 shadow-xs relative overflow-hidden">
+                    <!-- Badges -->
+                    <div class="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-1.5 z-20 pointer-events-none">
+                        <?php if ($product['featured']): ?>
+                            <span class="bg-yellow-500/95 text-white px-2.5 py-1 rounded-xl text-[10px] md:text-xs font-bold shadow-xs flex items-center gap-1.5 backdrop-blur-sm">
+                                <i class="fas fa-star text-[9px]"></i> FEATURED
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($product['best_seller'])): ?>
+                            <span class="bg-red-500/95 text-white px-2.5 py-1 rounded-xl text-[10px] md:text-xs font-bold shadow-xs flex items-center gap-1.5 backdrop-blur-sm">
+                                <i class="fas fa-fire text-[9px]"></i> HOT
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Category Pill -->
+                    <div class="absolute top-3 right-3 md:top-4 md:right-4 z-20">
+                        <span class="bg-white/95 text-gray-700 px-2.5 py-1 rounded-xl text-[10px] md:text-xs font-bold shadow-xs border border-gray-100 flex items-center gap-1 backdrop-blur-sm">
+                            <i class="fas fa-tag text-orange-500 text-[9px]"></i>
+                            <span><?php echo htmlspecialchars($categoryName); ?></span>
+                        </span>
+                    </div>
+
+                    <!-- Main Image with Inner Zoom -->
                     <div class="product-image-container w-full h-full flex items-center justify-center relative overflow-hidden">
                         <img src="<?php echo htmlspecialchars($product['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                              alt="<?php echo htmlspecialchars($product['name']); ?>" 
                              loading="eager"
                              decoding="async"
-                             class="main-img w-full h-full object-contain filter drop-shadow-xl">
-                    </div>
-                </div>
-                
-                <!-- Quick Info Grid -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-8">
-                    <div class="bg-orange-50/50 border border-orange-100 rounded-2xl p-3 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white mb-2 shadow-sm">
-                            <i class="fas fa-weight-hanging"></i>
-                        </div>
-                        <span class="text-[10px] uppercase font-bold text-orange-600"><?php echo htmlspecialchars(getSetting('modal_weight', 'Weight')); ?></span>
-                        <span class="text-sm font-bold text-gray-800"><?php echo htmlspecialchars($product['weight'] ?: '250g'); ?></span>
-                    </div>
-
-
-                    <?php if (!empty($product['roast_level'])): ?>
-                    <div class="bg-amber-50/50 border border-amber-100 rounded-2xl p-3 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 bg-amber-700 rounded-xl flex items-center justify-center text-white mb-2 shadow-sm">
-                            <i class="fas fa-fire"></i>
-                        </div>
-                        <span class="text-[10px] uppercase font-bold text-amber-700"><?php echo htmlspecialchars(getSetting('modal_roast_level', 'Roast')); ?></span>
-                        <span class="text-sm font-bold text-gray-800"><?php echo htmlspecialchars($product['roast_level']); ?></span>
-                    </div>
-                    <?php endif; ?>
-
-                    <div class="bg-green-50/50 border border-green-100 rounded-2xl p-3 flex flex-col items-center text-center">
-                        <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white mb-2 shadow-sm">
-                            <i class="fas fa-certificate"></i>
-                        </div>
-                        <span class="text-[10px] uppercase font-bold text-green-600">Quality</span>
-                        <span class="text-sm font-bold text-gray-800">Premium</span>
+                             class="main-img max-w-full max-h-full object-contain filter drop-shadow-xl transform transition-transform duration-500 hover:scale-105">
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Product Details -->
-            <div class="space-y-8" data-aos="fade-left">
+            <!-- Right: Product Details & Specs -->
+            <div class="space-y-6" data-aos="fade-left">
                 <div>
-                    <?php if ($product['featured']): ?>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-600 mb-4 tracking-wider uppercase">
-                            <i class="fas fa-star mr-1"></i> Featured Product
-                        </span>
-                    <?php endif; ?>
+                    <!-- Product Title -->
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-3 leading-snug tracking-tight">
+                        <?php echo htmlspecialchars($product['name']); ?>
+                    </h1>
                     
-                    <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight"><?php echo htmlspecialchars($product['name']); ?></h1>
-                    
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="flex items-center text-yellow-400">
+                    <!-- Rating & Reviews Bar -->
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+                        <div class="flex items-center text-amber-400 gap-0.5">
                             <?php 
                             for($i=1; $i<=5; $i++) {
-                                echo $i <= round($avgRating) ? '<i class="fas fa-star text-sm"></i>' : '<i class="far fa-star text-sm"></i>';
+                                echo $i <= round($avgRating) ? '<i class="fas fa-star text-xs sm:text-sm"></i>' : '<i class="far fa-star text-xs sm:text-sm text-gray-200"></i>';
                             }
                             ?>
-                            <span class="ml-2 text-sm text-gray-600 font-medium"><?php echo $avgRating; ?> (<?php echo $totalReviews; ?> Reviews)</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 font-semibold">
+                            <strong class="text-gray-800"><?php echo number_format($avgRating, 1); ?></strong> (<?php echo $totalReviews; ?> <?php echo $currentLanguage == 'km' ? 'ការវាយតម្លៃ' : 'Reviews'; ?>)
+                        </span>
+                    </div>
+
+                    <!-- Quick Info Grid (Weight, Roast, Quality) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
+                        <!-- Weight -->
+                        <div class="bg-gradient-to-br from-orange-50/60 to-white border border-orange-100/80 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5 shadow-2xs">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center shrink-0">
+                                <i class="fas fa-weight-hanging text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[9px] sm:text-[10px] font-bold text-orange-600 uppercase tracking-wider"><?php echo htmlspecialchars(getSetting('modal_weight', $currentLanguage == 'km' ? 'ទម្ងន់' : 'Weight')); ?></div>
+                                <div class="text-xs sm:text-sm font-bold text-gray-900 truncate"><?php echo htmlspecialchars($product['weight'] ?: '250g'); ?></div>
+                            </div>
+                        </div>
+
+                        <?php if (!empty($product['roast_level'])): ?>
+                        <!-- Roast Level -->
+                        <div class="bg-gradient-to-br from-amber-50/60 to-white border border-amber-100/80 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5 shadow-2xs">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-600/10 text-amber-700 flex items-center justify-center shrink-0">
+                                <i class="fas fa-fire text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[9px] sm:text-[10px] font-bold text-amber-700 uppercase tracking-wider"><?php echo htmlspecialchars(getSetting('modal_roast_level', $currentLanguage == 'km' ? 'កម្រិតលីង' : 'Roast')); ?></div>
+                                <div class="text-xs sm:text-sm font-bold text-gray-900 truncate"><?php echo htmlspecialchars($product['roast_level']); ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Quality -->
+                        <div class="bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-100/80 rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5 shadow-2xs">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i class="fas fa-certificate text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[9px] sm:text-[10px] font-bold text-emerald-600 uppercase tracking-wider"><?php echo $currentLanguage == 'km' ? 'គុណភាព' : 'Quality'; ?></div>
+                                <div class="text-xs sm:text-sm font-bold text-gray-900 truncate">Premium</div>
+                            </div>
                         </div>
                     </div>
 
-                    <p class="text-lg text-gray-600 leading-relaxed mb-8">
-                        <?php echo nl2br(htmlspecialchars($product['description'])); ?>
-                    </p>
+                    <!-- Short Description -->
+                    <div class="text-gray-600 leading-relaxed mb-6">
+                        <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
+                            <?php echo nl2br(htmlspecialchars($product['description'])); ?>
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Product Sections (Accordion-like or Space-separated) -->
-                <div class="space-y-2">
+                <!-- Product Sections (Detailed Information) -->
+                <div class="space-y-4">
                     <?php if (!empty($product['detailed_description'])): ?>
-                    <div class="glass-card p-3">
-                        <h3 class="text-md font-bold text-gray-800 mb-0.5 flex items-center gap-2">
-                            <i class="fas fa-info-circle text-blue-500"></i> Detailed Information
+                    <div class="bg-gray-50/80 border border-gray-100 rounded-2xl p-4 sm:p-5">
+                        <h3 class="text-sm sm:text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-orange-500"></i>
+                            <span><?php echo $currentLanguage == 'km' ? 'ព័ត៌មានលម្អិតបន្ថែម' : 'Detailed Information'; ?></span>
                         </h3>
-                        <p class="text-gray-600 leading-relaxed"><?php echo nl2br(htmlspecialchars($product['detailed_description'])); ?></p>
+                        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed"><?php echo nl2br(htmlspecialchars($product['detailed_description'])); ?></p>
                     </div>
                     <?php endif; ?>
-
-
 
                     <!-- Custom Fields Section -->
                     <?php 
                     $customFields = json_decode($product['custom_fields'] ?? '{}', true);
                     if (!empty($customFields)):
-                        echo '<div class="space-y-8 mt-8 border-t border-gray-100 pt-8">';
+                        echo '<div class="space-y-6 mt-6 border-t border-gray-100 pt-6">';
                         foreach ($customFields as $fieldId => $fieldData):
                             $lang = $currentLanguage;
                             $fieldName = '';
@@ -436,25 +457,25 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
                                         if (isset($row['value']) && is_array($row['value'])) {
                                             foreach ($row['value'] as $valPair) {
                                                 $val = $valPair[$lang] ?? $valPair['en'] ?? '';
-                                                $valuesHtml .= '<span class="font-bold text-gray-900 ml-6">' . htmlspecialchars($val) . '</span>';
+                                                $valuesHtml .= '<span class="font-bold text-gray-900 ml-4">' . htmlspecialchars($val) . '</span>';
                                             }
                                         }
                                         
                                         $rowsGrid .= '
-                                            <div class="flex justify-between items-center py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-3 transition-colors rounded-lg">
-                                                <span class="text-sm text-gray-500 font-medium">' . htmlspecialchars($label) . '</span>
-                                                <div class="text-sm font-secondary">' . $valuesHtml . '</div>
+                                            <div class="flex justify-between items-center flex-wrap sm:flex-nowrap gap-2 py-2.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-3 transition-colors rounded-lg">
+                                                <span class="text-xs sm:text-sm text-gray-500 font-medium">' . htmlspecialchars($label) . '</span>
+                                                <div class="text-xs sm:text-sm font-secondary">' . $valuesHtml . '</div>
                                             </div>';
                                     }
                                     
-                                    $fieldHtml = '<div class="mt-3 bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">' . $rowsGrid . '</div>';
+                                    $fieldHtml = '<div class="mt-2 bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-2xs">' . $rowsGrid . '</div>';
                                 else:
                                     // Default Text Layout with Card Styling
                                     $fieldValue = $fieldData['value'][$lang] ?? $fieldData['value']['en'] ?? '';
                                     if ($fieldValue) {
                                         $fieldHtml = '
-                                        <div class="mt-3 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                                            <p class="text-gray-700 leading-relaxed text-sm md:text-base font-medium">' . nl2br(htmlspecialchars($fieldValue)) . '</p>
+                                        <div class="mt-2 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-2xl p-4 shadow-2xs">
+                                            <p class="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base font-medium">' . nl2br(htmlspecialchars($fieldValue)) . '</p>
                                         </div>';
                                     }
                                 endif;
@@ -462,16 +483,16 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
                                 // Legacy simple string format
                                 $fieldName = str_replace(':', '', $fieldId);
                                 $fieldHtml = '
-                                <div class="mt-3 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                                    <p class="text-gray-700 leading-relaxed text-sm md:text-base font-medium">' . nl2br(htmlspecialchars($fieldData)) . '</p>
+                                <div class="mt-2 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-2xl p-4 shadow-2xs">
+                                    <p class="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base font-medium">' . nl2br(htmlspecialchars($fieldData)) . '</p>
                                 </div>';
                             endif;
 
                             if ($fieldHtml):
                     ?>
                         <div class="animate-fade-in-up">
-                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-3">
-                                <span class="text-orange-600 text-lg">✦</span>
+                            <h3 class="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2">
+                                <span class="text-orange-600 text-sm">✦</span>
                                 <?php echo htmlspecialchars($fieldName); ?>
                             </h3>
                             <?php echo $fieldHtml; ?>
@@ -488,31 +509,31 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
         </div>
 
         <!-- Customer Reviews -->
-        <section class="mt-32 max-w-5xl mx-auto" data-aos="fade-up">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4"><?php echo htmlspecialchars(getSetting('modal_customer_reviews', 'Customer Reviews')); ?></h2>
-                <div class="w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 mx-auto rounded-full"></div>
-                <p class="text-gray-500 mt-6 text-lg">Real feedback from our coffee community</p>
+        <section class="mt-12 md:mt-24 max-w-5xl mx-auto" data-aos="fade-up">
+            <div class="text-center mb-8 md:mb-14">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?php echo htmlspecialchars(getSetting('modal_customer_reviews', 'Customer Reviews')); ?></h2>
+                <div class="w-16 h-1 bg-gradient-to-r from-orange-400 to-orange-600 mx-auto rounded-full"></div>
+                <p class="text-gray-500 mt-3 text-sm sm:text-base">Real feedback from our coffee community</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 mb-12">
                 <!-- Rating Summary -->
                 <div class="lg:col-span-4 lg:sticky lg:top-24 h-fit">
-                    <div class="glass-card p-8 text-center border border-orange-100/50">
-                        <div class="text-7xl font-bold bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+                    <div class="glass-card p-5 sm:p-6 md:p-8 text-center border border-orange-100/60 rounded-3xl">
+                        <div class="text-5xl sm:text-6xl md:text-7xl font-bold bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent mb-1.5">
                             <?php echo number_format($avgRating, 1); ?>
                         </div>
-                        <div class="flex justify-center text-yellow-400 text-xl mb-3">
+                        <div class="flex justify-center text-amber-400 text-lg mb-2">
                             <?php 
                             for($i=1; $i<=5; $i++) {
                                 echo $i <= round($avgRating) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star text-gray-200"></i>';
                             }
                             ?>
                         </div>
-                        <div class="text-gray-500 font-medium mb-8">Based on <?php echo $totalReviews; ?> reviews</div>
+                        <div class="text-gray-500 text-xs sm:text-sm font-medium mb-6">Based on <?php echo $totalReviews; ?> reviews</div>
                         
                         <!-- Star Bars -->
-                        <div class="space-y-3">
+                        <div class="space-y-2 sm:space-y-3">
                             <?php
                             $starCounts = [5=>0, 4=>0, 3=>0, 2=>0, 1=>0];
                             foreach($reviews as $r) {
@@ -521,12 +542,12 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
                             for($i=5; $i>=1; $i--):
                                 $percent = $totalReviews > 0 ? ($starCounts[$i] / $totalReviews) * 100 : 0;
                             ?>
-                            <div class="flex items-center gap-4 text-sm">
-                                <span class="w-4 font-bold text-gray-700"><?php echo $i; ?></span>
-                                <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                                <span class="w-3 font-bold text-gray-700"><?php echo $i; ?></span>
+                                <div class="flex-1 h-1.5 sm:h-2 bg-gray-100 rounded-full overflow-hidden">
                                     <div class="h-full bg-orange-400 rounded-full transition-all duration-1000" style="width: <?php echo $percent; ?>%"></div>
                                 </div>
-                                <span class="w-10 text-gray-400 text-xs font-semibold"><?php echo round($percent); ?>%</span>
+                                <span class="w-8 sm:w-10 text-gray-400 text-[10px] sm:text-xs font-semibold"><?php echo round($percent); ?>%</span>
                             </div>
                             <?php endfor; ?>
                         </div>
@@ -534,48 +555,47 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
                 </div>
 
                 <!-- Review Feed -->
-                <div class="lg:col-span-8 space-y-6">
+                <div class="lg:col-span-8 space-y-4 sm:space-y-6">
                     <?php if (!empty($reviews)): ?>
                         <?php foreach ($reviews as $review): ?>
-                        <div class="glass-card p-8 border border-white/50 hover:border-orange-200 transition-all duration-300 group">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center text-orange-600 font-bold text-xl shadow-inner group-hover:scale-110 transition-transform">
+                        <div class="glass-card p-4 sm:p-6 md:p-8 border border-white/60 hover:border-orange-200 transition-all duration-300 rounded-2xl group">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center text-orange-600 font-bold text-base shadow-inner group-hover:scale-105 transition-transform">
                                         <?php echo strtoupper(substr($review['name'], 0, 1)); ?>
                                     </div>
                                     <div>
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-bold text-gray-900"><?php echo htmlspecialchars($review['name']); ?></h4>
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-600 uppercase tracking-tighter">
-                                                <i class="fas fa-check-circle mr-1"></i> Verified
+                                        <div class="flex items-center gap-1.5">
+                                            <h4 class="font-bold text-gray-900 text-sm sm:text-base"><?php echo htmlspecialchars($review['name']); ?></h4>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-100 text-green-600 uppercase tracking-tighter">
+                                                <i class="fas fa-check-circle mr-0.5"></i>
                                             </span>
                                         </div>
-                                        <div class="text-xs text-gray-400 font-medium uppercase tracking-widest mt-0.5"><?php echo date('M d, Y', strtotime($review['created_at'])); ?></div>
+                                        <div class="text-[10px] text-gray-400 font-medium uppercase mt-0.5"><?php echo date('M d, Y', strtotime($review['created_at'])); ?></div>
                                     </div>
                                 </div>
-                                <div class="flex text-yellow-400 gap-0.5 bg-yellow-50/50 px-3 py-1.5 rounded-xl border border-yellow-100">
+                                <div class="flex text-amber-400 gap-0.5 bg-yellow-50/50 px-2.5 py-1 rounded-lg border border-yellow-100/70 self-start sm:self-auto">
                                     <?php 
                                     for($i=1; $i<=5; $i++) {
-                                        echo $i <= $review['rating'] ? '<i class="fas fa-star text-sm"></i>' : '<i class="far fa-star text-yellow-200 text-sm"></i>';
+                                        echo $i <= $review['rating'] ? '<i class="fas fa-star text-xs"></i>' : '<i class="far fa-star text-gray-200 text-xs"></i>';
                                     }
                                     ?>
                                 </div>
                             </div>
                             <div class="relative">
-                                <i class="fas fa-quote-left absolute -left-2 -top-2 text-orange-100 text-4xl -z-10 opacity-50"></i>
-                                <p class="text-gray-600 text-lg leading-relaxed relative z-10 italic">
-                                    <?php echo htmlspecialchars($review['review']); ?>
+                                <p class="text-gray-600 text-sm sm:text-base leading-relaxed italic">
+                                    "<?php echo htmlspecialchars($review['review']); ?>"
                                 </p>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <div class="text-center py-20 glass-card bg-gray-50/50 border-2 border-dashed border-gray-200">
-                            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i class="far fa-comment-dots text-4xl text-gray-300"></i>
+                        <div class="text-center py-12 sm:py-16 glass-card bg-gray-50/50 border border-dashed border-gray-200 rounded-3xl">
+                            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="far fa-comment-dots text-2xl text-gray-400"></i>
                             </div>
-                            <h4 class="text-xl font-bold text-gray-800 mb-2">No reviews yet</h4>
-                            <p class="text-gray-500 max-w-xs mx-auto"><?php echo htmlspecialchars(getSetting('no_reviews', 'Be the first to share your experience with this premium coffee!')); ?></p>
+                            <h4 class="text-base sm:text-lg font-bold text-gray-800 mb-1">No reviews yet</h4>
+                            <p class="text-gray-500 text-xs sm:text-sm max-w-xs mx-auto"><?php echo htmlspecialchars(getSetting('no_reviews', 'Be the first to share your experience with this premium coffee!')); ?></p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -584,34 +604,31 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
 
         <!-- Related Products (Same Category) -->
         <?php if (!empty($relatedProducts)): ?>
-        <section class="mt-24" data-aos="fade-up">
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+        <section class="mt-12 md:mt-24" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2.5">
                     <i class="fas fa-coffee text-orange-500"></i> <?php echo htmlspecialchars(getSetting('related_products_title', 'You May Also Like')); ?>
                 </h3>
             </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-8">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
                 <?php foreach (array_slice($relatedProducts, 0, 5) as $rp): ?>
-                <a href="product_detail.php?base_id=<?php echo $rp['base_product_id']; ?>" class="group block related-product-item">
-                    <div class="product-image-container aspect-square mb-3 flex items-center justify-center relative overflow-hidden text-center">
-                        <div class="absolute inset-0 flex items-center justify-center p-2 md:p-4">
-                            <!-- Glow effect -->
-                            <div class="absolute w-24 h-24 bg-orange-200 rounded-full filter blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-                            
+                <a href="product_detail.php?base_id=<?php echo $rp['base_product_id']; ?>" class="group block bg-white rounded-2xl p-2.5 sm:p-3 border border-gray-100 shadow-2xs hover:shadow-md transition-all active:scale-98">
+                    <div class="product-image-container aspect-square mb-2 flex items-center justify-center relative overflow-hidden text-center rounded-xl bg-gray-50/70">
+                        <div class="absolute inset-0 flex items-center justify-center p-2">
                             <img src="<?php echo htmlspecialchars($rp['image'] ?: '/kouprey/public/assets/images/product-medium.png'); ?>" 
                                  alt="<?php echo htmlspecialchars($rp['name']); ?>" 
                                  loading="lazy"
                                  decoding="async"
-                                 class="main-img max-w-full max-h-full object-contain relative z-10"
-                                 style="filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));">
+                                 class="main-img max-w-full max-h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform" 
+                                 style="filter: drop-shadow(0 6px 10px rgba(0,0,0,0.12));">
                         </div>
                     </div>
-                    <div class="text-center">
-                        <h4 class="font-bold text-gray-800 text-sm md:text-base line-clamp-2 leading-snug h-10 md:h-12 flex items-center justify-center mb-1">
+                    <div class="text-center pt-1">
+                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 leading-tight min-h-[1.9rem] flex items-center justify-center mb-1 group-hover:text-orange-600 transition-colors">
                             <?php echo htmlspecialchars($rp['name']); ?>
                         </h4>
-                        <p class="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-semibold"><?php echo htmlspecialchars($categoryName); ?></p>
+                        <p class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wider font-semibold"><?php echo htmlspecialchars($categoryName); ?></p>
                     </div>
                 </a>
                 <?php endforeach; ?>
@@ -620,6 +637,90 @@ foreach ($productsByBaseId as $baseId => $langVersions) {
         <?php endif; ?>
 
     </main>
+
+    <!-- Mobile Sticky Floating Bottom Bar -->
+    <div class="md:hidden fixed bottom-4 left-3 right-3 z-40">
+        <div class="bg-white/85 backdrop-blur-2xl border border-white/80 shadow-[0_12px_40px_rgba(0,0,0,0.18)] rounded-2xl p-2 flex items-center gap-2">
+            <!-- Back to Catalog -->
+            <a href="product.php#products" class="flex-1 py-2.5 px-3 rounded-xl bg-gray-100/90 hover:bg-gray-200 text-gray-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs">
+                <i class="fas fa-th-large text-orange-500 text-xs"></i>
+                <span class="truncate"><?php echo $currentLanguage == 'km' ? 'ផលិតផលផ្សេងទៀត' : 'All Products'; ?></span>
+            </a>
+
+            <!-- Inquire / Contact via Telegram -->
+            <?php 
+            $tgUrl = getSetting('social_telegram', 'https://t.me/Bos_Sauveli98');
+            $phone = getSetting('company_phone', '+855 12 345 678');
+            ?>
+            <a href="<?php echo htmlspecialchars($tgUrl ?: 'tel:' . preg_replace('/[^0-9+]/', '', $phone)); ?>" 
+               target="_blank" 
+               class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-orange-500/25">
+                <i class="fab fa-telegram-plane text-sm"></i>
+                <span class="truncate"><?php echo $currentLanguage == 'km' ? 'កុម្ម៉ង់ / សាកសួរ' : 'Order / Inquire'; ?></span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto bg-gray-900 text-white py-12">
+        <div class="max-w-6xl mx-auto px-4 md:px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 sm:gap-3 mb-4">
+                        <img src="/kouprey/public/assets/images/logo.png" onerror="if(this.src.indexOf('assets/images/logo.png')===-1){this.src='assets/images/logo.png';}else{this.src='https://i.ibb.co/Wv0j3ZTQ/logo.png';}" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-12 sm:h-14 md:h-16 w-auto object-contain filter drop-shadow-md shrink-0">
+                        <span class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-wide leading-none whitespace-nowrap"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
+                    </div>
+                    <p class="text-gray-300 mb-4 leading-relaxed">
+                        <?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>
+                    </p>
+                    <div class="space-y-2">
+                        <div class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-yellow-400 mt-1 mr-3"></i>
+                            <span class="text-gray-300"><?php echo nl2br(htmlspecialchars(getSetting('company_address', 'Phnom Penh, Cambodia'))); ?></span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-phone text-yellow-400 mr-3"></i>
+                            <span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_phone', '+855 12 345 678')); ?></span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope text-yellow-400 mr-3"></i>
+                            <span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_email', 'info@kouprey.com')); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white"><?php echo htmlspecialchars(getSetting('footer_quick_links', 'Quick Links')); ?></h3>
+                    <ul class="space-y-2">
+                        <li><a href="product.php" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2 text-yellow-400"></i><?php echo htmlspecialchars(getSetting('nav_product', 'Products')); ?></a></li>
+                        <li><a href="features.php" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2 text-yellow-400"></i><?php echo htmlspecialchars(getSetting('nav_features', 'Features')); ?></a></li>
+                        <li><a href="reviews.php" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2 text-yellow-400"></i><?php echo htmlspecialchars(getSetting('nav_reviews', 'Reviews')); ?></a></li>
+                        <li><a href="about.php" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2 text-yellow-400"></i><?php echo htmlspecialchars(getSetting('nav_about', 'About')); ?></a></li>
+                    </ul>
+                </div>
+
+                <!-- Social & Legal -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white"><?php echo htmlspecialchars(getSetting('footer_connect', 'Connect With Us')); ?></h3>
+                    <div class="flex space-x-4 mb-6">
+                        <?php if (getSetting('social_facebook')): ?><a href="<?php echo htmlspecialchars(getSetting('social_facebook')); ?>" target="_blank" class="text-gray-300 hover:text-blue-400 transition-colors"><i class="fab fa-facebook-f text-xl"></i></a><?php endif; ?>
+                        <?php if (getSetting('social_telegram')): ?><a href="<?php echo htmlspecialchars(getSetting('social_telegram')); ?>" target="_blank" class="text-gray-300 hover:text-blue-500 transition-colors"><i class="fab fa-telegram-plane text-xl"></i></a><?php endif; ?>
+                        <?php if (getSetting('social_tiktok')): ?><a href="<?php echo htmlspecialchars(getSetting('social_tiktok')); ?>" target="_blank" class="text-gray-300 hover:text-white transition-colors"><i class="fab fa-tiktok text-xl"></i></a><?php endif; ?>
+                        <?php if (getSetting('social_instagram')): ?><a href="<?php echo htmlspecialchars(getSetting('social_instagram')); ?>" target="_blank" class="text-gray-300 hover:text-pink-500 transition-colors"><i class="fab fa-instagram text-xl"></i></a><?php endif; ?>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div><a href="privacy_policy.php" class="hover:text-white transition-colors"><?php echo htmlspecialchars(getSetting('nav_privacy_policy', 'Privacy Policy')); ?></a></div>
+                        <div><a href="terms_of_service.php" class="hover:text-white transition-colors"><?php echo htmlspecialchars(getSetting('nav_terms_of_service', 'Terms of Service')); ?></a></div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+                &copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>. All rights reserved.
+            </div>
+        </div>
+    </footer>
 
 
 
