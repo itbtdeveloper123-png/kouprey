@@ -59,7 +59,7 @@ export default function HeroBanner() {
           </h1>
 
           <p className="text-sm md:text-base text-emerald-100/90 leading-relaxed max-w-lg">
-            {settings.hero_subtitle || (language === 'km' ? 'ផលិតផលកាហ្វេ និងតែបៃតងធម្មជាតិ លំដាប់ពិសេស ផ្តល់នូវថាមពល និងភាពស្រស់ស្រាយពេញមួយថ្ងៃ។' : 'Specialty organic coffee and premium matcha to energize and refresh your entire day.')}
+            {settings.hero_subtitle || (language === 'km' ? 'ផលិតផលគ្រឿងបន្ថែមរស់ជាតិ និងតែបៃតងធម្មជាតិ លំដាប់ពិសេស ផ្តល់នូវថាមពល និងភាពស្រស់ស្រាយពេញមួយថ្ងៃ។' : 'Specialty organic coffee and premium matcha to energize and refresh your entire day.')}
           </p>
 
           <div className="pt-2 flex flex-wrap gap-3 items-center">

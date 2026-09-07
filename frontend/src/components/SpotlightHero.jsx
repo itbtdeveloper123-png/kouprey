@@ -152,7 +152,7 @@ export default function SpotlightHero({ products = [] }) {
                       {spotlightProduct.short_description ||
                         spotlightProduct.description ||
                         (language === 'km'
-                          ? 'រសជាតិឈ្ងុយឆ្ងាញ់ដិតជាប់មាត់ ផលិតពីគ្រាប់កាហ្វេ និងស្លឹកតែធម្មជាតិគុណភាពខ្ពស់។'
+                          ? 'រសជាតិឈ្ងុយឆ្ងាញ់ដិតជាប់មាត់ ផលិតពីគ្រាប់គ្រឿងបន្ថែមរស់ជាតិ និងស្លឹកតែធម្មជាតិគុណភាពខ្ពស់។'
                           : 'Premium coffee and tea products with exceptional quality and rich flavor profile.')}
                     </p>
 

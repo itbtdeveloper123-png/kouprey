@@ -1,0 +1,8 @@
+1394: 				<a href="product.php#products" class="<?php echo ($current_page == 'product.php' || $current_page == 'product_detail.php') ? 'text-[#92adc5] font-bold bg-[#92adc5]/10 px-4 py-2 rounded-xl' : 'text-gray-600 hover:text-gray-900 font-bold px-4 py-2 hover:bg-gray-50/50 rounded-xl'; ?> transition-all flex items-center h-10"><?php echo htmlspecialchars(getSetting('nav_product', $currentLanguage == 'km' ? 'ផលិតផល' : 'Product')); ?></a>
+1409: 				<button id="searchButton" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-white hover:bg-black rounded-full transition-all active:scale-90 bg-gray-50 border border-gray-100 shadow-sm" title="<?php echo getCurrentLanguage() === 'km' ? 'ស្វែងរក' : 'Search'; ?>">
+1484: 									<?php echo $currentLanguage == 'km' ? 'បណ្តុំផលិតផលពេញនិយម' : 'Signature Collection'; ?>
+1506: 										<span><?php echo $currentLanguage == 'km' ? 'មើលផលិតផល' : 'View Product'; ?></span>
+1706: 				<span class="text-orange-600 font-bold tracking-wider uppercase text-sm mb-2 block"><?php echo getCurrentLanguage() === 'km' ? 'បណ្តុំផលិតផលសម្រិតសម្រាំង' : 'Curated Collections'; ?></span>
+1707: 				<h3 class="text-3xl md:text-5xl font-bold text-gray-900 font-freeman"><?php echo getCurrentLanguage() === 'km' ? 'ស្វែងយល់អំពីផលិតផលពិសេសៗរបស់យើង' : 'Discover Our Specialties'; ?></h3>
+2013: 										<span class="font-medium"><?php echo htmlspecialchars(getSetting('all_products', $currentLanguage == 'km' ? 'ផលិតផលទាំងអស់' : 'All Products')); ?></span>
+3636:                             <span class="font-semibold text-sm"><?php echo htmlspecialchars(getSetting('all_products', $currentLanguage == 'km' ? 'ផលិតផលទាំងអស់' : 'All Products')); ?></span>

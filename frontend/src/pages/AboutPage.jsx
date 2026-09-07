@@ -40,14 +40,14 @@ export default function AboutPage() {
   // Clean strings based on current language
   const aboutTitle = isEn
     ? (settings?.about_title && !/[\u1780-\u17FF]/.test(settings.about_title) ? settings.about_title : 'About KouPrey Coffee')
-    : (settings?.about_title || 'អំពី កូព្រៃ កាហ្វេ (KouPrey)');
+    : (settings?.about_title || 'អំពី កូព្រៃ គ្រឿងបន្ថែមរស់ជាតិ (KouPrey)');
 
   const aboutContent = isEn
     ? (settings?.about_content && !/[\u1780-\u17FF]/.test(settings.about_content)
         ? settings.about_content
         : 'This is how KouPrey was born. Having experienced the cleanest, purest coffee on a mountainside in Peru, we struggled to find something like it after coming home — so we made it ourselves with unmatched passion and craft.')
     : (settings?.about_content ||
-        'នេះជាការចាប់ផ្តើមនៃ KouPrey។ បន្ទាប់ពីបានភ្លក់រសជាតិកាហ្វេដ៏បរិសុទ្ធបំផុតនៅលើជម្រាលភ្នំ យើងបានប្រឹងប្រែងស្វែងរកអ្វីដែលស្រដៀងគ្នានេះនៅពេលត្រឡប់មកវិញ — ដូច្នេះហើយយើងបានសម្រេចចិត្តបង្កើតវាដោយខ្លួនឯង។');
+        'នេះជាការចាប់ផ្តើមនៃ KouPrey។ បន្ទាប់ពីបានភ្លក់រសជាតិគ្រឿងបន្ថែមរស់ជាតិដ៏បរិសុទ្ធបំផុតនៅលើជម្រាលភ្នំ យើងបានប្រឹងប្រែងស្វែងរកអ្វីដែលស្រដៀងគ្នានេះនៅពេលត្រឡប់មកវិញ — ដូច្នេះហើយយើងបានសម្រេចចិត្តបង្កើតវាដោយខ្លួនឯង។');
 
   const exploreButtonText = isEn
     ? (settings?.about_explore_button && !/[\u1780-\u17FF]/.test(settings.about_explore_button) ? settings.about_explore_button : 'Explore Our Story')
@@ -62,7 +62,7 @@ export default function AboutPage() {
         ? settings.about_purpose_content
         : 'At KouPrey we do things differently — with purpose. Our goal is simple: make 100% organic, healthy, and delicious coffee accessible to as many people as possible. We are committed to delivering coffee that is better for you, the community, and our planet.')
     : (settings?.about_purpose_content ||
-        'នៅ KouPrey យើងធ្វើអ្វីៗខុសពីគេ — ដោយមានគោលបំណង។ គោលដៅរបស់យើងសាមញ្ញ៖ ធ្វើឱ្យកាហ្វេសរីរាង្គ មានសុខភាព និងឆ្ងាញ់អាចរកបានសម្រាប់មនុស្សជាច្រើនតាមដែលអាចធ្វើទៅបាន។ យើងប្តេជ្ញាចិត្តផ្តល់កាហ្វេដែលល្អជាងសម្រាប់អ្នក សហគមន៍ និងភពផែនដីរបស់យើង។');
+        'នៅ KouPrey យើងធ្វើអ្វីៗខុសពីគេ — ដោយមានគោលបំណង។ គោលដៅរបស់យើងសាមញ្ញ៖ ធ្វើឱ្យគ្រឿងបន្ថែមរស់ជាតិសរីរាង្គ មានសុខភាព និងឆ្ងាញ់អាចរកបានសម្រាប់មនុស្សជាច្រើនតាមដែលអាចធ្វើទៅបាន។ យើងប្តេជ្ញាចិត្តផ្តល់គ្រឿងបន្ថែមរស់ជាតិដែលល្អជាងសម្រាប់អ្នក សហគមន៍ និងភពផែនដីរបស់យើង។');
 
   const storyTitle = isEn
     ? (settings?.about_mission_title && !/[\u1780-\u17FF]/.test(settings.about_mission_title) ? settings.about_mission_title : 'Our Story & Mission')
@@ -73,7 +73,7 @@ export default function AboutPage() {
         ? settings.about_mission_content
         : 'We began with a love for clean coffee and a desire to share it. Over the years we have partnered with growers, refined our roasting, and expanded our blends — all while keeping quality and sustainability at the center of everything we do.')
     : (settings?.about_mission_content || settings?.about_story_content ||
-        'យើងចាប់ផ្តើមដោយស្រឡាញ់កាហ្វេស្អាត និងបំណងចង់ចែករំលែកវា។ ក្នុងរយៈពេលជាច្រើនឆ្នាំ យើងបានសហការជាមួយអ្នកផ្តល់ បង្កើតការដុតរបស់យើង និងពង្រីកជួររបស់យើង — ទាំងអស់នេះខណៈពេលដែលរក្សាគុណភាព និងចីរភាពនៅខ្លឹមសារនៃអ្វីៗទាំងអស់ដែលយើងធ្វើ។');
+        'យើងចាប់ផ្តើមដោយស្រឡាញ់គ្រឿងបន្ថែមរស់ជាតិស្អាត និងបំណងចង់ចែករំលែកវា។ ក្នុងរយៈពេលជាច្រើនឆ្នាំ យើងបានសហការជាមួយអ្នកផ្តល់ បង្កើតការដុតរបស់យើង និងពង្រីកជួររបស់យើង — ទាំងអស់នេះខណៈពេលដែលរក្សាគុណភាព និងចីរភាពនៅខ្លឹមសារនៃអ្វីៗទាំងអស់ដែលយើងធ្វើ។');
 
   const heroImage = about?.hero_image
     ? getImageUrl(about.hero_image)
@@ -106,18 +106,18 @@ export default function AboutPage() {
   const values = [
     {
       icon: Flame,
-      title: isEn ? 'Artisan Roasting' : 'ការដុតកាហ្វេបែបសិល្បៈ',
+      title: isEn ? 'Artisan Roasting' : 'ការដុតគ្រឿងបន្ថែមរស់ជាតិបែបសិល្បៈ',
       desc: isEn ? 'Roasted in small, precise batches to lock in every delicate note.' : 'ដុតក្នុងបរិមាណតូចៗយ៉ាងផ្ចិតផ្ចង់ ដើម្បីរក្សាក្លិន និងរសជាតិដិតជាប់។'
     },
     {
       icon: Award,
       title: isEn ? 'Gold Standard Quality' : 'គុណភាពស្តង់ដារមាស',
-      desc: isEn ? 'Rigorous quality checks from green bean selection to final cup.' : 'ត្រួតពិនិត្យយ៉ាងហ្មត់ចត់ ចាប់ពីគ្រាប់ឆៅរហូតដល់ពែងកាហ្វេរបស់អ្នក។'
+      desc: isEn ? 'Rigorous quality checks from green bean selection to final cup.' : 'ត្រួតពិនិត្យយ៉ាងហ្មត់ចត់ ចាប់ពីគ្រាប់ឆៅរហូតដល់ពែងគ្រឿងបន្ថែមរស់ជាតិរបស់អ្នក។'
     },
     {
       icon: Users,
       title: isEn ? 'Community First' : 'សហគមន៍ជាចម្បង',
-      desc: isEn ? 'Bringing coffee enthusiasts and passionate baristas together.' : 'ភ្ជាប់ទំនាក់ទំនងអ្នកស្រឡាញ់កាហ្វេ និងបារីស្តាប្រកបដោយក្តីស្រឡាញ់។'
+      desc: isEn ? 'Bringing coffee enthusiasts and passionate baristas together.' : 'ភ្ជាប់ទំនាក់ទំនងអ្នកស្រឡាញ់គ្រឿងបន្ថែមរស់ជាតិ និងបារីស្តាប្រកបដោយក្តីស្រឡាញ់។'
     },
     {
       icon: Clock,
@@ -184,7 +184,7 @@ export default function AboutPage() {
                     {isEn ? 'Artisan Sourced' : 'ប្រភពសម្រិតសម្រាំង'}
                   </p>
                   <p className="text-sm font-bold text-gray-900">
-                    {isEn ? '100% Pure Mountain Coffee' : 'កាហ្វេជម្រាលភ្នំធម្មជាតិសុទ្ធ ១០០%'}
+                    {isEn ? '100% Pure Mountain Coffee' : 'គ្រឿងបន្ថែមរស់ជាតិជម្រាលភ្នំធម្មជាតិសុទ្ធ ១០០%'}
                   </p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-md">

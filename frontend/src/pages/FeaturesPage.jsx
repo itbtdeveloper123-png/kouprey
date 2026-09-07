@@ -87,7 +87,7 @@ export default function FeaturesPage() {
           <div className="w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 mx-auto rounded-full" />
           <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
             {settings?.features_description || (language === 'km'
-              ? 'ស្វែងរកអ្វីដែលធ្វើឱ្យកាហ្វេរបស់យើងពិសេស — ចាប់ពីការស្វែងរក ដល់ការដុត និងការវេចខ្ចប់។'
+              ? 'ស្វែងរកអ្វីដែលធ្វើឱ្យគ្រឿងបន្ថែមរស់ជាតិរបស់យើងពិសេស — ចាប់ពីការស្វែងរក ដល់ការដុត និងការវេចខ្ចប់។'
               : 'Discover what makes our coffee and matcha unique — from origin to roasting and sustainability.')}
           </p>
         </div>

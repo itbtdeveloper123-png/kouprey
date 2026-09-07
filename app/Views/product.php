@@ -1993,7 +1993,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 				<h3 class="text-3xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-4 flex items-center justify-center tracking-tight">
 					<i class="fas fa-coffee text-yellow-500 mr-4"></i><?php echo htmlspecialchars(getSetting('our_products', 'Our Products')); ?>
 				</h3>
-				<p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto"><?php echo htmlspecialchars(getSetting('our_products_description', 'Discover our complete collection of premium coffee products')); ?></p>
+				<p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto"><?php echo htmlspecialchars(getSetting('our_products_description', $currentLanguage == 'km' ? 'ស្វែងរកផលិតផលទាំងអស់របស់យើង' : 'Discover our complete collection of premium coffee products')); ?></p>
 			</div>
 
 			<!-- Sidebar Layout -->
@@ -2827,7 +2827,7 @@ $topProducts = array_slice($topProducts, 0, 6);
                                                 <span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey Coffee')); ?></span>
                                         </div>
                                         <p class="text-gray-300 mb-4 leading-relaxed">
-                                                <?php echo htmlspecialchars(getSetting('site_description', 'Premium coffee beans and sustainable brewing solutions')); ?>
+                                                <?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>
                                         </p>
                                         <div class="space-y-2">
                                                 <div class="flex items-start">

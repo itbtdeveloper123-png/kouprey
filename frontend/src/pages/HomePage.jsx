@@ -142,7 +142,7 @@ export default function HomePage() {
             </h3>
             <p className="text-gray-500 text-base md:text-xl max-w-2xl mx-auto">
               {settings.our_products_description || (language === 'km'
-                ? 'ស្វែងយល់ពីបណ្តុំផលិតផលកាហ្វេ និងតែបៃតងលំដាប់ពិសេសរបស់យើង'
+                ? 'ស្វែងរកផលិតផលទាំងអស់របស់យើង'
                 : 'Discover our complete collection of premium coffee products')}
             </p>
           </div>
@@ -347,7 +347,7 @@ export default function HomePage() {
               {settings.location_title || (language === 'km' ? 'ទីតាំងរបស់យើង' : 'Our Locations')}
             </h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
-              {settings.location_desc || (language === 'km' ? 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។' : 'Come experience the aroma and taste of our premium coffee in person.')}
+              {settings.location_desc || (language === 'km' ? 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិគ្រឿងបន្ថែមរស់ជាតិគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។' : 'Come experience the aroma and taste of our premium coffee in person.')}
             </p>
           </div>
 

@@ -463,7 +463,7 @@ $privacyContent = getSetting('privacy_policy', '');
                         <img src="https://i.ibb.co/gLZY6fQr/Untitled-1-Recovered.png" alt="KouPrey Logo" class="h-8 w-auto mr-3">
                         <span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey Coffee')); ?></span>
                     </div>
-                    <p class="text-gray-300 mb-4 leading-relaxed"><?php echo htmlspecialchars(getSetting('site_description', 'Premium coffee beans and sustainable brewing solutions')); ?></p>
+                    <p class="text-gray-300 mb-4 leading-relaxed"><?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?></p>
                     <div class="space-y-2">
                         <div class="flex items-start"><i class="fas fa-map-marker-alt text-yellow-400 mt-1 mr-3"></i><span class="text-gray-300"><?php echo nl2br(htmlspecialchars(getSetting('company_address', 'Phnom Penh, Cambodia'))); ?></span></div>
                         <div class="flex items-center"><i class="fas fa-phone text-yellow-400 mr-3"></i><span class="text-gray-300"><?php echo htmlspecialchars(getSetting('company_phone', '+855 12 345 678')); ?></span></div>

@@ -632,7 +632,7 @@ foreach ($rawAssignments as $featureId => $productIds) {
 						<span class="text-xl font-bold text-yellow-400"><?php echo htmlspecialchars(getSetting('company_name', 'KouPrey Coffee')); ?></span>
 					</div>
 					<p class="text-gray-300 mb-4 leading-relaxed">
-						<?php echo htmlspecialchars(getSetting('site_description', 'Premium coffee beans and sustainable brewing solutions')); ?>
+						<?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>
 					</p>
 					<div class="space-y-2">
 						<div class="flex items-start">

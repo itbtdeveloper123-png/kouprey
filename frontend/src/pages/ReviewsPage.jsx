@@ -62,7 +62,7 @@ export default function ReviewsPage() {
           <div className="w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 mx-auto rounded-full" />
           <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
             {settings?.reviews_description || (language === 'km'
-              ? 'អានពីរបៀបដែលអតិថិជនចូលចិត្តកាហ្វេ និងផលិតផលរបស់យើង។'
+              ? 'អានពីរបៀបដែលអតិថិជនចូលចិត្តគ្រឿងបន្ថែមរស់ជាតិ និងផលិតផលរបស់យើង។'
               : 'Discover why coffee lovers across the country choose KouPrey for their daily caffeine ritual.')}
           </p>
         </div>

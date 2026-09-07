@@ -139,7 +139,7 @@ export default function ZigzagSpotlight({ products = [], onSelectCategory }) {
                 </h2>
                 <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-8">
                   {settings.syrup_collection_description || (language === 'km'
-                    ? 'បង្កើនឱជារសភេសជ្ជៈរបស់អ្នកជាមួយសុីរ៉ូធម្មជាតិដ៏ឈ្ងុយឆ្ងាញ់របស់យើង។ បង្កើតឡើងយ៉ាងផ្ចិតផ្ចង់ ដើម្បីនាំមកនូវភាពស្រស់បំព្រងដល់កាហ្វេ ស្រាក្រឡុក និងបង្អែមគ្រប់មុខ។'
+                    ? 'បង្កើនឱជារសភេសជ្ជៈរបស់អ្នកជាមួយសុីរ៉ូធម្មជាតិដ៏ឈ្ងុយឆ្ងាញ់របស់យើង។ បង្កើតឡើងយ៉ាងផ្ចិតផ្ចង់ ដើម្បីនាំមកនូវភាពស្រស់បំព្រងដល់គ្រឿងបន្ថែមរស់ជាតិ ស្រាក្រឡុក និងបង្អែមគ្រប់មុខ។'
                     : 'Enhance your beverages with our rich, flavorful syrups. Crafted for perfection, our collection brings a new dimension of taste to your coffee, cocktails, and desserts.')}
                 </p>
 
@@ -228,7 +228,7 @@ export default function ZigzagSpotlight({ products = [], onSelectCategory }) {
                 </h2>
                 <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-8">
                   {settings.powder_selection_description || (language === 'km'
-                    ? 'បង្កើតនូវភេសជ្ជៈដ៏ឈ្ងុយឆ្ងាញ់ និងមានរសជាតិរលូនជាមួយម្សៅតែបៃតង និងគ្រីមម៉ាធម្មជាតិរបស់យើង។ ស័ក្តិសមទាំងសម្រាប់ហាងកាហ្វេអាជីព និងការឆុងទទួលទាននៅផ្ទះ។'
+                    ? 'បង្កើតនូវភេសជ្ជៈដ៏ឈ្ងុយឆ្ងាញ់ និងមានរសជាតិរលូនជាមួយម្សៅតែបៃតង និងគ្រីមម៉ាធម្មជាតិរបស់យើង។ ស័ក្តិសមទាំងសម្រាប់ហាងគ្រឿងបន្ថែមរស់ជាតិអាជីព និងការឆុងទទួលទាននៅផ្ទះ។'
                     : 'Create smooth, velvety frappes and creamy signature drinks with our premium powders. Designed for professionals, loved by everyone.')}
                 </p>
 

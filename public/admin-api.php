@@ -1570,6 +1570,22 @@ switch ($action) {
                 }
             }
 
+            // Update specific site settings requested by user
+            try {
+                $phraseUpdates = [
+                    'our_products_description' => 'ស្វែងរកផលិតផលទាំងអស់របស់យើង',
+                    'site_description' => 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ'
+                ];
+                foreach ($phraseUpdates as $k => $newVal) {
+                    $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND language = 'km'");
+                    $stmt->execute([$newVal, $k]);
+                    if ($stmt->rowCount() > 0) {
+                        $details[] = "settings.$k (KM set to '$newVal')";
+                        $totalUpdated += $stmt->rowCount();
+                    }
+                }
+            } catch (Exception $e) {}
+
             if (function_exists('clearSettingsCache')) {
                 clearSettingsCache();
             }

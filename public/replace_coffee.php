@@ -57,6 +57,22 @@ foreach ($updates as $table => $columns) {
     }
 }
 
+// Update specific site settings requested by user
+try {
+    $phraseUpdates = [
+        'our_products_description' => 'ស្វែងរកផលិតផលទាំងអស់របស់យើង',
+        'site_description' => 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ'
+    ];
+    foreach ($phraseUpdates as $k => $newVal) {
+        $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ? AND language = 'km'");
+        $stmt->execute([$newVal, $k]);
+        if ($stmt->rowCount() > 0) {
+            echo "<p class='success'>✅ Setting <code>$k</code> (KM): បានកែប្រែទៅជា '<strong>$newVal</strong>'</p>";
+            $totalUpdated += $stmt->rowCount();
+        }
+    }
+} catch (Exception $e) {}
+
 // Clear settings memory cache
 if (function_exists('clearSettingsCache')) {
     clearSettingsCache();

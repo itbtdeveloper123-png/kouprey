@@ -70,7 +70,7 @@ export async function fetchBootstrap(lang = 'km') {
           company_name: lang === 'km' ? 'គោព្រៃ KouPrey' : 'KouPrey',
           company_logo: '/assets/images/product-medium.png',
           our_products: lang === 'km' ? 'ផលិតផលរបស់យើង' : 'Our Products',
-          our_products_description: lang === 'km' ? 'ស្វែងយល់ពីបណ្តុំផលិតផលកាហ្វេ និងតែបៃតងលំដាប់ពិសេសរបស់យើង' : 'Discover our complete collection of premium coffee products',
+          our_products_description: lang === 'km' ? 'ស្វែងរកផលិតផលទាំងអស់របស់យើង' : 'Discover our complete collection of premium coffee products',
           site_title: 'KouPrey Coffee & Matcha',
           phone: '012 345 678',
           email: 'info@kouprey.com',
@@ -80,7 +80,7 @@ export async function fetchBootstrap(lang = 'km') {
           social_tiktok: 'https://tiktok.com'
         },
         categories: [
-          { id: 1, base_category_id: 1, name: lang === 'km' ? 'កាហ្វេ (Coffee)' : 'Coffee' },
+          { id: 1, base_category_id: 1, name: lang === 'km' ? 'គ្រឿងបន្ថែមរស់ជាតិ (Coffee)' : 'Coffee' },
           { id: 2, base_category_id: 2, name: lang === 'km' ? 'តែបៃតង (Matcha)' : 'Matcha' },
           { id: 3, base_category_id: 3, name: lang === 'km' ? 'គ្រឿងផ្សំ (Ingredients)' : 'Ingredients' }
         ],
@@ -150,8 +150,8 @@ export async function fetchProducts({ lang = 'km', categoryId = null, baseCatego
       const sampleProducts = [
         {
           id: 1, base_product_id: 1, base_category_id: 1,
-          name: isKm ? 'កាហ្វេពិសេស KouPrey Signature' : 'KouPrey Signature Coffee',
-          category_name: isKm ? 'កាហ្វេ' : 'Coffee',
+          name: isKm ? 'គ្រឿងបន្ថែមរស់ជាតិពិសេស KouPrey Signature' : 'KouPrey Signature Coffee',
+          category_name: isKm ? 'គ្រឿងបន្ថែមរស់ជាតិ' : 'Coffee',
           price: 12.50, old_price: 15.00, avg_rating: 5.0, review_count: 34, featured: 1, best_seller: 1,
           image: 'assets/images/products/3IN1-MATCHA.png'
         },
@@ -164,8 +164,8 @@ export async function fetchProducts({ lang = 'km', categoryId = null, baseCatego
         },
         {
           id: 3, base_product_id: 3, base_category_id: 1,
-          name: isKm ? 'គ្រាប់កាហ្វេ Arabica Roast' : 'Arabica Medium Roast Beans',
-          category_name: isKm ? 'កាហ្វេ' : 'Coffee',
+          name: isKm ? 'គ្រាប់គ្រឿងបន្ថែមរស់ជាតិ Arabica Roast' : 'Arabica Medium Roast Beans',
+          category_name: isKm ? 'គ្រឿងបន្ថែមរស់ជាតិ' : 'Coffee',
           price: 14.00, old_price: 16.50, avg_rating: 4.8, review_count: 19, featured: 0, best_seller: 1,
           image: 'assets/images/products/3IN1-MATCHA.png'
         }

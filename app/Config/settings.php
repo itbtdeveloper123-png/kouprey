@@ -11,10 +11,30 @@ $GLOBALS['__SETTINGS_CACHE__'] = [];
 $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
 
 /**
- * Replace occurrences of 'កាហ្វេ' with 'គ្រឿងបន្ថែមរស់ជាតិ'
+ * Replace occurrences of 'កាហ្វេ' with 'គ្រឿងបន្ថែមរស់ជាតិ' and specific customized phrases
  */
 function replaceCoffeeKhmer($data) {
     if (is_string($data)) {
+        // Direct phrase replacements requested by user
+        $data = str_replace(
+            [
+                'ស្វែងរកកម្រងផលិតផលសុីហ្វេគុណភាពពេញលេញរបស់យើង',
+                'ស្វែងរកកម្រងផលិតផលកាហ្វេគុណភាពពេញលេញរបស់យើង',
+                'ស្វែងយល់ពីបណ្តុំផលិតផលគ្រឿងបន្ថែមរស់ជាតិ និងតែបៃតងលំដាប់ពិសេសរបស់យើង',
+                'ស្វែងយល់ពីបណ្តុំផលិតផលកាហ្វេ និងតែបៃតងលំដាប់ពិសេសរបស់យើង',
+                'គ្រាប់គ្រឿងបន្ថែមរស់ជាតិពិសេស និងដំណោះស្រាយការបង្កើតដែលមានចីរភាព',
+                'គ្រាប់កាហ្វេពិសេស និងដំណោះស្រាយការបង្កើតដែលមានចីរភាព'
+            ],
+            [
+                'ស្វែងរកផលិតផលទាំងអស់របស់យើង',
+                'ស្វែងរកផលិតផលទាំងអស់របស់យើង',
+                'ស្វែងរកផលិតផលទាំងអស់របស់យើង',
+                'ស្វែងរកផលិតផលទាំងអស់របស់យើង',
+                'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ',
+                'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ'
+            ],
+            $data
+        );
         return str_replace('កាហ្វេ', 'គ្រឿងបន្ថែមរស់ជាតិ', $data);
     }
     if (is_array($data)) {
@@ -99,6 +119,15 @@ function getSetting($key, $default = '', $language = null) {
     } elseif ($language !== 'en' && isset($GLOBALS['__SETTINGS_CACHE__']['en'][$key])) {
         // Fallback to English
         $val = $GLOBALS['__SETTINGS_CACHE__']['en'][$key];
+    }
+
+    if ($language === 'km') {
+        if ($key === 'our_products_description' && ($val === null || empty($val) || $val === $default || strpos($val, 'Discover') !== false)) {
+            $val = 'ស្វែងរកផលិតផលទាំងអស់របស់យើង';
+        }
+        if ($key === 'site_description' && ($val === null || empty($val) || $val === $default || strpos($val, 'Premium coffee') !== false)) {
+            $val = 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ';
+        }
     }
 
     if ($val === null) {

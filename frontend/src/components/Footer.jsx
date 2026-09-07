@@ -38,7 +38,7 @@ export default function Footer() {
   const companyAddress = settings.company_address || (language === 'km' ? '120408 សង្កាត់បឹងកក់ 2 ខណ្ឌទួលគោក រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា។' : '120408 Sangkat Boeung Kak 2, Khan Tuol Kouk, Phnom Penh, Cambodia.');
   const companyPhone = settings.company_phone || '+855 93 839 883';
   const companyEmail = settings.company_email || 'info@kouprey.asia';
-  const siteDescription = settings.site_description || (language === 'km' ? 'គ្រាប់កាហ្វេពិសេស និងដំណោះស្រាយការបង្កើតដែលមានចីរភាព' : 'Premium coffee beans and sustainable brewing solutions');
+  const siteDescription = settings.site_description || (language === 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions');
   
   const quickLinksTitle = settings.footer_quick_links || (language === 'km' ? 'តំណភ្ជាប់រហ័ស' : 'Quick Links');
   const homeText = settings.footer_home || (language === 'km' ? 'ទំព័រដើម' : 'Home');
