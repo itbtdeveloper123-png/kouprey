@@ -77,14 +77,14 @@ switch ($action) {
                 array_map(fn($f) => '/uploads/banners/' . basename($f), $banner2Files ?: [])
             );
 
-            echo json_encode([
+            echo json_encode(replaceCoffeeKhmer([
                 'success' => true,
                 'language' => $language,
                 'settings' => $settings,
                 'categories' => $categories,
                 'hero_images' => $heroImages,
                 'banners' => $banners
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -197,11 +197,11 @@ switch ($action) {
                 }
             }
 
-            echo json_encode([
+            echo json_encode(replaceCoffeeKhmer([
                 'success' => true,
                 'count' => count($products),
                 'products' => $products
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -240,14 +240,14 @@ switch ($action) {
         // Related products
         $relatedResult = $controller->getRelatedProducts($product['base_product_id'], $language);
         
-        echo json_encode([
+        echo json_encode(replaceCoffeeKhmer([
             'success' => true,
             'product' => $product,
             'reviews' => $reviewsResult['reviews'] ?? [],
             'avg_rating' => $reviewsResult['avg_rating'] ?? 0,
             'total_reviews' => $reviewsResult['total_reviews'] ?? 0,
             'related_products' => $relatedResult['related_products'] ?? []
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         break;
 
     case 'get_reviews':
@@ -278,13 +278,13 @@ switch ($action) {
             }
             $avg = $total > 0 ? round($sum / $total, 1) : 5.0;
 
-            echo json_encode([
+            echo json_encode(replaceCoffeeKhmer([
                 'success' => true,
                 'reviews' => $allReviews,
                 'total_reviews' => $total,
                 'avg_rating' => $avg,
                 'rating_counts' => $ratingCounts
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -318,7 +318,7 @@ switch ($action) {
                 return $group[$language] ?? ($group['en'] ?? reset($group));
             }, $featuresGrouped));
 
-            echo json_encode(['success' => true, 'features' => $features], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            echo json_encode(replaceCoffeeKhmer(['success' => true, 'features' => $features]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage(), 'features' => []]);
         }
@@ -342,13 +342,13 @@ switch ($action) {
                         return $group[$language] ?? ($group['en'] ?? reset($group));
                     }, $featuresGrouped));
 
-                    echo json_encode(['success' => true, 'page' => 'features', 'features' => $features], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    echo json_encode(replaceCoffeeKhmer(['success' => true, 'page' => 'features', 'features' => $features]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 case 'about':
                     $stmt = $pdo->query("SELECT * FROM about ORDER BY id DESC LIMIT 1");
                     $about = $stmt->fetch(PDO::FETCH_ASSOC);
-                    echo json_encode(['success' => true, 'page' => 'about', 'about' => $about ?: []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    echo json_encode(replaceCoffeeKhmer(['success' => true, 'page' => 'about', 'about' => $about ?: []]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 case 'privacy_policy':
@@ -358,7 +358,7 @@ switch ($action) {
                     if (empty($content)) {
                         $content = getSetting('privacy_policy_content', '', $language);
                     }
-                    echo json_encode(['success' => true, 'page' => 'privacy_policy', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    echo json_encode(replaceCoffeeKhmer(['success' => true, 'page' => 'privacy_policy', 'title' => $title, 'content' => $content]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 case 'terms_of_service':
@@ -368,9 +368,7 @@ switch ($action) {
                     if (empty($content)) {
                         $content = getSetting('terms_of_service_content', '', $language);
                     }
-                    echo json_encode(['success' => true, 'page' => 'terms_of_service', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                    break;
-                    echo json_encode(['success' => true, 'page' => 'terms_of_service', 'title' => $title, 'content' => $content], JSON_UNESCAPED_UNICODE);
+                    echo json_encode(replaceCoffeeKhmer(['success' => true, 'page' => 'terms_of_service', 'title' => $title, 'content' => $content]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
 
                 default:

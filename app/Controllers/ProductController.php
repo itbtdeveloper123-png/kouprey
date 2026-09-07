@@ -52,12 +52,12 @@ class ProductController {
             $statsStmt->execute([$baseProductId]);
             $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
-            return [
+            return replaceCoffeeKhmer([
                 'success' => true,
                 'reviews' => $reviews,
                 'avg_rating' => round($stats['avg_rating'], 1),
                 'total_reviews' => $stats['total_reviews']
-            ];
+            ]);
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -100,10 +100,10 @@ class ProductController {
             ");
             $stmt->execute($params);
 
-            return [
+            return replaceCoffeeKhmer([
                 'success' => true,
                 'products' => $stmt->fetchAll(PDO::FETCH_ASSOC)
-            ];
+            ]);
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -206,16 +206,28 @@ class ProductController {
                 }
             }
 
-            return [
+            return replaceCoffeeKhmer([
                 'success' => true,
                 'related_products' => $allRelated
-            ];
+            ]);
         } catch (Exception $e) {
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
                 'related_products' => []
             ];
+        }
+    }
+
+    // Get single product by primary key id
+    public function getProductById($id) {
+        try {
+            $stmt = $this->pdo->prepare("SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id AND c.language = p.language WHERE p.id = ? LIMIT 1");
+            $stmt->execute([$id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            return replaceCoffeeKhmer(['success' => true, 'product' => $product ?: null]);
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage(), 'product' => null];
         }
     }
 
@@ -233,7 +245,7 @@ class ProductController {
                 $product = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            return ['success' => true, 'product' => $product ?: null];
+            return replaceCoffeeKhmer(['success' => true, 'product' => $product ?: null]);
         } catch (Exception $e) {
             return ['success' => false, 'error' => $e->getMessage(), 'product' => null];
         }

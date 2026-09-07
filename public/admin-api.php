@@ -1532,6 +1532,54 @@ switch ($action) {
         }
         break;
 
+    // ── REPLACE COFFEE WITH គ្រឿងបន្ថែមរស់ជាតិ IN DATABASE ────────────────
+    case 'replace_coffee_in_db':
+        try {
+            $updates = [
+                'settings' => ['setting_value'],
+                'products' => ['name', 'description', 'detailed_description', 'ingredients', 'tasting_notes', 'brewing_instructions'],
+                'categories' => ['name', 'description'],
+                'about' => ['title', 'content'],
+                'reviews' => ['name', 'review'],
+                'features' => ['title', 'description'],
+                'product_related' => ['custom_name']
+            ];
+
+            $totalUpdated = 0;
+            $details = [];
+
+            foreach ($updates as $table => $columns) {
+                $check = $pdo->query("SHOW TABLES LIKE '$table'")->fetch();
+                if (!$check) continue;
+
+                $existingCols = [];
+                $colStmt = $pdo->query("SHOW COLUMNS FROM `$table`");
+                while ($col = $colStmt->fetch(PDO::FETCH_ASSOC)) {
+                    $existingCols[] = $col['Field'];
+                }
+
+                foreach ($columns as $col) {
+                    if (!in_array($col, $existingCols)) continue;
+
+                    $sql = "UPDATE `$table` SET `$col` = REPLACE(`$col`, 'កាហ្វេ', 'គ្រឿងបន្ថែមរស់ជាតិ') WHERE `$col` LIKE '%កាហ្វេ%'";
+                    $affected = $pdo->exec($sql);
+                    if ($affected > 0) {
+                        $details[] = "$table.$col ($affected rows)";
+                        $totalUpdated += $affected;
+                    }
+                }
+            }
+
+            if (function_exists('clearSettingsCache')) {
+                clearSettingsCache();
+            }
+
+            echo json_encode(['success' => true, 'total_updated' => $totalUpdated, 'details' => $details]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
     default:
         echo json_encode(['success' => false, 'error' => "Unknown action: $action"]);
 }

@@ -972,7 +972,7 @@ ob_start();
                                                             <div class="col-md-6 mb-2">
                                                                 <div class="input-group">
                                                                     <span class="input-group-text bg-light text-primary small fw-bold">KM</span>
-                                                                    <input type="text" name="about_title_km" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_title']['km'] ?? ''); ?>" placeholder="e.g. អំពីកាហ្វេគោកព្រៃ">
+                                                                    <input type="text" name="about_title_km" class="form-control" value="<?php echo htmlspecialchars($aboutSettings['about_title']['km'] ?? ''); ?>" placeholder="e.g. អំពីគ្រឿងបន្ថែមរស់ជាតិគោកព្រៃ">
                                                                 </div>
                                                             </div>
                                                         </div>

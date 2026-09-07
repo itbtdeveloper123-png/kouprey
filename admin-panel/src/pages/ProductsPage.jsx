@@ -1405,7 +1405,7 @@ export default function ProductsPage() {
                         type="text"
                         value={productForm.name_km}
                         onChange={(e) => setProductForm({ ...productForm, name_km: e.target.value })}
-                        placeholder="ឧ. កាហ្វេគោកព្រៃ ពិសេស"
+                        placeholder="ឧ. គ្រឿងបន្ថែមរស់ជាតិគោកព្រៃ ពិសេស"
                         className="w-full px-3.5 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                       />
                     </div>
@@ -2589,7 +2589,7 @@ export default function ProductsPage() {
                         type="text"
                         value={detailedForm.ingredients_km}
                         onChange={(e) => setDetailedForm({ ...detailedForm, ingredients_km: e.target.value })}
-                        placeholder="ឧ. គ្រាប់កាហ្វេអារ៉ាប៊ីកា ១០០%"
+                        placeholder="ឧ. គ្រឿងបន្ថែមរស់ជាតិអារ៉ាប៊ីកា ១០០%"
                         className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
                       />
                     </div>
@@ -2705,7 +2705,7 @@ export default function ProductsPage() {
                     type="text"
                     value={catForm.name_km}
                     onChange={(e) => setCatForm({ ...catForm, name_km: e.target.value })}
-                    placeholder="ឧ. គ្រាប់កាហ្វេសុទ្ធ"
+                    placeholder="ឧ. គ្រឿងបន្ថែមរស់ជាតិសុទ្ធ"
                     className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl"
                   />
                 </div>

@@ -217,7 +217,7 @@ const DEFAULT_LOCATION_SETTINGS = {
   location_title: { en: 'Our Locations', km: 'ទីតាំងរបស់យើង', type: 'text', description: 'Main section heading' },
   location_desc: {
     en: 'Come experience the aroma and taste of our premium coffee in person.',
-    km: 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។',
+    km: 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិគ្រឿងបន្ថែមរស់ជាតិគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។',
     type: 'textarea',
     description: 'Section description'
   },
@@ -1327,7 +1327,7 @@ export default function SettingsPage() {
                         type="text"
                         value={getVal('about', 'about_title', 'km')}
                         onChange={(e) => setVal('about', 'about_title', 'km', e.target.value)}
-                        placeholder="e.g. អំពីកាហ្វេគោកព្រៃ"
+                        placeholder="e.g. អំពីគ្រឿងបន្ថែមរស់ជាតិគោកព្រៃ"
                         className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                     </div>
@@ -2403,7 +2403,7 @@ export default function SettingsPage() {
                         <span className="text-[11px] font-semibold text-emerald-800 mb-1 block">Khmer (ភាសាខ្មែរ)</span>
                         <textarea
                           rows={2}
-                          value={getVal('location', 'location_desc', 'km', 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។')}
+                          value={getVal('location', 'location_desc', 'km', 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិគ្រឿងបន្ថែមរស់ជាតិគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។')}
                           onChange={(e) => setVal('location', 'location_desc', 'km', e.target.value)}
                           placeholder="ការពិពណ៌នាជាភាសាខ្មែរ..."
                           className="w-full p-2 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -2652,7 +2652,7 @@ export default function SettingsPage() {
                       {getVal('location', 'location_title', locationPreviewLang, locationPreviewLang === 'km' ? 'ទីតាំងរបស់យើង' : 'Our Locations')}
                     </h3>
                     <p className="text-gray-500 max-w-xl mx-auto text-xs sm:text-sm">
-                      {getVal('location', 'location_desc', locationPreviewLang, locationPreviewLang === 'km' ? 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិកាហ្វេគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។' : 'Come experience the aroma and taste of our premium coffee in person.')}
+                      {getVal('location', 'location_desc', locationPreviewLang, locationPreviewLang === 'km' ? 'សូមអញ្ជើញមកទទួលយកបទពិសោធន៍ក្លិនក្រអូប និងរសជាតិគ្រឿងបន្ថែមរស់ជាតិគុណភាពខ្ពស់របស់យើងដោយផ្ទាល់។' : 'Come experience the aroma and taste of our premium coffee in person.')}
                     </p>
                   </div>
 

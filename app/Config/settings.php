@@ -11,6 +11,21 @@ $GLOBALS['__SETTINGS_CACHE__'] = [];
 $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
 
 /**
+ * Replace occurrences of 'កាហ្វេ' with 'គ្រឿងបន្ថែមរស់ជាតិ'
+ */
+function replaceCoffeeKhmer($data) {
+    if (is_string($data)) {
+        return str_replace('កាហ្វេ', 'គ្រឿងបន្ថែមរស់ជាតិ', $data);
+    }
+    if (is_array($data)) {
+        foreach ($data as $k => $v) {
+            $data[$k] = replaceCoffeeKhmer($v);
+        }
+    }
+    return $data;
+}
+
+/**
  * Load all settings for requested language (and English fallback) in 1 query
  */
 function loadAllSettingsIntoCache($language = null) {
@@ -41,7 +56,7 @@ function loadAllSettingsIntoCache($language = null) {
         foreach ($rows as $row) {
             $lang = $row['language'];
             $key = $row['setting_key'];
-            $val = $row['setting_value'];
+            $val = replaceCoffeeKhmer($row['setting_value']);
             $cat = !empty($row['category']) ? $row['category'] : 'general';
 
             $GLOBALS['__SETTINGS_CACHE__'][$lang][$key] = $val;
@@ -87,7 +102,7 @@ function getSetting($key, $default = '', $language = null) {
     }
 
     if ($val === null) {
-        return $default;
+        return replaceCoffeeKhmer($default);
     }
 
     // Post-processing overrides for Rich Text Editor elements on Front-end (CDN Tailwind bypass)
@@ -114,7 +129,7 @@ function getSetting($key, $default = '', $language = null) {
         }
     }
 
-    return $val;
+    return replaceCoffeeKhmer($val);
 }
 
 /**
