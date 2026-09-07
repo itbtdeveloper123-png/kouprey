@@ -3001,10 +3001,10 @@ $topProducts = array_slice($topProducts, 0, 6);
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                                 <!-- Company Info -->
                                 <div class="col-span-1 md:col-span-2">
-                                        <div class="flex items-center mb-4">
-                                                <img src="https://i.ibb.co/Wv0j3ZTQ/logo.png" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-20 md:h-24 w-auto mr-4 object-contain filter drop-shadow-md">
-                                                <span class="text-base md:text-lg font-bold text-white tracking-wide"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
-                                        </div>
+					<div class="flex items-center gap-2 sm:gap-3 mb-4">
+						<img src="/kouprey/public/assets/images/logo.png" onerror="if(this.src.indexOf('assets/images/logo.png')===-1){this.src='assets/images/logo.png';}else{this.src='https://i.ibb.co/Wv0j3ZTQ/logo.png';}" alt="<?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey')); ?>" class="h-12 sm:h-14 md:h-16 w-auto object-contain filter drop-shadow-md shrink-0">
+						<span class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-wide leading-none whitespace-nowrap"><?php echo htmlspecialchars(getSetting('company_name', $currentLanguage == 'km' ? 'ហ្គោ ហ្គោ' : 'KouPrey Coffee')); ?></span>
+					</div>
                                         <p class="text-gray-300 mb-4 leading-relaxed">
                                                 <?php echo htmlspecialchars(getSetting('site_description', $currentLanguage == 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Premium coffee beans and sustainable brewing solutions')); ?>
                                         </p>
