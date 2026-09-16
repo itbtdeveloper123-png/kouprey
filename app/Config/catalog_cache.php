@@ -14,8 +14,8 @@ if (!function_exists('getCatalogData')) {
         $cacheDir = sys_get_temp_dir();
         $cacheFile = $cacheDir . '/kouprey_catalog_' . md5($currentLanguage) . '.cache';
 
-        // Check if cache file exists and is less than 5 minutes old
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < 300)) {
+        // Check if cache file exists, is less than 5 minutes old, and newer than this script
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < 300) && (filemtime($cacheFile) >= filemtime(__FILE__)) && !isset($_GET['flush_cache'])) {
             $cached = @unserialize(@file_get_contents($cacheFile));
             if (is_array($cached) && !empty($cached['products']) && !empty($cached['searchProducts'])) {
                 return $cached;
@@ -46,7 +46,13 @@ if (!function_exists('getCatalogData')) {
                     GROUP BY pr.base_product_id
                 ) review_stats ON p.base_product_id = review_stats.base_product_id
                 WHERE p.enabled = 1
-                ORDER BY p.sort_order ASC, p.featured DESC, p.id DESC
+                ORDER BY (
+                    CASE 
+                        WHEN c.base_category_id = '19' OR p.name LIKE '%Syrup%' OR p.name LIKE '%ស៊ីរ៉ូ%' OR p.name LIKE '%សុីរ៉ូ%' THEN 1
+                        WHEN c.base_category_id = '13' OR p.name LIKE '%Powder%' OR p.name LIKE '%ម្សៅ%' OR p.name LIKE '%Matcha%' THEN 2
+                        ELSE 3
+                    END
+                ) ASC, p.sort_order ASC, p.featured DESC, p.id DESC
             ");
             $stmt->execute();
             $allProducts = $stmt->fetchAll();
@@ -72,6 +78,38 @@ if (!function_exists('getCatalogData')) {
                     $products[] = reset($langVersions);
                 }
             }
+
+            // Sort products so Syrup (base_category_id 19) and Powder (base_category_id 13) appear first
+            usort($products, function($a, $b) {
+                $priority = function($p) {
+                    $baseCatId = (string)($p['base_category_id'] ?? '');
+                    $name = $p['name'] ?? '';
+                    if ($baseCatId === '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $name)) {
+                        return 1;
+                    }
+                    if ($baseCatId === '13' || preg_match('/powder|matcha|ម្សៅ/iu', $name)) {
+                        return 2;
+                    }
+                    return 3;
+                };
+
+                $pA = $priority($a);
+                $pB = $priority($b);
+                if ($pA !== $pB) {
+                    return $pA <=> $pB;
+                }
+                $featA = !empty($a['featured']) ? 1 : 0;
+                $featB = !empty($b['featured']) ? 1 : 0;
+                if ($featA !== $featB) {
+                    return $featB <=> $featA;
+                }
+                $soA = (int)($a['sort_order'] ?? 0);
+                $soB = (int)($b['sort_order'] ?? 0);
+                if ($soA !== $soB) {
+                    return $soA <=> $soB;
+                }
+                return (int)($b['id'] ?? 0) <=> (int)($a['id'] ?? 0);
+            });
             $allAvailableProducts = $products;
 
             // Create search index with all language versions
@@ -123,10 +161,28 @@ if (!function_exists('getCatalogData')) {
                 $searchProducts[] = $searchProduct;
             }
 
-            // Fetch categories for current language
-            $catStmt = $pdo->prepare("SELECT * FROM categories WHERE language = ? ORDER BY name ASC");
+            // Fetch categories for current language, prioritizing Syrup (19) and Powder (13) at the top
+            $catStmt = $pdo->prepare("
+                SELECT * FROM categories 
+                WHERE language = ? 
+                ORDER BY (
+                    CASE 
+                        WHEN base_category_id = '19' OR name LIKE '%Syrup%' OR name LIKE '%សុីរ៉ូ%' OR name LIKE '%ស៊ីរ៉ូ%' THEN 1
+                        WHEN base_category_id = '13' OR name LIKE '%Powder%' OR name LIKE '%ម្សៅ%' THEN 2
+                        ELSE 3
+                    END
+                ) ASC, name ASC
+            ");
             $catStmt->execute([$currentLanguage]);
             $categories = $catStmt->fetchAll();
+
+            // Fallback sort for categories to guarantee Syrup (1) and Powder (2) appear first
+            usort($categories, function($a, $b) {
+                $pA = ($a['base_category_id'] == '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $a['name'])) ? 1 : (($a['base_category_id'] == '13' || preg_match('/powder|matcha|ម្សៅ/iu', $a['name'])) ? 2 : 3);
+                $pB = ($b['base_category_id'] == '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $b['name'])) ? 1 : (($b['base_category_id'] == '13' || preg_match('/powder|matcha|ម្សៅ/iu', $b['name'])) ? 2 : 3);
+                if ($pA !== $pB) return $pA <=> $pB;
+                return strcmp($a['name'] ?? '', $b['name'] ?? '');
+            });
 
             $catalogData = [
                 'products' => $products,

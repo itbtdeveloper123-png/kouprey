@@ -45,6 +45,29 @@ foreach ($categories as $cat) {
     $categoryCounts[$catKey] = 0;
 }
 
+// Explicitly order categories: Syrup (19) first, Powder (13) second, followed by others
+uasort($cleanCategories, function($a, $b) {
+    $priority = function($c) {
+        $baseId = (string)($c['base_id'] ?? '');
+        $id = (string)($c['id'] ?? '');
+        $name = $c['name'] ?? '';
+        if ($baseId === '19' || $id === '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $name)) {
+            return 1;
+        }
+        if ($baseId === '13' || $id === '13' || preg_match('/powder|matcha|ម្សៅ/iu', $name)) {
+            return 2;
+        }
+        return 3;
+    };
+
+    $pA = $priority($a);
+    $pB = $priority($b);
+    if ($pA !== $pB) {
+        return $pA <=> $pB;
+    }
+    return strcmp($a['name'] ?? '', $b['name'] ?? '');
+});
+
 // Clean products array and associate with matching category
 $cleanProducts = [];
 foreach ($products as $p) {
@@ -112,20 +135,82 @@ foreach ($products as $p) {
     ];
 }
 
-// Select spotlight products for top compact banner slider (featured or best sellers, fallback to top products)
-$bannerProducts = array_values(array_filter($cleanProducts, function($p) {
-    return !empty($p['featured']) || !empty($p['best_seller']);
-}));
+// Explicitly sort products: Syrup first, Powder second, followed by others
+usort($cleanProducts, function($a, $b) {
+    $priority = function($p) {
+        $catKey = (string)($p['category_key'] ?? '');
+        $name = $p['name'] ?? '';
+        if ($catKey === '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $name)) {
+            return 1;
+        }
+        if ($catKey === '13' || preg_match('/powder|matcha|ម្សៅ/iu', $name)) {
+            return 2;
+        }
+        return 3;
+    };
+
+    $pA = $priority($a);
+    $pB = $priority($b);
+    if ($pA !== $pB) {
+        return $pA <=> $pB;
+    }
+    // Within same group: featured first, then best sellers, then newest
+    if (!empty($a['featured']) !== !empty($b['featured'])) {
+        return !empty($b['featured']) ? 1 : -1;
+    }
+    if (!empty($a['best_seller']) !== !empty($b['best_seller'])) {
+        return !empty($b['best_seller']) ? 1 : -1;
+    }
+    return $b['id'] <=> $a['id'];
+});
+
+// Select spotlight products for top compact banner slider, prioritizing Syrup and Powder
+$bannerProducts = [];
+
+// 1. Featured or best-selling Syrups and Powders first
+foreach ($cleanProducts as $p) {
+    $catKey = (string)($p['category_key'] ?? '');
+    $name = $p['name'] ?? '';
+    $isSyrupOrPowder = ($catKey === '19' || $catKey === '13' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ|powder|matcha|ម្សៅ/iu', $name));
+    if ($isSyrupOrPowder && (!empty($p['featured']) || !empty($p['best_seller']))) {
+        $bannerProducts[] = $p;
+    }
+    if (count($bannerProducts) >= 5) break;
+}
+
+// 2. Any other Syrups and Powders if we need more slides
+if (count($bannerProducts) < 5) {
+    foreach ($cleanProducts as $p) {
+        $catKey = (string)($p['category_key'] ?? '');
+        $name = $p['name'] ?? '';
+        $isSyrupOrPowder = ($catKey === '19' || $catKey === '13' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ|powder|matcha|ម្សៅ/iu', $name));
+        if ($isSyrupOrPowder) {
+            $exists = false;
+            foreach ($bannerProducts as $bp) {
+                if ($bp['id'] === $p['id']) {
+                    $exists = true;
+                    break;
+                }
+            }
+            if (!$exists) {
+                $bannerProducts[] = $p;
+            }
+        }
+        if (count($bannerProducts) >= 5) break;
+    }
+}
+
+// 3. Fallback to other featured or best seller products if fewer than 3
 if (count($bannerProducts) < 3) {
     foreach ($cleanProducts as $p) {
-        $alreadyIn = false;
+        $exists = false;
         foreach ($bannerProducts as $bp) {
             if ($bp['id'] === $p['id']) {
-                $alreadyIn = true;
+                $exists = true;
                 break;
             }
         }
-        if (!$alreadyIn) {
+        if (!$exists) {
             $bannerProducts[] = $p;
         }
         if (count($bannerProducts) >= 5) break;
@@ -620,17 +705,10 @@ $totalProductCount = count($cleanProducts);
                 <!-- Custom Fields / Table Specs (If available) -->
                 <div id="modal-custom-fields-box" class="hidden space-y-2"></div>
 
-                <!-- Action Buttons: Telegram Order / Inquire + Back -->
-                <div class="pt-2 space-y-2">
-                    <button id="modal-tg-order-btn" 
-                            onclick="inquireProductViaTelegram()" 
-                            class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 active:scale-98 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-sky-500/25 transition-all cursor-pointer">
-                        <i class="fab fa-telegram-plane text-base"></i>
-                        <span><?php echo $currentLanguage === 'km' ? 'ទាក់ទងកុម្ម៉ង់តាម Telegram' : 'Inquire / Order via Telegram'; ?></span>
-                    </button>
-
+                <!-- Back / Close Button -->
+                <div class="pt-2">
                     <button onclick="closeProductModal()" 
-                            class="w-full py-3 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-98 text-gray-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            class="w-full py-3.5 px-4 rounded-xl bg-gray-900 hover:bg-black active:scale-98 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer">
                         <i class="fas fa-arrow-left text-xs"></i>
                         <span><?php echo $currentLanguage === 'km' ? 'ត្រឡប់ទៅកាន់បញ្ជីផលិតផល' : 'Back to Product Catalog'; ?></span>
                     </button>
@@ -1161,46 +1239,6 @@ $totalProductCount = count($cleanProducts);
             if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
                 tg.BackButton.hide();
             }
-        }
-
-        // Direct Telegram Order / Inquiry Action
-        function inquireProductViaTelegram() {
-            if (!currentModalProduct) return;
-            hapticFeedback('medium');
-
-            const p = currentModalProduct;
-            const storeTg = '<?php echo addslashes($storeTelegram); ?>';
-            const tgUser = '<?php echo addslashes($tgUsername); ?>';
-
-            const textKhmer = `សួស្តី! ខ្ញុំចាប់អារម្មណ៍ផលិតផល៖\n📦 ${p.name}\n💰 តម្លៃ៖ $${p.price.toFixed(2)}`;
-            const textEn = `Hello! I would like to inquire about:\n📦 ${p.name}\n💰 Price: $${p.price.toFixed(2)}`;
-            const msg = CURRENT_LANG === 'km' ? textKhmer : textEn;
-
-            const encodedMsg = encodeURIComponent(msg);
-            let targetUrl = '';
-
-            if (tgUser) {
-                targetUrl = `https://t.me/${tgUser}?text=${encodedMsg}`;
-            } else if (storeTg) {
-                const sep = storeTg.includes('?') ? '&' : '?';
-                targetUrl = `${storeTg}${sep}text=${encodedMsg}`;
-            } else {
-                targetUrl = `https://t.me/Bos_Sauveli98?text=${encodedMsg}`;
-            }
-
-            if (tg && typeof tg.openTelegramLink === 'function') {
-                try {
-                    tg.openTelegramLink(targetUrl);
-                    return;
-                } catch (e) {}
-            }
-            if (tg && typeof tg.openLink === 'function') {
-                try {
-                    tg.openLink(targetUrl);
-                    return;
-                } catch (e) {}
-            }
-            window.open(targetUrl, '_blank');
         }
 
         // Setup Pull-Down / Swipe-to-Dismiss on Bottom Sheet

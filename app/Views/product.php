@@ -26,6 +26,50 @@ $allAvailableProducts = $catalogData['allAvailableProducts'];
 $searchProducts = $catalogData['searchProducts'];
 $categories = $catalogData['categories'];
 
+// Ensure categories have Syrup (base_category_id 19) first, Powder (base_category_id 13) second
+if (!empty($categories)) {
+    usort($categories, function($a, $b) {
+        $pA = ($a['base_category_id'] == '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $a['name'])) ? 1 : (($a['base_category_id'] == '13' || preg_match('/powder|matcha|ម្សៅ/iu', $a['name'])) ? 2 : 3);
+        $pB = ($b['base_category_id'] == '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $b['name'])) ? 1 : (($b['base_category_id'] == '13' || preg_match('/powder|matcha|ម្សៅ/iu', $b['name'])) ? 2 : 3);
+        if ($pA !== $pB) return $pA <=> $pB;
+        return strcmp($a['name'] ?? '', $b['name'] ?? '');
+    });
+}
+
+// Ensure default product ordering prioritizes Syrup first, then Powder, then others
+if (!empty($products)) {
+    usort($products, function($a, $b) {
+        $priority = function($p) {
+            $baseCatId = (string)($p['base_category_id'] ?? '');
+            $name = $p['name'] ?? '';
+            if ($baseCatId === '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $name)) {
+                return 1;
+            }
+            if ($baseCatId === '13' || preg_match('/powder|matcha|ម្សៅ/iu', $name)) {
+                return 2;
+            }
+            return 3;
+        };
+
+        $pA = $priority($a);
+        $pB = $priority($b);
+        if ($pA !== $pB) {
+            return $pA <=> $pB;
+        }
+        $featA = !empty($a['featured']) ? 1 : 0;
+        $featB = !empty($b['featured']) ? 1 : 0;
+        if ($featA !== $featB) {
+            return $featB <=> $featA;
+        }
+        $soA = (int)($a['sort_order'] ?? 0);
+        $soB = (int)($b['sort_order'] ?? 0);
+        if ($soA !== $soB) {
+            return $soA <=> $soB;
+        }
+        return (int)($b['id'] ?? 0) <=> (int)($a['id'] ?? 0);
+    });
+}
+
 
 // Function to generate star rating
 function generateStars($rating) {

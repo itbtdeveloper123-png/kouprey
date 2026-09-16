@@ -59,7 +59,13 @@ switch ($action) {
                     ) as product_count
                 FROM categories c
                 WHERE c.language = ?
-                ORDER BY c.name ASC
+                ORDER BY (
+                    CASE 
+                        WHEN c.base_category_id = 19 OR c.name LIKE '%Syrup%' OR c.name LIKE '%សុីរ៉ូ%' OR c.name LIKE '%ស៊ីរ៉ូ%' THEN 1
+                        WHEN c.base_category_id = 13 OR c.name LIKE '%Powder%' OR c.name LIKE '%ម្សៅ%' THEN 2
+                        ELSE 3
+                    END
+                ) ASC, c.name ASC
             ");
             $catStmt->execute([$language, $language]);
             $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -172,7 +178,13 @@ switch ($action) {
                     GROUP BY pr.base_product_id
                 ) review_stats ON p.base_product_id = review_stats.base_product_id
                 WHERE $whereSql
-                ORDER BY p.sort_order ASC, p.featured DESC, p.id DESC
+                ORDER BY (
+                    CASE 
+                        WHEN c.base_category_id = 19 OR p.name LIKE '%Syrup%' OR p.name LIKE '%ស៊ីរ៉ូ%' OR p.name LIKE '%សុីរ៉ូ%' THEN 1
+                        WHEN c.base_category_id = 13 OR p.name LIKE '%Powder%' OR p.name LIKE '%ម្សៅ%' OR p.name LIKE '%Matcha%' THEN 2
+                        ELSE 3
+                    END
+                ) ASC, p.sort_order ASC, p.featured DESC, p.id DESC
             ";
 
             $stmt = $pdo->prepare($sql);
