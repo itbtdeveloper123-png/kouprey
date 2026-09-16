@@ -314,29 +314,19 @@ $totalProductCount = count($cleanProducts);
             <div class="px-4 pb-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <!-- Store Logo -->
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/60 p-1 border border-orange-200/60 shadow-2xs flex items-center justify-center flex-shrink-0">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/60 p-1 border border-orange-200/60 shadow-2xs flex items-center justify-center flex-shrink-0">
                         <img src="<?php echo htmlspecialchars($storeLogo); ?>" 
                              alt="Logo" 
                              class="w-full h-full object-contain"
                              onerror="this.src='/kouprey/public/assets/images/logo.png'">
                     </div>
 
-                    <!-- Store Title & Greeting Subtitle -->
-                    <div class="flex flex-col justify-center min-w-0">
-                        <div class="flex items-center gap-1.5">
-                            <h1 class="text-base font-extrabold text-gray-900 tracking-tight leading-tight truncate">
-                                <?php echo htmlspecialchars($storeName); ?>
-                            </h1>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-orange-500 text-white shadow-2xs flex-shrink-0">GoGo</span>
-                        </div>
-
-                        <!-- Subtitle: Personalized Greeting or Store Tagline (without 'កាតាឡុក...') -->
-                        <div class="flex items-center gap-1 mt-0.5">
-                            <span id="user-greeting-badge" class="hidden text-[11px] font-semibold text-orange-600 bg-orange-50/80 border border-orange-200/60 px-2 py-0.5 rounded-full items-center gap-1 max-w-[220px] sm:max-w-xs truncate"></span>
-                            <span id="store-tagline" class="text-[11px] text-gray-400 font-medium">
-                                <?php echo $currentLanguage === 'km' ? 'ហាងផ្លូវការ' : 'Official Store'; ?>
-                            </span>
-                        </div>
+                    <!-- Store Title (Clean single line, perfectly centered vertically with logo) -->
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <h1 class="text-base sm:text-lg font-extrabold text-gray-900 tracking-tight leading-none truncate">
+                            <?php echo htmlspecialchars($storeName); ?>
+                        </h1>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-orange-500 text-white shadow-2xs flex-shrink-0">GoGo</span>
                     </div>
                 </div>
 
@@ -347,6 +337,13 @@ $totalProductCount = count($cleanProducts);
                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/80 text-gray-700 text-xs font-bold active:scale-95 transition-all shadow-2xs">
                         <span><?php echo $currentLanguage === 'km' ? '🇬🇧 EN' : '🇰🇭 ខ្មែរ'; ?></span>
                     </a>
+                </div>
+            </div>
+
+            <!-- Personalized Greeting Strip (Dedicated Row Above Search Bar) -->
+            <div id="user-greeting-container" class="hidden px-4 pb-2">
+                <div class="flex items-center gap-1.5 text-xs text-gray-700 font-medium">
+                    <span id="user-greeting-badge"></span>
                 </div>
             </div>
 
@@ -1267,9 +1264,9 @@ $totalProductCount = count($cleanProducts);
         // Telegram User Personalized Greeting (Full Name)
         function initUserGreeting() {
             try {
+                const container = document.getElementById('user-greeting-container');
                 const badge = document.getElementById('user-greeting-badge');
-                const tagline = document.getElementById('store-tagline');
-                if (!badge) return;
+                if (!container || !badge) return;
                 const user = tg?.initDataUnsafe?.user;
                 if (user) {
                     // Combine first_name and last_name for full name, fallback to username
@@ -1281,16 +1278,12 @@ $totalProductCount = count($cleanProducts);
 
                     if (fullName) {
                         const prefix = CURRENT_LANG === 'km' ? 'សួស្តី' : 'Hi';
-                        badge.innerHTML = `<span class="flex-shrink-0">👋</span><span class="truncate">${prefix}, <strong class="font-bold text-orange-700">${escapeHtml(fullName)}</strong></span>`;
-                        badge.classList.remove('hidden');
-                        badge.classList.add('inline-flex');
-                        if (tagline) tagline.classList.add('hidden');
+                        badge.innerHTML = `<span class="flex-shrink-0 text-sm">👋</span><span>${prefix}, <strong class="font-extrabold text-orange-600">${escapeHtml(fullName)}</strong></span>`;
+                        container.classList.remove('hidden');
                         return;
                     }
                 }
-                badge.classList.add('hidden');
-                badge.classList.remove('inline-flex');
-                if (tagline) tagline.classList.remove('hidden');
+                container.classList.add('hidden');
             } catch (e) {}
         }
 
