@@ -428,18 +428,21 @@ $totalProductCount = count($cleanProducts);
         // Telegram WebApp Setup
         const tg = window.Telegram?.WebApp;
         if (tg) {
-            tg.ready();
-            tg.expand();
             try {
-                tg.setHeaderColor('#ffffff');
-                tg.setBackgroundColor('#f8fafc');
+                tg.ready();
+                tg.expand();
+                // Only set colors if supported by Telegram client version (6.1+)
+                if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
+                    tg.setHeaderColor?.('#ffffff');
+                    tg.setBackgroundColor?.('#f8fafc');
+                }
             } catch (e) {}
         }
 
         // Haptic feedback helper
         function hapticFeedback(type = 'light') {
             try {
-                if (tg?.HapticFeedback) {
+                if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.HapticFeedback) {
                     if (type === 'selection') tg.HapticFeedback.selectionChanged();
                     else if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
                     else tg.HapticFeedback.impactOccurred('light');
@@ -681,8 +684,8 @@ $totalProductCount = count($cleanProducts);
             modal.classList.remove('sheet-hidden');
             document.body.style.overflow = 'hidden';
 
-            // Show Telegram BackButton when modal is open
-            if (tg?.BackButton) {
+            // Show Telegram BackButton when modal is open if supported
+            if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
                 tg.BackButton.show();
                 tg.BackButton.onClick(closeProductModal);
             }
@@ -695,8 +698,8 @@ $totalProductCount = count($cleanProducts);
             document.body.style.overflow = '';
             currentModalProduct = null;
 
-            // Hide Telegram BackButton
-            if (tg?.BackButton) {
+            // Hide Telegram BackButton if supported
+            if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
                 tg.BackButton.hide();
             }
         }
