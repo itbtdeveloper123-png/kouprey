@@ -113,8 +113,39 @@ $totalProductCount = count($cleanProducts);
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title><?php echo htmlspecialchars($storeName); ?> - GoGo Brand Catalog</title>
 
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Execute immediately in <head> so iOS Telegram receives expand before rendering
+        (function() {
+            function earlyTrigger() {
+                try {
+                    if (window.Telegram && window.Telegram.WebView && window.Telegram.WebView.postEvent) {
+                        window.Telegram.WebView.postEvent('web_app_expand');
+                        window.Telegram.WebView.postEvent('web_app_request_fullscreen');
+                        window.Telegram.WebView.postEvent('web_app_setup_swipe_behavior', false, { allow_vertical_swipe: false });
+                    }
+                    var tg = window.Telegram && window.Telegram.WebApp;
+                    if (tg) {
+                        if (typeof tg.ready === 'function') tg.ready();
+                        if (typeof tg.expand === 'function') tg.expand();
+                        if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
+                        if (typeof tg.requestFullscreen === 'function') tg.requestFullscreen();
+                    }
+                } catch(e) {}
+            }
+            earlyTrigger();
+            [20, 60, 120, 250, 450, 750, 1200, 2000].forEach(function(t) {
+                setTimeout(earlyTrigger, t);
+            });
+            window.addEventListener('DOMContentLoaded', earlyTrigger);
+            window.addEventListener('load', earlyTrigger);
+        })();
+    </script>
 
     <!-- Google Fonts (Kantumruy Pro & Plus Jakarta Sans) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
