@@ -21,6 +21,14 @@ $storeLogo = getSetting('company_logo', '');
 if (empty($storeLogo)) {
     $storeLogo = getSetting('site_logo', '/kouprey/public/assets/images/logo.png');
 }
+$storeTelegram = getSetting('social_telegram', 'https://t.me/Bos_Sauveli98');
+if (empty($storeTelegram)) {
+    $storeTelegram = 'https://t.me/Bos_Sauveli98';
+}
+$tgUsername = preg_replace('#^https?://t\.me/#i', '', trim($storeTelegram));
+$tgUsername = ltrim($tgUsername, '@');
+$tgUsername = explode('/', $tgUsername)[0];
+$tgUsername = explode('?', $tgUsername)[0];
 
 // Build clean categories list and initialize count
 $cleanCategories = [];
@@ -228,6 +236,22 @@ $totalProductCount = count($cleanProducts);
         }
         .sheet-content {
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+        }
+        .sheet-content.dragging {
+            transition: none !important;
+        }
+        .sheet-drag-handle {
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .img-fade-in {
+            opacity: 0;
+            transition: opacity 0.25s ease-in;
+        }
+        .img-fade-in.loaded {
+            opacity: 1;
         }
         .sheet-hidden .sheet-backdrop {
             opacity: 0;
@@ -300,9 +324,12 @@ $totalProductCount = count($cleanProducts);
                             <span><?php echo htmlspecialchars($storeName); ?></span>
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700">GoGo</span>
                         </h1>
-                        <p class="text-[11px] text-gray-500 font-medium">
-                            <?php echo $currentLanguage === 'km' ? 'កាតាឡុកផលិតផលផ្លូវការ' : 'Official Product Catalog'; ?>
-                        </p>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <p class="text-[11px] text-gray-500 font-medium">
+                                <?php echo $currentLanguage === 'km' ? 'កាតាឡុកផលិតផលផ្លូវការ' : 'Official Product Catalog'; ?>
+                            </p>
+                            <span id="user-greeting-badge" class="hidden text-[10px] text-orange-700 bg-orange-100 font-bold px-2 py-0.5 rounded-full border border-orange-200 items-center gap-1"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -484,10 +511,15 @@ $totalProductCount = count($cleanProducts);
         <div class="sheet-backdrop absolute inset-0 bg-black/60 backdrop-blur-xs" onclick="closeProductModal()"></div>
 
         <!-- Sheet Content -->
-        <div class="sheet-content relative bg-white w-full max-w-2xl mx-auto rounded-t-[2rem] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl z-10">
+        <div class="sheet-content relative bg-white w-full max-w-2xl mx-auto rounded-t-[2rem] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl z-10" id="sheet-content-el">
             
+            <!-- Pull-down Drag Handle Pill -->
+            <div class="w-full flex justify-center pt-2.5 pb-1 bg-white cursor-grab active:cursor-grabbing sheet-drag-handle" id="sheet-drag-handle">
+                <div class="w-10 h-1 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors"></div>
+            </div>
+
             <!-- Sticky Modal Top Header -->
-            <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-white sticky top-0 z-20">
+            <div class="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 bg-white sticky top-0 z-20">
                 <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
                     <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -509,7 +541,8 @@ $totalProductCount = count($cleanProducts);
                     <img id="modal-img" 
                          src="" 
                          alt="" 
-                         class="w-full h-full object-contain filter drop-shadow-md">
+                         class="w-full h-full object-contain filter drop-shadow-md img-fade-in"
+                         onerror="this.src='/kouprey/public/assets/images/logo.png'">
                     
                     <div id="modal-badges" class="absolute top-3 left-3 flex flex-col gap-1"></div>
                 </div>
@@ -583,10 +616,17 @@ $totalProductCount = count($cleanProducts);
                 <!-- Custom Fields / Table Specs (If available) -->
                 <div id="modal-custom-fields-box" class="hidden space-y-2"></div>
 
-                <!-- Back / Close Button -->
-                <div class="pt-2">
+                <!-- Action Buttons: Telegram Order / Inquire + Back -->
+                <div class="pt-2 space-y-2">
+                    <button id="modal-tg-order-btn" 
+                            onclick="inquireProductViaTelegram()" 
+                            class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 active:scale-98 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-sky-500/25 transition-all cursor-pointer">
+                        <i class="fab fa-telegram-plane text-base"></i>
+                        <span><?php echo $currentLanguage === 'km' ? 'ទាក់ទងកុម្ម៉ង់តាម Telegram' : 'Inquire / Order via Telegram'; ?></span>
+                    </button>
+
                     <button onclick="closeProductModal()" 
-                            class="w-full py-3 px-4 rounded-xl bg-gray-900 hover:bg-black active:scale-98 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all">
+                            class="w-full py-3 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-98 text-gray-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
                         <i class="fas fa-arrow-left text-xs"></i>
                         <span><?php echo $currentLanguage === 'km' ? 'ត្រឡប់ទៅកាន់បញ្ជីផលិតផល' : 'Back to Product Catalog'; ?></span>
                     </button>
@@ -780,8 +820,9 @@ $totalProductCount = count($cleanProducts);
                             <img src="${p.image}" 
                                  alt="${safeName}" 
                                  loading="lazy"
-                                 onerror="this.src='/kouprey/public/assets/images/product-medium.png'"
-                                 class="w-full h-full object-contain filter drop-shadow-xs group-hover:scale-105 transition-transform duration-300">
+                                 onload="this.classList.add('loaded')"
+                                 onerror="this.src='/kouprey/public/assets/images/product-medium.png'; this.classList.add('loaded')"
+                                 class="w-full h-full object-contain filter drop-shadow-xs group-hover:scale-105 transition-transform duration-300 img-fade-in">
                             
                             ${p.featured ? `
                                 <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-yellow-500 text-white text-[9px] font-bold shadow-xs flex items-center gap-1">
@@ -858,7 +899,7 @@ $totalProductCount = count($cleanProducts);
         });
 
         function clearSearch() {
-            hapticFeedback('light');
+            hapticFeedback('medium');
             searchQuery = '';
             searchInput.value = '';
             searchClearBtn.classList.add('hidden');
@@ -873,7 +914,11 @@ $totalProductCount = count($cleanProducts);
             hapticFeedback('light');
             currentModalProduct = product;
 
-            document.getElementById('modal-img').src = product.image;
+            const modalImg = document.getElementById('modal-img');
+            modalImg.classList.remove('loaded');
+            modalImg.onload = () => modalImg.classList.add('loaded');
+            modalImg.src = product.image;
+
             document.getElementById('modal-title').innerText = product.name;
             document.getElementById('modal-price').innerText = '$' + product.price.toFixed(2);
             document.getElementById('modal-category').innerText = product.category_name;
@@ -1114,6 +1159,119 @@ $totalProductCount = count($cleanProducts);
             }
         }
 
+        // Direct Telegram Order / Inquiry Action
+        function inquireProductViaTelegram() {
+            if (!currentModalProduct) return;
+            hapticFeedback('medium');
+
+            const p = currentModalProduct;
+            const storeTg = '<?php echo addslashes($storeTelegram); ?>';
+            const tgUser = '<?php echo addslashes($tgUsername); ?>';
+
+            const textKhmer = `សួស្តី! ខ្ញុំចាប់អារម្មណ៍ផលិតផល៖\n📦 ${p.name}\n💰 តម្លៃ៖ $${p.price.toFixed(2)}`;
+            const textEn = `Hello! I would like to inquire about:\n📦 ${p.name}\n💰 Price: $${p.price.toFixed(2)}`;
+            const msg = CURRENT_LANG === 'km' ? textKhmer : textEn;
+
+            const encodedMsg = encodeURIComponent(msg);
+            let targetUrl = '';
+
+            if (tgUser) {
+                targetUrl = `https://t.me/${tgUser}?text=${encodedMsg}`;
+            } else if (storeTg) {
+                const sep = storeTg.includes('?') ? '&' : '?';
+                targetUrl = `${storeTg}${sep}text=${encodedMsg}`;
+            } else {
+                targetUrl = `https://t.me/Bos_Sauveli98?text=${encodedMsg}`;
+            }
+
+            if (tg && typeof tg.openTelegramLink === 'function') {
+                try {
+                    tg.openTelegramLink(targetUrl);
+                    return;
+                } catch (e) {}
+            }
+            if (tg && typeof tg.openLink === 'function') {
+                try {
+                    tg.openLink(targetUrl);
+                    return;
+                } catch (e) {}
+            }
+            window.open(targetUrl, '_blank');
+        }
+
+        // Setup Pull-Down / Swipe-to-Dismiss on Bottom Sheet
+        function setupSheetDragToDismiss() {
+            const sheetContent = document.getElementById('sheet-content-el');
+            const dragHandle = document.getElementById('sheet-drag-handle');
+            if (!sheetContent || !dragHandle) return;
+
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+
+            const onTouchStart = (e) => {
+                const scrollBox = sheetContent.querySelector('.overflow-y-auto');
+                if (scrollBox && scrollBox.scrollTop > 5) return;
+
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                isDragging = true;
+                sheetContent.classList.add('dragging');
+            };
+
+            const onTouchMove = (e) => {
+                if (!isDragging) return;
+                currentY = e.touches[0].clientY;
+                const deltaY = currentY - startY;
+
+                if (deltaY > 0) {
+                    if (e.cancelable) e.preventDefault();
+                    sheetContent.style.transform = `translateY(${deltaY}px)`;
+                } else {
+                    sheetContent.style.transform = '';
+                }
+            };
+
+            const onTouchEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                sheetContent.classList.remove('dragging');
+
+                const deltaY = currentY - startY;
+                sheetContent.style.transform = '';
+
+                if (deltaY > 75) {
+                    closeProductModal();
+                }
+            };
+
+            dragHandle.addEventListener('touchstart', onTouchStart, { passive: true });
+            dragHandle.addEventListener('touchmove', onTouchMove, { passive: false });
+            dragHandle.addEventListener('touchend', onTouchEnd);
+
+            const modalHeader = sheetContent.querySelector('.border-b');
+            if (modalHeader) {
+                modalHeader.addEventListener('touchstart', onTouchStart, { passive: true });
+                modalHeader.addEventListener('touchmove', onTouchMove, { passive: false });
+                modalHeader.addEventListener('touchend', onTouchEnd);
+            }
+        }
+
+        // Telegram User Personalized Greeting
+        function initUserGreeting() {
+            try {
+                const badge = document.getElementById('user-greeting-badge');
+                if (!badge) return;
+                const user = tg?.initDataUnsafe?.user;
+                if (user && user.first_name) {
+                    const prefix = CURRENT_LANG === 'km' ? 'សួស្តី' : 'Hi';
+                    badge.innerHTML = `<span>👋</span><span>${prefix}, ${escapeHtml(user.first_name)}</span>`;
+                    badge.classList.remove('hidden');
+                    badge.classList.add('inline-flex');
+                }
+            } catch (e) {}
+        }
+
         // Compact Banner Swiper Controller
         let bannerSwiperInstance = null;
         function initBannerSwiper() {
@@ -1139,6 +1297,11 @@ $totalProductCount = count($cleanProducts);
                     },
                     touchRatio: 1,
                     resistanceRatio: 0.85,
+                    on: {
+                        slideChange: function() {
+                            hapticFeedback('selection');
+                        }
+                    }
                 });
             } catch (e) {}
         }
@@ -1147,8 +1310,14 @@ $totalProductCount = count($cleanProducts);
         document.addEventListener('DOMContentLoaded', () => {
             filterAndRenderProducts();
             initBannerSwiper();
+            setupSheetDragToDismiss();
+            initUserGreeting();
         });
-        window.addEventListener('load', initBannerSwiper);
+        window.addEventListener('load', () => {
+            initBannerSwiper();
+            setupSheetDragToDismiss();
+            initUserGreeting();
+        });
     </script>
 </body>
 </html>
