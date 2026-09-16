@@ -497,22 +497,30 @@ $totalProductCount = count($cleanProducts);
         }
 
         function forceExpandAndFullscreen() {
-            if (!tg) return;
             try {
-                // 1. Ready & expand to full viewport height (fixes partial/half-sheet "មួយកំណាត់")
-                if (typeof tg.ready === 'function') tg.ready();
-                if (typeof tg.expand === 'function' && !tg.isExpanded) {
+                // 1. Direct post to Telegram native WebView bridge (bypasses SDK version checks)
+                if (window.Telegram?.WebView?.postEvent) {
+                    window.Telegram.WebView.postEvent('web_app_expand');
+                    window.Telegram.WebView.postEvent('web_app_request_fullscreen');
+                    window.Telegram.WebView.postEvent('web_app_setup_swipe_behavior', false, { allow_vertical_swipe: false });
+                }
+
+                // 2. Ready & expand unconditionally (fixes sheet stuck in the middle "ពាក់កណ្តាល")
+                if (tg && typeof tg.ready === 'function') {
+                    tg.ready();
+                }
+                if (tg && typeof tg.expand === 'function') {
                     tg.expand();
                 }
 
-                // 2. Prevent vertical swipe drag from collapsing the sheet back down
-                if (typeof tg.disableVerticalSwipes === 'function') {
-                    tg.disableVerticalSwipes();
+                // 3. Prevent vertical swipe drag from collapsing the sheet back down
+                if (tg && typeof tg.disableVerticalSwipes === 'function') {
+                    try { tg.disableVerticalSwipes(); } catch (e) {}
                 }
 
-                // 3. Request true Fullscreen (Bot API 8.0+)
-                if (typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) {
-                    tg.requestFullscreen();
+                // 4. Request true Fullscreen (Bot API 8.0+)
+                if (tg && typeof tg.requestFullscreen === 'function') {
+                    try { tg.requestFullscreen(); } catch (e) {}
                 }
 
                 updateTelegramSafeArea();
@@ -546,7 +554,7 @@ $totalProductCount = count($cleanProducts);
                 // Multi-interval retry: iOS Telegram takes ~300ms to finish its modal presentation animation.
                 // Calling expand/fullscreen during that animation is dropped by iOS Telegram. Retrying at these
                 // intervals guarantees it expands to full height as soon as the transition completes.
-                [30, 100, 250, 450, 750, 1200, 2000].forEach(delay => {
+                [30, 100, 200, 350, 500, 750, 1200, 2000].forEach(delay => {
                     setTimeout(forceExpandAndFullscreen, delay);
                 });
 
@@ -555,10 +563,7 @@ $totalProductCount = count($cleanProducts);
                 tg.onEvent?.('safeAreaChanged', updateTelegramSafeArea);
                 tg.onEvent?.('contentSafeAreaChanged', updateTelegramSafeArea);
                 tg.onEvent?.('viewportChanged', () => {
-                    if (tg && !tg.isExpanded) {
-                        try { tg.expand(); } catch (e) {}
-                    }
-                    updateTelegramSafeArea();
+                    forceExpandAndFullscreen();
                 });
 
                 // Only set colors if supported by Telegram client version (6.1+)
