@@ -405,67 +405,6 @@ $totalProductCount = count($cleanProducts);
             border-radius: 9999px;
         }
 
-        /* Gentle Floating Micro-Animation for Bottom-Right Action Icons */
-        @keyframes gentleBob {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-5px);
-            }
-        }
-
-        .fab-float-1 {
-            animation: gentleBob 2.8s ease-in-out infinite;
-        }
-        .fab-float-2 {
-            animation: gentleBob 2.8s ease-in-out 0.4s infinite;
-        }
-        .fab-float-3 {
-            animation: gentleBob 2.8s ease-in-out 0.8s infinite;
-        }
-
-        .fab-float-1:active, .fab-float-2:active, .fab-float-3:active {
-            animation-play-state: paused;
-        }
-
-        /* Quick Actions Floating Dock - Direct positioning with no wrapper to fix mobile WebKit hit-testing */
-        #fab-dock {
-            position: fixed;
-            z-index: 40;
-            right: 16px;
-            bottom: calc(1.5rem + var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.625rem;
-            pointer-events: auto !important;
-            touch-action: manipulation;
-        }
-
-        @media (min-width: 672px) {
-            #fab-dock {
-                right: max(16px, calc(50% - 21rem + 16px));
-            }
-        }
-
-        #fab-dock a,
-        #fab-dock button {
-            cursor: pointer;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            min-width: 48px;
-            text-decoration: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        /* Pass touches on inner icon/div directly to the parent clickable anchor/button */
-        #fab-dock a *,
-        #fab-dock button * {
-            pointer-events: none;
-        }
-
         a, button, .category-pill, [onclick] {
             cursor: pointer;
             touch-action: manipulation;
@@ -736,53 +675,7 @@ $totalProductCount = count($cleanProducts);
 
     </div>
 
-    <!-- ───────────────────────────────────────────────────────────── -->
-    <!-- Floating Action Dock (Bottom Right Stack: Website, Maps, About) -->
-    <!-- ───────────────────────────────────────────────────────────── -->
-    <aside id="fab-dock" aria-label="Quick Actions" class="transition-all duration-300 select-none">
-        <!-- 1. Website Button -->
-        <a href="<?php echo htmlspecialchars($websiteUrl); ?>" 
-           onclick="return openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event);" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="group flex flex-col items-center focus:outline-none active:scale-95 transition-transform"
-           aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
-            <div class="fab-float-1 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 shadow-blue-500/10">
-                <i class="fas fa-globe text-base"></i>
-            </div>
-            <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
-                <?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>
-            </span>
-        </a>
 
-        <!-- 2. Maps Button -->
-        <a href="<?php echo htmlspecialchars($mapsUrl); ?>" 
-           onclick="return openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event);" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="group flex flex-col items-center focus:outline-none active:scale-95 transition-transform"
-           aria-label="<?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>">
-            <div class="fab-float-2 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 shadow-emerald-500/10">
-                <i class="fas fa-map-marker-alt text-base"></i>
-            </div>
-            <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
-                <?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>
-            </span>
-        </a>
-
-        <!-- 3. About Button -->
-        <button onclick="openAboutModal()" 
-                type="button"
-                class="group flex flex-col items-center focus:outline-none active:scale-95 transition-transform"
-                aria-label="<?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>">
-            <div class="fab-float-3 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 shadow-orange-500/10">
-                <i class="fas fa-info text-base"></i>
-            </div>
-            <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
-                <?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>
-            </span>
-        </button>
-    </aside>
 
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- About Store Modal (Bottom Sheet - Brand Info, Maps, Contact) -->
@@ -1706,8 +1599,6 @@ $totalProductCount = count($cleanProducts);
             modal.classList.remove('sheet-hidden');
             document.body.style.overflow = 'hidden';
 
-            const dock = document.getElementById('fab-dock');
-            if (dock) dock.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
 
             // Show Telegram BackButton when modal is open if supported
             if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
@@ -1807,8 +1698,6 @@ $totalProductCount = count($cleanProducts);
             document.body.style.overflow = '';
             currentModalProduct = null;
 
-            const dock = document.getElementById('fab-dock');
-            if (dock) dock.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
 
             // Hide Telegram BackButton if supported
             if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
@@ -1819,8 +1708,6 @@ $totalProductCount = count($cleanProducts);
         // Open & Close About Store Modal
         function openAboutModal() {
             hapticFeedback('medium');
-            const dock = document.getElementById('fab-dock');
-            if (dock) dock.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
 
             const modal = document.getElementById('about-modal');
             if (!modal) return;
@@ -1850,8 +1737,6 @@ $totalProductCount = count($cleanProducts);
             }, 260);
             document.body.style.overflow = '';
 
-            const dock = document.getElementById('fab-dock');
-            if (dock) dock.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
 
             if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
                 tg.BackButton.hide();
