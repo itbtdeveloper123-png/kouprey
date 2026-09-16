@@ -265,15 +265,8 @@ $totalProductCount = count($cleanProducts);
                     </div>
                 </div>
 
-                <!-- Actions: Fullscreen Button (if supported) + Language Switcher -->
+                <!-- Actions: Language Switcher -->
                 <div class="flex items-center gap-1.5">
-                    <button id="fullscreen-btn" 
-                            type="button"
-                            onclick="toggleFullscreen(); hapticFeedback('light');" 
-                            class="hidden inline-flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95 transition-all text-xs"
-                            title="<?php echo $currentLanguage === 'km' ? 'ពង្រីកពេញអេក្រង់' : 'Full Screen'; ?>">
-                        <i class="fas fa-expand text-[11px]" id="fullscreen-icon"></i>
-                    </button>
                     <a href="?lang=<?php echo $currentLanguage === 'km' ? 'en' : 'km'; ?>" 
                        onclick="hapticFeedback('selection')"
                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 active:scale-95 transition-all">
@@ -518,12 +511,6 @@ $totalProductCount = count($cleanProducts);
                     // Standard sheet mode (Telegram native header is present above webview)
                     document.documentElement.style.setProperty('--tg-safe-top-dynamic', '12px');
                 }
-
-                // Update fullscreen button icon
-                const fsIcon = document.getElementById('fullscreen-icon');
-                if (fsIcon && tg) {
-                    fsIcon.className = isFull ? 'fas fa-compress text-[11px]' : 'fas fa-expand text-[11px]';
-                }
             } catch (e) {}
         }
 
@@ -558,27 +545,8 @@ $totalProductCount = count($cleanProducts);
             } catch (e) {}
         }
 
-        function toggleFullscreen() {
-            if (!tg) return;
-            try {
-                if (tg.isFullscreen && typeof tg.exitFullscreen === 'function') {
-                    tg.exitFullscreen();
-                } else if (typeof tg.requestFullscreen === 'function') {
-                    tg.requestFullscreen();
-                } else if (typeof tg.expand === 'function') {
-                    tg.expand();
-                }
-            } catch (e) {}
-        }
-
         if (tg) {
             try {
-                // Show Fullscreen button if API is supported
-                const fsBtn = document.getElementById('fullscreen-btn');
-                if (fsBtn && (typeof tg.requestFullscreen === 'function' || typeof tg.expand === 'function')) {
-                    fsBtn.classList.remove('hidden');
-                }
-
                 // Immediate trigger
                 forceExpandAndFullscreen();
 
