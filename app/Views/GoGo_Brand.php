@@ -7,8 +7,15 @@ require_once __DIR__ . '/../Config/database.php';
 require_once __DIR__ . '/../Config/settings.php';
 require_once __DIR__ . '/../Config/catalog_cache.php';
 
-// Determine language (default to Khmer, support switch to English)
-$currentLanguage = isset($_GET['lang']) && $_GET['lang'] === 'en' ? 'en' : 'km';
+// Determine language (default to Khmer, support switch to English, persist in session)
+if (isset($_GET['lang'])) {
+    $currentLanguage = ($_GET['lang'] === 'en') ? 'en' : 'km';
+    $_SESSION['catalog_lang'] = $currentLanguage;
+} elseif (isset($_SESSION['catalog_lang'])) {
+    $currentLanguage = ($_SESSION['catalog_lang'] === 'en') ? 'en' : 'km';
+} else {
+    $currentLanguage = 'km';
+}
 
 // Load catalog data (Cached for sub-millisecond loading)
 $catalogData = getCatalogData($currentLanguage);
@@ -32,6 +39,28 @@ $tgUsername = preg_replace('#^https?://t\.me/#i', '', trim($storeTelegram));
 $tgUsername = ltrim($tgUsername, '@');
 $tgUsername = explode('/', $tgUsername)[0];
 $tgUsername = explode('?', $tgUsername)[0];
+
+// Contact, Location & About Settings
+$storePhone = getSetting('company_phone', '+855 12 345 678');
+$storeEmail = getSetting('company_email', 'info@kouprey.com');
+$storeAddress = getSetting('company_address', $currentLanguage === 'km' ? 'រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា' : 'Phnom Penh, Cambodia');
+$storeHours = getSetting('company_hours', $currentLanguage === 'km' ? 'រៀងរាល់ថ្ងៃ: 7:00 ព្រឹក - 8:00 យប់' : 'Daily: 7:00 AM - 8:00 PM');
+$storeDescription = getSetting('site_description', $currentLanguage === 'km' ? 'ធ្វើឱ្យគ្រឿងភេសជ្ជៈរបស់អ្នកកាន់តែមានរស់ជាតិ' : 'Make your beverages more delicious');
+
+// External Links
+$mapsUrl = getSetting('google_map_link', 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA');
+if (empty($mapsUrl)) {
+    $mapsUrl = 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA';
+}
+
+$siteUrlSetting = getSetting('site_url', '');
+if (!empty($siteUrlSetting) && filter_var($siteUrlSetting, FILTER_VALIDATE_URL)) {
+    $websiteUrl = $siteUrlSetting;
+} else {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $websiteUrl = $protocol . $host . '/kouprey/public/';
+}
 
 // Build clean categories list and initialize count
 $cleanCategories = [];
@@ -422,6 +451,24 @@ $totalProductCount = count($cleanProducts);
                         </h1>
                     </div>
                 </div>
+
+                <!-- Language Switcher Pill (KM | EN) -->
+                <div class="flex items-center bg-gray-100/90 p-0.5 rounded-xl border border-gray-200/80 shadow-2xs flex-shrink-0" role="group" aria-label="Language Switcher">
+                    <button onclick="switchLanguage('km')" 
+                            type="button"
+                            title="Khmer"
+                            aria-label="Khmer Language"
+                            class="px-2.5 py-1 rounded-lg text-xs transition-all <?php echo $currentLanguage === 'km' ? 'bg-white text-orange-600 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-semibold'; ?>">
+                        KM
+                    </button>
+                    <button onclick="switchLanguage('en')" 
+                            type="button"
+                            title="English"
+                            aria-label="English Language"
+                            class="px-2.5 py-1 rounded-lg text-xs transition-all <?php echo $currentLanguage === 'en' ? 'bg-white text-orange-600 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-semibold'; ?>">
+                        EN
+                    </button>
+                </div>
             </div>
 
             <!-- Personalized Greeting Strip (Dedicated Row Above Search Bar) -->
@@ -476,7 +523,7 @@ $totalProductCount = count($cleanProducts);
         <!-- ───────────────────────────────────────────────────────────── -->
         <!-- Products Catalog Grid (Mobile 2-Column) -->
         <!-- ───────────────────────────────────────────────────────────── -->
-        <main class="flex-1 px-3.5 pt-3 pb-8">
+        <main class="flex-1 px-3.5 pt-3 pb-28">
             <!-- ───────────────────────────────────────────────────────────── -->
             <!-- Top Compact Product Banner Slider (Spotlight) -->
             <!-- ───────────────────────────────────────────────────────────── -->
@@ -589,6 +636,207 @@ $totalProductCount = count($cleanProducts);
             </div>
         </main>
 
+    </div>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Floating Action Dock (Bottom Right Stack: Website, Maps, About) -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 pointer-events-none z-40 flex justify-end">
+        <aside id="fab-dock" aria-label="Quick Actions" class="flex flex-col items-center gap-2.5 pointer-events-auto transition-all duration-300">
+            <!-- 1. Website Button -->
+            <button onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>')" 
+                    type="button"
+                    class="group flex flex-col items-center focus:outline-none"
+                    aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
+                <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 group-active:scale-95 shadow-blue-500/10">
+                    <i class="fas fa-globe text-base"></i>
+                </div>
+                <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
+                    <?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>
+                </span>
+            </button>
+
+            <!-- 2. Maps Button -->
+            <button onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>')" 
+                    type="button"
+                    class="group flex flex-col items-center focus:outline-none"
+                    aria-label="<?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>">
+                <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 group-active:scale-95 shadow-emerald-500/10">
+                    <i class="fas fa-map-marker-alt text-base"></i>
+                </div>
+                <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
+                    <?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>
+                </span>
+            </button>
+
+            <!-- 3. About Button -->
+            <button onclick="openAboutModal()" 
+                    type="button"
+                    class="group flex flex-col items-center focus:outline-none"
+                    aria-label="<?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>">
+                <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 group-active:scale-95 shadow-orange-500/10">
+                    <i class="fas fa-info text-base"></i>
+                </div>
+                <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
+                    <?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>
+                </span>
+            </button>
+        </aside>
+    </div>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- About Store Modal (Bottom Sheet - Brand Info, Maps, Contact) -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <div id="about-modal" class="fixed inset-0 z-50 sheet-hidden flex flex-col justify-end" style="display: none;">
+        <!-- Backdrop -->
+        <div class="sheet-backdrop absolute inset-0 bg-black/60 backdrop-blur-xs" onclick="closeAboutModal()"></div>
+
+        <!-- Sheet Content -->
+        <div class="sheet-content relative bg-white w-full max-w-2xl mx-auto rounded-t-[2rem] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl z-10" id="about-sheet-content-el">
+            
+            <!-- Pull-down Drag Handle Pill -->
+            <div class="w-full flex justify-center pt-2.5 pb-1 bg-white cursor-grab active:cursor-grabbing sheet-drag-handle" id="about-drag-handle">
+                <div class="w-10 h-1 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors"></div>
+            </div>
+
+            <!-- Sticky Modal Top Header -->
+            <div class="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 bg-white sticky top-0 z-20">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        <?php echo $currentLanguage === 'km' ? 'អំពី ហ្គោ ហ្គោ' : 'About GoGo Brand'; ?>
+                    </span>
+                </div>
+                <button onclick="closeAboutModal()" 
+                        aria-label="Close"
+                        class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-xs active:scale-90 transition-all">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Scrollable Body with Store Details -->
+            <div class="overflow-y-auto px-5 pt-3 pb-8 space-y-4">
+                
+                <!-- Brand Header Card -->
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-orange-50/80 via-white to-orange-50/30 border border-orange-100 flex items-center gap-3.5 shadow-2xs">
+                    <div class="w-14 h-14 rounded-2xl bg-white p-1.5 border border-orange-200/60 shadow-xs flex items-center justify-center flex-shrink-0">
+                        <img src="<?php echo htmlspecialchars($storeLogo); ?>" 
+                             alt="Logo" 
+                             class="w-full h-full object-contain"
+                             onerror="this.src='/kouprey/public/assets/images/logo.png'">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-extrabold text-gray-900 leading-tight">
+                            <?php echo htmlspecialchars($storeName); ?>
+                        </h3>
+                        <p class="text-xs text-orange-600 font-semibold mt-0.5 leading-snug">
+                            <?php echo htmlspecialchars($storeDescription); ?>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Info List Cards -->
+                <div class="space-y-2.5">
+                    <!-- Address / Location Card -->
+                    <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-map-marker-alt text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-gray-800">
+                                <?php echo $currentLanguage === 'km' ? 'អាសយដ្ឋាន' : 'Address'; ?>
+                            </h4>
+                            <p class="text-xs text-gray-600 mt-0.5 leading-relaxed">
+                                <?php echo htmlspecialchars($storeAddress); ?>
+                            </p>
+                            <button onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>')" 
+                                    type="button"
+                                    class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
+                                <i class="fas fa-location-arrow text-[10px]"></i>
+                                <span><?php echo $currentLanguage === 'km' ? 'មើលលើ Google Maps' : 'Open in Google Maps'; ?></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Business Hours Card -->
+                    <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-clock text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-gray-800">
+                                <?php echo $currentLanguage === 'km' ? 'ម៉ោងធ្វើការ' : 'Business Hours'; ?>
+                            </h4>
+                            <p class="text-xs text-gray-600 mt-0.5 leading-relaxed">
+                                <?php echo htmlspecialchars($storeHours); ?>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Contact & Telegram Card -->
+                    <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-phone-volume text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-gray-800">
+                                <?php echo $currentLanguage === 'km' ? 'ទំនាក់ទំនង' : 'Contact & Support'; ?>
+                            </h4>
+                            <p class="text-xs text-gray-600 mt-0.5">
+                                <?php echo htmlspecialchars($storePhone); ?>
+                            </p>
+                            <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                <?php if (!empty($storePhone)): ?>
+                                <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $storePhone); ?>" 
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold active:scale-95 transition-all">
+                                    <i class="fas fa-phone text-[10px]"></i>
+                                    <span><?php echo $currentLanguage === 'km' ? 'ទូរស័ព្ទ' : 'Call'; ?></span>
+                                </a>
+                                <?php endif; ?>
+                                <button onclick="openTelegramOrder(null)" 
+                                        type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
+                                    <i class="fab fa-telegram-plane text-[10px]"></i>
+                                    <span><?php echo $currentLanguage === 'km' ? 'ផ្ញើសារ Telegram' : 'Telegram Chat'; ?></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Official Website Link Card -->
+                    <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-globe text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-gray-800">
+                                <?php echo $currentLanguage === 'km' ? 'គេហទំព័រផ្លូវការ' : 'Official Website'; ?>
+                            </h4>
+                            <p class="text-xs text-gray-500 mt-0.5 truncate">
+                                <?php echo htmlspecialchars($websiteUrl); ?>
+                            </p>
+                            <button onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>')" 
+                                    type="button"
+                                    class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
+                                <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                                <span><?php echo $currentLanguage === 'km' ? 'ចូលមើលគេហទំព័រ' : 'Visit Website'; ?></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back / Close Button -->
+                <div class="pt-2">
+                    <button onclick="closeAboutModal()" 
+                            type="button"
+                            class="w-full py-3.5 px-4 rounded-xl bg-gray-900 hover:bg-black active:scale-98 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                        <span><?php echo $currentLanguage === 'km' ? 'ត្រឡប់ទៅកាន់បញ្ជីផលិតផល' : 'Back to Product Catalog'; ?></span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <!-- ───────────────────────────────────────────────────────────── -->
@@ -851,6 +1099,31 @@ $totalProductCount = count($cleanProducts);
                     else tg.HapticFeedback.impactOccurred('light');
                 }
             } catch (e) {}
+        }
+
+        // Switch Language Helper (KM / EN)
+        function switchLanguage(lang) {
+            hapticFeedback('selection');
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('lang', lang);
+                window.location.href = url.toString();
+            } catch (e) {
+                window.location.href = '?lang=' + encodeURIComponent(lang);
+            }
+        }
+
+        // Open External Links via Telegram SDK if available
+        function openExternalUrl(url) {
+            hapticFeedback('medium');
+            if (!url) return;
+            try {
+                if (tg && typeof tg.openLink === 'function') {
+                    tg.openLink(url);
+                    return;
+                }
+            } catch (e) {}
+            window.open(url, '_blank');
         }
 
         // Normalize Khmer Unicode typo: ស + ុ (U+17BB) + ី (U+17B8) -> ស + ៊ (U+17CA, Triisap) + ី (U+17B8) = ស៊ី
@@ -1262,6 +1535,9 @@ $totalProductCount = count($cleanProducts);
             modal.classList.remove('sheet-hidden');
             document.body.style.overflow = 'hidden';
 
+            const dock = document.getElementById('fab-dock');
+            if (dock) dock.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
+
             // Show Telegram BackButton when modal is open if supported
             if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
                 tg.BackButton.show();
@@ -1360,16 +1636,61 @@ $totalProductCount = count($cleanProducts);
             document.body.style.overflow = '';
             currentModalProduct = null;
 
+            const dock = document.getElementById('fab-dock');
+            if (dock) dock.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
+
             // Hide Telegram BackButton if supported
             if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
                 tg.BackButton.hide();
             }
         }
 
-        // Setup Pull-Down / Swipe-to-Dismiss on Bottom Sheet
-        function setupSheetDragToDismiss() {
-            const sheetContent = document.getElementById('sheet-content-el');
-            const dragHandle = document.getElementById('sheet-drag-handle');
+        // Open & Close About Store Modal
+        function openAboutModal() {
+            hapticFeedback('medium');
+            const dock = document.getElementById('fab-dock');
+            if (dock) dock.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
+
+            const modal = document.getElementById('about-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            modal.offsetHeight;
+            modal.classList.remove('sheet-hidden');
+            document.body.style.overflow = 'hidden';
+
+            const sheetBody = document.querySelector('#about-modal .overflow-y-auto');
+            if (sheetBody) sheetBody.scrollTop = 0;
+
+            if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(closeAboutModal);
+            }
+        }
+
+        function closeAboutModal() {
+            hapticFeedback('light');
+            const modal = document.getElementById('about-modal');
+            if (!modal) return;
+            modal.classList.add('sheet-hidden');
+            setTimeout(() => {
+                if (modal.classList.contains('sheet-hidden')) {
+                    modal.style.display = 'none';
+                }
+            }, 260);
+            document.body.style.overflow = '';
+
+            const dock = document.getElementById('fab-dock');
+            if (dock) dock.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
+
+            if (tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1') && tg.BackButton) {
+                tg.BackButton.hide();
+            }
+        }
+
+        // Setup Pull-Down / Swipe-to-Dismiss on Bottom Sheets
+        function bindDragToDismiss(sheetContentId, dragHandleId, closeFn) {
+            const sheetContent = document.getElementById(sheetContentId);
+            const dragHandle = document.getElementById(dragHandleId);
             if (!sheetContent || !dragHandle) return;
 
             let startY = 0;
@@ -1408,7 +1729,7 @@ $totalProductCount = count($cleanProducts);
                 sheetContent.style.transform = '';
 
                 if (deltaY > 75) {
-                    closeProductModal();
+                    closeFn();
                 }
             };
 
@@ -1422,6 +1743,11 @@ $totalProductCount = count($cleanProducts);
                 modalHeader.addEventListener('touchmove', onTouchMove, { passive: false });
                 modalHeader.addEventListener('touchend', onTouchEnd);
             }
+        }
+
+        function setupSheetDragToDismiss() {
+            bindDragToDismiss('sheet-content-el', 'sheet-drag-handle', closeProductModal);
+            bindDragToDismiss('about-sheet-content-el', 'about-drag-handle', closeAboutModal);
         }
 
         // Telegram User Personalized Greeting (Full Name)
