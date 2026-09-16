@@ -183,6 +183,27 @@ $totalProductCount = count($cleanProducts);
             pointer-events: none;
         }
 
+        /* Telegram Safe Area Top Spacing */
+        :root {
+            --app-safe-top: 64px;
+        }
+
+        @supports (padding-top: env(safe-area-inset-top)) {
+            :root {
+                --app-safe-top: max(64px, calc(var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px))) + 16px));
+            }
+        }
+
+        .tg-safe-header {
+            padding-top: var(--tg-safe-top-dynamic, var(--app-safe-top));
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --app-safe-top: 16px;
+            }
+        }
+
         button, .category-pill, [onclick] {
             cursor: pointer;
             touch-action: manipulation;
@@ -195,11 +216,11 @@ $totalProductCount = count($cleanProducts);
     <div class="w-full max-w-2xl mx-auto flex flex-col min-h-screen bg-white shadow-xs border-x border-gray-100">
 
         <!-- ───────────────────────────────────────────────────────────── -->
-        <!-- Top Sticky Header: Brand + Language Toggle + Search -->
+        <!-- Top Sticky Header: Safe Top Padding + Brand + Search + Category Pills -->
         <!-- ───────────────────────────────────────────────────────────── -->
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100/80 px-4 pt-3 pb-3">
-            <div class="flex items-center justify-between gap-3 mb-2.5">
-                <!-- Brand Logo & Title -->
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100/80 shadow-2xs tg-safe-header">
+            <!-- Brand Row -->
+            <div class="px-4 pb-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center p-1 border border-orange-200/50 overflow-hidden flex-shrink-0">
                         <img src="<?php echo htmlspecialchars($storeLogo); ?>" 
@@ -227,46 +248,46 @@ $totalProductCount = count($cleanProducts);
             </div>
 
             <!-- Live Instant Search Bar -->
-            <div class="relative">
-                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                <input type="text" 
-                       id="search-input" 
-                       placeholder="<?php echo $currentLanguage === 'km' ? 'ស្វែងរកឈ្មោះផលិតផល...' : 'Search products...'; ?>" 
-                       class="w-full bg-gray-100 text-gray-900 placeholder-gray-400 text-xs sm:text-sm pl-9 pr-8 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:bg-white transition-all">
-                <button id="search-clear-btn" 
-                        onclick="clearSearch()" 
-                        class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center text-[10px] hover:bg-gray-400">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="px-4 pb-2.5">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" 
+                           id="search-input" 
+                           placeholder="<?php echo $currentLanguage === 'km' ? 'ស្វែងរកឈ្មោះផលិតផល...' : 'Search products...'; ?>" 
+                           class="w-full bg-gray-100 text-gray-900 placeholder-gray-400 text-xs sm:text-sm pl-9 pr-8 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:bg-white transition-all">
+                    <button id="search-clear-btn" 
+                            onclick="clearSearch()" 
+                            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center text-[10px] hover:bg-gray-400">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Horizontal Category Filter Pills Row -->
+            <div class="border-t border-gray-100 px-3 py-2">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth" id="category-pills">
+                    <!-- All Products Pill -->
+                    <button onclick="selectCategory('all', this)" 
+                            data-cat-key="all"
+                            class="category-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-orange-500 text-white shadow-xs">
+                        <span><?php echo $currentLanguage === 'km' ? 'ទាំងអស់' : 'All'; ?></span>
+                        <span class="ml-1 opacity-85 text-[10px]">(<?php echo $totalProductCount; ?>)</span>
+                    </button>
+
+                    <!-- Database Category Pills -->
+                    <?php foreach ($cleanCategories as $catKey => $cat): 
+                        $count = $categoryCounts[$catKey] ?? 0;
+                    ?>
+                        <button onclick="selectCategory('<?php echo htmlspecialchars($catKey); ?>', this)" 
+                                data-cat-key="<?php echo htmlspecialchars($catKey); ?>"
+                                class="category-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all bg-gray-100 text-gray-700 hover:bg-gray-200">
+                            <span><?php echo htmlspecialchars($cat['name']); ?></span>
+                            <span class="ml-1 text-[10px] text-gray-400">(<?php echo $count; ?>)</span>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </header>
-
-        <!-- ───────────────────────────────────────────────────────────── -->
-        <!-- Horizontal Category Filter Pills -->
-        <!-- ───────────────────────────────────────────────────────────── -->
-        <div class="sticky top-[106px] z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 px-3 py-2.5">
-            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth" id="category-pills">
-                <!-- All Products Pill -->
-                <button onclick="selectCategory('all', this)" 
-                        data-cat-key="all"
-                        class="category-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-orange-500 text-white shadow-xs">
-                    <span><?php echo $currentLanguage === 'km' ? 'ទាំងអស់' : 'All'; ?></span>
-                    <span class="ml-1 opacity-85 text-[10px]">(<?php echo $totalProductCount; ?>)</span>
-                </button>
-
-                <!-- Database Category Pills -->
-                <?php foreach ($cleanCategories as $catKey => $cat): 
-                    $count = $categoryCounts[$catKey] ?? 0;
-                ?>
-                    <button onclick="selectCategory('<?php echo htmlspecialchars($catKey); ?>', this)" 
-                            data-cat-key="<?php echo htmlspecialchars($catKey); ?>"
-                            class="category-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all bg-gray-100 text-gray-700 hover:bg-gray-200">
-                        <span><?php echo htmlspecialchars($cat['name']); ?></span>
-                        <span class="ml-1 text-[10px] text-gray-400">(<?php echo $count; ?>)</span>
-                    </button>
-                <?php endforeach; ?>
-            </div>
-        </div>
 
         <!-- ───────────────────────────────────────────────────────────── -->
         <!-- Products Catalog Grid (Mobile 2-Column) -->
@@ -441,12 +462,25 @@ $totalProductCount = count($cleanProducts);
         let searchQuery = '';
         let currentModalProduct = null;
 
-        // Telegram WebApp Setup
+        // Telegram WebApp Setup & Safe Area Padding
         const tg = window.Telegram?.WebApp;
+        function updateTelegramSafeArea() {
+            try {
+                const top = tg?.contentSafeAreaInset?.top || tg?.safeAreaInset?.top || 0;
+                if (top > 0) {
+                    document.documentElement.style.setProperty('--tg-safe-top-dynamic', `${top + 8}px`);
+                }
+            } catch (e) {}
+        }
+
         if (tg) {
             try {
                 tg.ready();
                 tg.expand();
+                updateTelegramSafeArea();
+                tg.onEvent?.('safeAreaChanged', updateTelegramSafeArea);
+                tg.onEvent?.('contentSafeAreaChanged', updateTelegramSafeArea);
+
                 // Only set colors if supported by Telegram client version (6.1+)
                 if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
                     tg.setHeaderColor?.('#ffffff');
@@ -658,29 +692,159 @@ $totalProductCount = count($cleanProducts);
             const customBox = document.getElementById('modal-custom-fields-box');
             customBox.innerHTML = '';
             if (product.custom_fields && Object.keys(product.custom_fields).length > 0) {
-                let cfHtml = `<div class="bg-gray-50/80 p-3.5 rounded-xl border border-gray-100 space-y-2">
-                    <h4 class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
-                        <i class="fas fa-list text-orange-500 text-[11px]"></i>
-                        <span>${CURRENT_LANG === 'km' ? 'លក្ខណៈបច្ចេកទេស' : 'Specifications'}</span>
-                    </h4>`;
+                const textRows = [];
+                const tableCards = [];
 
                 for (const [key, field] of Object.entries(product.custom_fields)) {
-                    if (field && typeof field === 'object') {
-                        const label = field.name?.[CURRENT_LANG] || field.name?.en || key;
-                        const val = field.value?.[CURRENT_LANG] || field.value?.en || '';
-                        if (val) {
-                            cfHtml += `
-                                <div class="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
-                                    <span class="text-gray-500">${escapeHtml(label)}:</span>
-                                    <span class="font-bold text-gray-800">${escapeHtml(val)}</span>
-                                </div>
-                            `;
+                    // Ignore internal keys or empty fields
+                    if (key === 'show_in_collection' || typeof field === 'boolean' || field === null) continue;
+
+                    if (typeof field === 'object') {
+                        // Check if it's a structured table (e.g. Nutrition Facts)
+                        if (field.type === 'table' && Array.isArray(field.value) && field.value.length > 0) {
+                            tableCards.push(field);
+                        } else {
+                            const label = field.name?.[CURRENT_LANG] || field.name?.en || (typeof field.name === 'string' ? field.name : key);
+                            let val = '';
+                            if (field.value && typeof field.value === 'object') {
+                                val = field.value[CURRENT_LANG] || field.value.en || '';
+                            } else if (field.value !== undefined && field.value !== null) {
+                                val = String(field.value);
+                            }
+                            if (val && String(val).trim()) {
+                                textRows.push({ label: String(label), value: String(val).trim() });
+                            }
                         }
+                    } else if (typeof field === 'string' && field.trim()) {
+                        textRows.push({ label: key, value: field.trim() });
                     }
                 }
-                cfHtml += `</div>`;
-                customBox.innerHTML = cfHtml;
-                customBox.classList.remove('hidden');
+
+                let cfHtml = '';
+
+                // Helper to format values with clean line breaks
+                const formatSpecValue = (val) => {
+                    const rawLines = val.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                    if (rawLines.length > 1) {
+                        return '<div class="space-y-1.5">' + rawLines.map((line, idx) => `
+                            <div class="${idx > 0 ? 'pt-1.5 border-t border-dashed border-gray-100' : ''} leading-relaxed text-gray-800">
+                                ${escapeHtml(line)}
+                            </div>
+                        `).join('') + '</div>';
+                    }
+                    return `<div class="leading-relaxed text-gray-800 font-medium">${escapeHtml(val)}</div>`;
+                };
+
+                // 1. General Specifications Table Card
+                if (textRows.length > 0) {
+                    let rowsHtml = '';
+                    textRows.forEach((row, idx) => {
+                        const cleanLabel = row.label.trim().replace(/[:：៖\s]+$/, '');
+                        const valHtml = formatSpecValue(row.value);
+                        const isEven = idx % 2 === 1;
+
+                        rowsHtml += `
+                            <tr class="border-b border-gray-100 last:border-0 hover:bg-orange-50/20 transition-colors">
+                                <td class="w-[105px] min-w-[95px] max-w-[120px] py-2.5 px-3 bg-gray-50/80 text-gray-700 font-bold text-xs align-top border-r border-gray-100 leading-snug select-none">
+                                    ${escapeHtml(cleanLabel)}
+                                </td>
+                                <td class="py-2.5 px-3.5 ${isEven ? 'bg-gray-50/30' : 'bg-white'} text-gray-800 text-xs leading-relaxed align-top">
+                                    ${valHtml}
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    cfHtml += `
+                        <div class="rounded-2xl overflow-hidden border border-gray-200/90 bg-white shadow-2xs">
+                            <div class="flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-white border-b border-orange-100/70">
+                                <span class="w-6 h-6 rounded-lg bg-orange-500/10 text-orange-600 flex items-center justify-center text-xs">
+                                    <i class="fas fa-clipboard-list text-[11px]"></i>
+                                </span>
+                                <h4 class="font-bold text-gray-900 text-xs tracking-tight">
+                                    ${CURRENT_LANG === 'km' ? 'លក្ខណៈបច្ចេកទេស' : 'Product Specifications'}
+                                </h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 2. Specialized Data Table Cards (e.g. Nutrition Facts)
+                if (tableCards.length > 0) {
+                    tableCards.forEach(tCard => {
+                        const tableName = tCard.name?.[CURRENT_LANG] || tCard.name?.en || (CURRENT_LANG === 'km' ? 'ព័ត៌មានអាហារូបត្ថម្ភ' : 'Nutrition Information');
+                        let tRowsHtml = '';
+
+                        tCard.value.forEach((row, idx) => {
+                            const rowLabel = row.label?.[CURRENT_LANG] || row.label?.en || '';
+                            let valArr = [];
+                            if (Array.isArray(row.value)) {
+                                valArr = row.value.map(v => (typeof v === 'object' && v !== null ? (v[CURRENT_LANG] || v.en || '') : String(v)));
+                            } else if (typeof row.value === 'object' && row.value !== null) {
+                                valArr = [row.value[CURRENT_LANG] || row.value.en || ''];
+                            } else if (row.value !== undefined && row.value !== null) {
+                                valArr = [String(row.value)];
+                            }
+
+                            const val1 = valArr[0] || '-';
+                            const val2 = valArr[1] || '';
+                            const isEven = idx % 2 === 1;
+
+                            tRowsHtml += `
+                                <tr class="border-b border-gray-100 last:border-0 hover:bg-emerald-50/20 transition-colors">
+                                    <td class="w-[105px] min-w-[95px] max-w-[120px] py-2 px-3 bg-gray-50/70 text-gray-700 font-semibold border-r border-gray-100 align-middle">
+                                        ${escapeHtml(rowLabel)}
+                                    </td>
+                                    <td class="py-2 px-3.5 ${isEven ? 'bg-gray-50/30' : 'bg-white'} text-gray-900 font-medium align-middle">
+                                        ${escapeHtml(val1)}
+                                    </td>
+                                    ${val2 ? `
+                                        <td class="py-2 px-3 ${isEven ? 'bg-gray-50/30' : 'bg-white'} text-right text-gray-500 font-medium text-[11px] align-middle">
+                                            ${escapeHtml(val2)}
+                                        </td>
+                                    ` : ''}
+                                </tr>
+                            `;
+                        });
+
+                        cfHtml += `
+                            <div class="rounded-2xl overflow-hidden border border-gray-200/90 bg-white shadow-2xs mt-2.5">
+                                <div class="flex items-center justify-between px-3.5 py-2.5 bg-gradient-to-r from-emerald-50/90 via-teal-50/30 to-white border-b border-emerald-100/70">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xs">
+                                            <i class="fas fa-heart-pulse text-[11px]"></i>
+                                        </span>
+                                        <h4 class="font-bold text-gray-900 text-xs tracking-tight">
+                                            ${escapeHtml(tableName)}
+                                        </h4>
+                                    </div>
+                                    <span class="text-[10px] text-gray-400 font-medium">100g / NRV%</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-xs text-left border-collapse">
+                                        <tbody>
+                                            ${tRowsHtml}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                if (cfHtml) {
+                    customBox.innerHTML = cfHtml;
+                    customBox.classList.remove('hidden');
+                } else {
+                    customBox.classList.add('hidden');
+                }
             } else {
                 customBox.classList.add('hidden');
             }
