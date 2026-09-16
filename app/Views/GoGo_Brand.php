@@ -312,32 +312,39 @@ $totalProductCount = count($cleanProducts);
         <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100/80 shadow-2xs tg-safe-header">
             <!-- Brand Row -->
             <div class="px-4 pb-2.5 flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center p-1 border border-orange-200/50 overflow-hidden flex-shrink-0">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <!-- Store Logo -->
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/60 p-1 border border-orange-200/60 shadow-2xs flex items-center justify-center flex-shrink-0">
                         <img src="<?php echo htmlspecialchars($storeLogo); ?>" 
                              alt="Logo" 
                              class="w-full h-full object-contain"
                              onerror="this.src='/kouprey/public/assets/images/logo.png'">
                     </div>
-                    <div>
-                        <h1 class="text-base font-bold text-gray-900 leading-tight flex items-center gap-1.5">
-                            <span><?php echo htmlspecialchars($storeName); ?></span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700">GoGo</span>
-                        </h1>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <p class="text-[11px] text-gray-500 font-medium">
-                                <?php echo $currentLanguage === 'km' ? 'កាតាឡុកផលិតផលផ្លូវការ' : 'Official Product Catalog'; ?>
-                            </p>
-                            <span id="user-greeting-badge" class="hidden text-[10px] text-orange-700 bg-orange-100 font-bold px-2 py-0.5 rounded-full border border-orange-200 items-center gap-1"></span>
+
+                    <!-- Store Title & Greeting Subtitle -->
+                    <div class="flex flex-col justify-center min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <h1 class="text-base font-extrabold text-gray-900 tracking-tight leading-tight truncate">
+                                <?php echo htmlspecialchars($storeName); ?>
+                            </h1>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-orange-500 text-white shadow-2xs flex-shrink-0">GoGo</span>
+                        </div>
+
+                        <!-- Subtitle: Personalized Greeting or Store Tagline (without 'កាតាឡុក...') -->
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span id="user-greeting-badge" class="hidden text-[11px] font-semibold text-orange-600 bg-orange-50/80 border border-orange-200/60 px-2 py-0.5 rounded-full items-center gap-1"></span>
+                            <span id="store-tagline" class="text-[11px] text-gray-400 font-medium">
+                                <?php echo $currentLanguage === 'km' ? 'ហាងផ្លូវការ' : 'Official Store'; ?>
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Actions: Language Switcher -->
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-shrink-0">
                     <a href="?lang=<?php echo $currentLanguage === 'km' ? 'en' : 'km'; ?>" 
                        onclick="hapticFeedback('selection')"
-                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 active:scale-95 transition-all">
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/80 text-gray-700 text-xs font-bold active:scale-95 transition-all shadow-2xs">
                         <span><?php echo $currentLanguage === 'km' ? '🇬🇧 EN' : '🇰🇭 ខ្មែរ'; ?></span>
                     </a>
                 </div>
@@ -1261,13 +1268,19 @@ $totalProductCount = count($cleanProducts);
         function initUserGreeting() {
             try {
                 const badge = document.getElementById('user-greeting-badge');
+                const tagline = document.getElementById('store-tagline');
                 if (!badge) return;
                 const user = tg?.initDataUnsafe?.user;
                 if (user && user.first_name) {
                     const prefix = CURRENT_LANG === 'km' ? 'សួស្តី' : 'Hi';
-                    badge.innerHTML = `<span>👋</span><span>${prefix}, ${escapeHtml(user.first_name)}</span>`;
+                    badge.innerHTML = `<span>👋</span><span>${prefix}, <strong class="font-bold text-orange-700">${escapeHtml(user.first_name)}</strong></span>`;
                     badge.classList.remove('hidden');
                     badge.classList.add('inline-flex');
+                    if (tagline) tagline.classList.add('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('inline-flex');
+                    if (tagline) tagline.classList.remove('hidden');
                 }
             } catch (e) {}
         }
