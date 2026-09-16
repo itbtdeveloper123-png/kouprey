@@ -332,7 +332,7 @@ $totalProductCount = count($cleanProducts);
 
                         <!-- Subtitle: Personalized Greeting or Store Tagline (without 'កាតាឡុក...') -->
                         <div class="flex items-center gap-1 mt-0.5">
-                            <span id="user-greeting-badge" class="hidden text-[11px] font-semibold text-orange-600 bg-orange-50/80 border border-orange-200/60 px-2 py-0.5 rounded-full items-center gap-1"></span>
+                            <span id="user-greeting-badge" class="hidden text-[11px] font-semibold text-orange-600 bg-orange-50/80 border border-orange-200/60 px-2 py-0.5 rounded-full items-center gap-1 max-w-[220px] sm:max-w-xs truncate"></span>
                             <span id="store-tagline" class="text-[11px] text-gray-400 font-medium">
                                 <?php echo $currentLanguage === 'km' ? 'ហាងផ្លូវការ' : 'Official Store'; ?>
                             </span>
@@ -1264,24 +1264,33 @@ $totalProductCount = count($cleanProducts);
             }
         }
 
-        // Telegram User Personalized Greeting
+        // Telegram User Personalized Greeting (Full Name)
         function initUserGreeting() {
             try {
                 const badge = document.getElementById('user-greeting-badge');
                 const tagline = document.getElementById('store-tagline');
                 if (!badge) return;
                 const user = tg?.initDataUnsafe?.user;
-                if (user && user.first_name) {
-                    const prefix = CURRENT_LANG === 'km' ? 'សួស្តី' : 'Hi';
-                    badge.innerHTML = `<span>👋</span><span>${prefix}, <strong class="font-bold text-orange-700">${escapeHtml(user.first_name)}</strong></span>`;
-                    badge.classList.remove('hidden');
-                    badge.classList.add('inline-flex');
-                    if (tagline) tagline.classList.add('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                    badge.classList.remove('inline-flex');
-                    if (tagline) tagline.classList.remove('hidden');
+                if (user) {
+                    // Combine first_name and last_name for full name, fallback to username
+                    const nameParts = [user.first_name, user.last_name].filter(p => typeof p === 'string' && p.trim().length > 0);
+                    let fullName = nameParts.join(' ').trim();
+                    if (!fullName && user.username) {
+                        fullName = user.username;
+                    }
+
+                    if (fullName) {
+                        const prefix = CURRENT_LANG === 'km' ? 'សួស្តី' : 'Hi';
+                        badge.innerHTML = `<span class="flex-shrink-0">👋</span><span class="truncate">${prefix}, <strong class="font-bold text-orange-700">${escapeHtml(fullName)}</strong></span>`;
+                        badge.classList.remove('hidden');
+                        badge.classList.add('inline-flex');
+                        if (tagline) tagline.classList.add('hidden');
+                        return;
+                    }
                 }
+                badge.classList.add('hidden');
+                badge.classList.remove('inline-flex');
+                if (tagline) tagline.classList.remove('hidden');
             } catch (e) {}
         }
 
