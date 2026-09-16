@@ -14,8 +14,8 @@ if (!function_exists('getCatalogData')) {
         $cacheDir = sys_get_temp_dir();
         $cacheFile = $cacheDir . '/kouprey_catalog_' . md5($currentLanguage) . '.cache';
 
-        // Check if cache file exists, is less than 5 minutes old, and newer than this script
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < 300) && (filemtime($cacheFile) >= filemtime(__FILE__)) && !isset($_GET['flush_cache'])) {
+        // Check if cache file exists, is less than 1 hour old, and newer than this script
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < 3600) && (filemtime($cacheFile) >= filemtime(__FILE__)) && !isset($_GET['flush_cache'])) {
             $cached = @unserialize(@file_get_contents($cacheFile));
             if (is_array($cached) && !empty($cached['products']) && !empty($cached['searchProducts'])) {
                 return $cached;
@@ -27,12 +27,6 @@ if (!function_exists('getCatalogData')) {
         }
 
         try {
-            // Auto-repair any Khmer Unicode typing mistakes in DB (replace invalid 'សុី' with 'ស៊ី')
-            try {
-                $pdo->exec("UPDATE categories SET name = REPLACE(REPLACE(name, 'សុី', 'ស៊ី'), '\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8', 'ស៊ី') WHERE name LIKE '%សុី%'");
-                $pdo->exec("UPDATE products SET name = REPLACE(REPLACE(name, 'សុី', 'ស៊ី'), '\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8', 'ស៊ី') WHERE name LIKE '%សុី%'");
-            } catch (Exception $ignored) {}
-
             // Fetch all products with rating stats
             $stmt = $pdo->prepare("
                 SELECT

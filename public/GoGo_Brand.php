@@ -1,8 +1,6 @@
 <?php
-// Prevent aggressive caching inside Telegram WebApp
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: 0");
+// Smart caching: Cache for 60s, revalidate in background for instant opening
+header("Cache-Control: private, max-age=60, stale-while-revalidate=300");
 
 // Enable output buffering with gzip compression if supported
 if (!ob_get_level() && !headers_sent()) {

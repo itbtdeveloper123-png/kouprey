@@ -258,50 +258,44 @@ $totalProductCount = count($cleanProducts);
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title><?php echo htmlspecialchars($storeName); ?> - GoGo Brand Catalog</title>
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Preconnect to external asset origins to eliminate DNS and SSL delays -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Execute immediately in <head> so iOS Telegram receives expand before rendering
+        // Immediately signal Telegram WebApp ready & expand to dismiss native spinner instantly
         (function() {
-            function earlyTrigger() {
-                try {
-                    if (window.Telegram && window.Telegram.WebView && window.Telegram.WebView.postEvent) {
-                        window.Telegram.WebView.postEvent('web_app_expand');
-                        window.Telegram.WebView.postEvent('web_app_request_fullscreen');
-                        window.Telegram.WebView.postEvent('web_app_setup_swipe_behavior', false, { allow_vertical_swipe: false });
-                    }
-                    var tg = window.Telegram && window.Telegram.WebApp;
-                    if (tg) {
-                        if (typeof tg.ready === 'function') tg.ready();
-                        if (typeof tg.expand === 'function') tg.expand();
-                        if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
-                        if (typeof tg.requestFullscreen === 'function') tg.requestFullscreen();
-                    }
-                } catch(e) {}
-            }
-            earlyTrigger();
-            [20, 60, 120, 250, 450, 750, 1200, 2000].forEach(function(t) {
-                setTimeout(earlyTrigger, t);
-            });
-            window.addEventListener('DOMContentLoaded', earlyTrigger);
-            window.addEventListener('load', earlyTrigger);
+            try {
+                if (window.Telegram && window.Telegram.WebView && window.Telegram.WebView.postEvent) {
+                    window.Telegram.WebView.postEvent('web_app_expand');
+                    window.Telegram.WebView.postEvent('web_app_ready');
+                }
+                var tg = window.Telegram && window.Telegram.WebApp;
+                if (tg) {
+                    if (typeof tg.ready === 'function') tg.ready();
+                    if (typeof tg.expand === 'function') tg.expand();
+                }
+            } catch(e) {}
         })();
     </script>
 
-    <!-- Google Fonts (Kantumruy Pro & Plus Jakarta Sans) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Optimized Google Fonts (Kantumruy Pro & Plus Jakarta Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome Icons (Preload for non-blocking paint) -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
-    <!-- Swiper 11 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <!-- Swiper 11 CSS (Preload for non-blocking paint) -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"></noscript>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -631,9 +625,58 @@ $totalProductCount = count($cleanProducts);
                 </button>
             </div>
 
-            <!-- Dynamic Product Cards Grid -->
+            <!-- Dynamic Product Cards Grid (Pre-rendered for Instant First Paint) -->
             <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <!-- Injected via JavaScript for instant performance -->
+                <?php foreach ($cleanProducts as $p): 
+                    $priceFormatted = '$' . number_format((float)$p['price'], 2);
+                    $safeName = htmlspecialchars($p['name']);
+                    $safeCat = htmlspecialchars($p['category_name'] ?? '');
+                ?>
+                    <div class="bg-white rounded-2xl p-2.5 shadow-xs hover:shadow-md border border-gray-100 flex flex-col justify-between cursor-pointer active:scale-[0.98] transition-all group"
+                         onclick="openProductModal(<?php echo (int)$p['id']; ?>)">
+                        
+                        <!-- Image Container -->
+                        <div class="relative w-full aspect-square bg-gradient-to-b from-gray-50 to-orange-50/20 rounded-xl overflow-hidden p-2 flex items-center justify-center mb-2">
+                            <img src="<?php echo htmlspecialchars($p['image']); ?>" 
+                                 alt="<?php echo $safeName; ?>" 
+                                 loading="lazy"
+                                 onload="this.classList.add('loaded')"
+                                 onerror="this.src='/kouprey/public/assets/images/product-medium.png'; this.classList.add('loaded')"
+                                 class="w-full h-full object-contain filter drop-shadow-xs group-hover:scale-105 transition-transform duration-300 img-fade-in loaded">
+                            
+                            <?php if (!empty($p['featured'])): ?>
+                                <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-yellow-500 text-white text-[9px] font-bold shadow-xs flex items-center gap-1">
+                                    <i class="fas fa-star text-[7px]"></i>
+                                    <span><?php echo $currentLanguage === 'km' ? 'ពិសេស' : 'Featured'; ?></span>
+                                </span>
+                            <?php endif; ?>
+
+                            <?php if (!empty($p['best_seller'])): ?>
+                                <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-bold shadow-xs">
+                                    HOT
+                                </span>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <span class="text-[10px] text-orange-600 font-semibold block truncate mb-0.5"><?php echo $safeCat; ?></span>
+                                <h3 class="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-orange-600 transition-colors">
+                                    <?php echo $safeName; ?>
+                                </h3>
+                            </div>
+
+                            <div class="pt-2 flex items-center justify-between border-t border-gray-50 mt-1.5">
+                                <span class="text-sm font-extrabold text-gray-900"><?php echo $priceFormatted; ?></span>
+                                <span class="text-[10px] font-bold text-orange-600 flex items-center gap-0.5 bg-orange-50 px-2 py-0.5 rounded-md">
+                                    <span><?php echo $currentLanguage === 'km' ? 'លម្អិត' : 'View'; ?></span>
+                                    <i class="fas fa-chevron-right text-[7px]"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
 
             <!-- Empty State (No matching products) -->
@@ -1088,10 +1131,8 @@ $totalProductCount = count($cleanProducts);
                 // Immediate trigger
                 forceExpandAndFullscreen();
 
-                // Multi-interval retry: iOS Telegram takes ~300ms to finish its modal presentation animation.
-                // Calling expand/fullscreen during that animation is dropped by iOS Telegram. Retrying at these
-                // intervals guarantees it expands to full height as soon as the transition completes.
-                [30, 100, 200, 350, 500, 750, 1200, 2000].forEach(delay => {
+                // One gentle follow-up check after iOS presentation transition
+                [150, 400].forEach(delay => {
                     setTimeout(forceExpandAndFullscreen, delay);
                 });
 
@@ -1902,9 +1943,8 @@ $totalProductCount = count($cleanProducts);
             } catch (e) {}
         }
 
-        // Initial Load
+        // Initial Load (Products are already pre-rendered via PHP SSR for instant first paint)
         document.addEventListener('DOMContentLoaded', () => {
-            filterAndRenderProducts();
             initBannerSwiper();
             setupSheetDragToDismiss();
             initUserGreeting();
