@@ -53,14 +53,7 @@ if (empty($mapsUrl)) {
     $mapsUrl = 'https://maps.app.goo.gl/v88Vyavc1UoykzgNA';
 }
 
-$siteUrlSetting = getSetting('site_url', '');
-if (!empty($siteUrlSetting) && filter_var($siteUrlSetting, FILTER_VALIDATE_URL)) {
-    $websiteUrl = $siteUrlSetting;
-} else {
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $websiteUrl = $protocol . $host . '/kouprey/public/';
-}
+$websiteUrl = 'https://www.kouprey.asia/';
 
 // Build clean categories list and initialize count
 $cleanCategories = [];
@@ -418,6 +411,34 @@ $totalProductCount = count($cleanProducts);
             border-radius: 9999px;
         }
 
+        /* Gentle Floating Micro-Animation for Bottom-Right Action Icons */
+        @keyframes gentleBob {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .fab-float-1 {
+            animation: gentleBob 2.8s ease-in-out infinite;
+            will-change: transform;
+        }
+        .fab-float-2 {
+            animation: gentleBob 2.8s ease-in-out 0.4s infinite;
+            will-change: transform;
+        }
+        .fab-float-3 {
+            animation: gentleBob 2.8s ease-in-out 0.8s infinite;
+            will-change: transform;
+        }
+
+        .fab-float-1:active, .fab-float-2:active, .fab-float-3:active {
+            transform: scale(0.92);
+            animation-play-state: paused;
+        }
+
         button, .category-pill, [onclick] {
             cursor: pointer;
             touch-action: manipulation;
@@ -644,35 +665,39 @@ $totalProductCount = count($cleanProducts);
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 pointer-events-none z-40 flex justify-end">
         <aside id="fab-dock" aria-label="Quick Actions" class="flex flex-col items-center gap-2.5 pointer-events-auto transition-all duration-300">
             <!-- 1. Website Button -->
-            <button onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>')" 
-                    type="button"
-                    class="group flex flex-col items-center focus:outline-none"
-                    aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
+            <a href="<?php echo htmlspecialchars($websiteUrl); ?>" 
+               onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event)" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="fab-float-1 group flex flex-col items-center focus:outline-none cursor-pointer"
+               aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
                 <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 group-active:scale-95 shadow-blue-500/10">
                     <i class="fas fa-globe text-base"></i>
                 </div>
                 <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
                     <?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>
                 </span>
-            </button>
+            </a>
 
             <!-- 2. Maps Button -->
-            <button onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>')" 
-                    type="button"
-                    class="group flex flex-col items-center focus:outline-none"
-                    aria-label="<?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>">
+            <a href="<?php echo htmlspecialchars($mapsUrl); ?>" 
+               onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event)" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="fab-float-2 group flex flex-col items-center focus:outline-none cursor-pointer"
+               aria-label="<?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>">
                 <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 group-active:scale-95 shadow-emerald-500/10">
                     <i class="fas fa-map-marker-alt text-base"></i>
                 </div>
                 <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
                     <?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>
                 </span>
-            </button>
+            </a>
 
             <!-- 3. About Button -->
             <button onclick="openAboutModal()" 
                     type="button"
-                    class="group flex flex-col items-center focus:outline-none"
+                    class="fab-float-3 group flex flex-col items-center focus:outline-none cursor-pointer"
                     aria-label="<?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>">
                 <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 group-active:scale-95 shadow-orange-500/10">
                     <i class="fas fa-info text-base"></i>
@@ -749,12 +774,14 @@ $totalProductCount = count($cleanProducts);
                             <p class="text-xs text-gray-600 mt-0.5 leading-relaxed">
                                 <?php echo htmlspecialchars($storeAddress); ?>
                             </p>
-                            <button onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>')" 
-                                    type="button"
-                                    class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
+                            <a href="<?php echo htmlspecialchars($mapsUrl); ?>" 
+                               onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event)" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
                                 <i class="fas fa-location-arrow text-[10px]"></i>
                                 <span><?php echo $currentLanguage === 'km' ? 'មើលលើ Google Maps' : 'Open in Google Maps'; ?></span>
-                            </button>
+                            </a>
                         </div>
                     </div>
 
@@ -793,12 +820,14 @@ $totalProductCount = count($cleanProducts);
                                     <span><?php echo $currentLanguage === 'km' ? 'ទូរស័ព្ទ' : 'Call'; ?></span>
                                 </a>
                                 <?php endif; ?>
-                                <button onclick="openTelegramOrder(null)" 
-                                        type="button"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
+                                <a href="<?php echo htmlspecialchars($storeTelegram); ?>" 
+                                   onclick="openExternalUrl('<?php echo htmlspecialchars($storeTelegram); ?>', event)" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
                                     <i class="fab fa-telegram-plane text-[10px]"></i>
                                     <span><?php echo $currentLanguage === 'km' ? 'ផ្ញើសារ Telegram' : 'Telegram Chat'; ?></span>
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -812,15 +841,17 @@ $totalProductCount = count($cleanProducts);
                             <h4 class="text-xs font-bold text-gray-800">
                                 <?php echo $currentLanguage === 'km' ? 'គេហទំព័រផ្លូវការ' : 'Official Website'; ?>
                             </h4>
-                            <p class="text-xs text-gray-500 mt-0.5 truncate">
+                            <p class="text-xs text-indigo-600 font-semibold mt-0.5 break-all">
                                 <?php echo htmlspecialchars($websiteUrl); ?>
                             </p>
-                            <button onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>')" 
-                                    type="button"
-                                    class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
+                            <a href="<?php echo htmlspecialchars($websiteUrl); ?>" 
+                               onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event)" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold active:scale-95 transition-all shadow-xs">
                                 <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
                                 <span><?php echo $currentLanguage === 'km' ? 'ចូលមើលគេហទំព័រ' : 'Visit Website'; ?></span>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1114,16 +1145,65 @@ $totalProductCount = count($cleanProducts);
         }
 
         // Open External Links via Telegram SDK if available
-        function openExternalUrl(url) {
+        function openExternalUrl(url, event) {
             hapticFeedback('medium');
             if (!url) return;
-            try {
-                if (tg && typeof tg.openLink === 'function') {
-                    tg.openLink(url);
+
+            // 1. Telegram links (t.me/... or tg://)
+            if (url.includes('t.me/') || url.startsWith('tg:')) {
+                let tgOpened = false;
+                try {
+                    if (tg && typeof tg.openTelegramLink === 'function') {
+                        tg.openTelegramLink(url);
+                        tgOpened = true;
+                    } else if (window.Telegram?.WebView?.postEvent) {
+                        window.Telegram.WebView.postEvent('web_app_open_tg_link', false, { path_full: url });
+                        tgOpened = true;
+                    }
+                } catch (e) {}
+
+                if (tgOpened) {
+                    if (event && typeof event.preventDefault === 'function') event.preventDefault();
                     return;
                 }
+                if (!event) window.location.href = url;
+                return;
+            }
+
+            // 2. Regular Web / Maps Links (openLink in Telegram)
+            let webOpened = false;
+            try {
+                if (tg && typeof tg.openLink === 'function') {
+                    tg.openLink(url, { try_instant_view: false });
+                    webOpened = true;
+                } else if (window.Telegram?.WebView?.postEvent) {
+                    window.Telegram.WebView.postEvent('web_app_open_link', false, { url: url, try_instant_view: false });
+                    webOpened = true;
+                }
             } catch (e) {}
-            window.open(url, '_blank');
+
+            if (webOpened) {
+                if (event && typeof event.preventDefault === 'function') {
+                    event.preventDefault();
+                }
+                return;
+            }
+
+            // 3. Fallback for standalone browser / non-Telegram
+            if (!event) {
+                try {
+                    const win = window.open(url, '_blank', 'noopener,noreferrer');
+                    if (!win) window.location.href = url;
+                } catch (e) {
+                    window.location.href = url;
+                }
+            }
+        }
+
+        // Telegram Chat Order / Inquiry Helper
+        function openTelegramOrder(product) {
+            const url = '<?php echo htmlspecialchars($storeTelegram); ?>';
+            openExternalUrl(url);
         }
 
         // Normalize Khmer Unicode typo: ស + ុ (U+17BB) + ី (U+17B8) -> ស + ៊ (U+17CA, Triisap) + ី (U+17B8) = ស៊ី
