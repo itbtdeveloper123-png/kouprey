@@ -185,17 +185,12 @@ $totalProductCount = count($cleanProducts);
 
         /* Telegram Safe Area Top Spacing */
         :root {
-            --app-safe-top: 64px;
-        }
-
-        @supports (padding-top: env(safe-area-inset-top)) {
-            :root {
-                --app-safe-top: max(64px, calc(var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px))) + 16px));
-            }
+            --app-safe-top: 12px;
         }
 
         .tg-safe-header {
             padding-top: var(--tg-safe-top-dynamic, var(--app-safe-top));
+            transition: padding-top 0.15s ease-out;
         }
 
         @media (min-width: 768px) {
@@ -239,12 +234,21 @@ $totalProductCount = count($cleanProducts);
                     </div>
                 </div>
 
-                <!-- Language Switcher -->
-                <a href="?lang=<?php echo $currentLanguage === 'km' ? 'en' : 'km'; ?>" 
-                   onclick="hapticFeedback('selection')"
-                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 active:scale-95 transition-all">
-                    <span><?php echo $currentLanguage === 'km' ? '🇬🇧 EN' : '🇰🇭 ខ្មែរ'; ?></span>
-                </a>
+                <!-- Actions: Fullscreen Button (if supported) + Language Switcher -->
+                <div class="flex items-center gap-1.5">
+                    <button id="fullscreen-btn" 
+                            type="button"
+                            onclick="toggleFullscreen(); hapticFeedback('light');" 
+                            class="hidden inline-flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95 transition-all text-xs"
+                            title="<?php echo $currentLanguage === 'km' ? 'ពង្រីកពេញអេក្រង់' : 'Full Screen'; ?>">
+                        <i class="fas fa-expand text-[11px]" id="fullscreen-icon"></i>
+                    </button>
+                    <a href="?lang=<?php echo $currentLanguage === 'km' ? 'en' : 'km'; ?>" 
+                       onclick="hapticFeedback('selection')"
+                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 active:scale-95 transition-all">
+                        <span><?php echo $currentLanguage === 'km' ? '🇬🇧 EN' : '🇰🇭 ខ្មែរ'; ?></span>
+                    </a>
+                </div>
             </div>
 
             <!-- Live Instant Search Bar -->
@@ -462,13 +466,43 @@ $totalProductCount = count($cleanProducts);
         let searchQuery = '';
         let currentModalProduct = null;
 
-        // Telegram WebApp Setup & Safe Area Padding
+        // Telegram WebApp Setup & Fullscreen Integration
         const tg = window.Telegram?.WebApp;
+
         function updateTelegramSafeArea() {
             try {
-                const top = tg?.contentSafeAreaInset?.top || tg?.safeAreaInset?.top || 0;
-                if (top > 0) {
-                    document.documentElement.style.setProperty('--tg-safe-top-dynamic', `${top + 8}px`);
+                const isFull = Boolean(tg?.isFullscreen);
+                const contentTop = tg?.contentSafeAreaInset?.top || 0;
+                const safeTop = tg?.safeAreaInset?.top || 0;
+
+                if (isFull) {
+                    // In Fullscreen mode: clear floating Close button & notch/Dynamic Island
+                    const topPadding = contentTop > 0 ? contentTop : Math.max(safeTop, 54);
+                    document.documentElement.style.setProperty('--tg-safe-top-dynamic', `${topPadding + 4}px`);
+                } else if (contentTop > 0) {
+                    document.documentElement.style.setProperty('--tg-safe-top-dynamic', `${contentTop + 4}px`);
+                } else if (safeTop > 0) {
+                    document.documentElement.style.setProperty('--tg-safe-top-dynamic', `${safeTop + 4}px`);
+                } else {
+                    // Standard sheet mode (Telegram native header is present above webview)
+                    document.documentElement.style.setProperty('--tg-safe-top-dynamic', '12px');
+                }
+
+                // Update fullscreen button icon
+                const fsIcon = document.getElementById('fullscreen-icon');
+                if (fsIcon && tg) {
+                    fsIcon.className = isFull ? 'fas fa-compress text-[11px]' : 'fas fa-expand text-[11px]';
+                }
+            } catch (e) {}
+        }
+
+        function toggleFullscreen() {
+            if (!tg) return;
+            try {
+                if (tg.isFullscreen && typeof tg.exitFullscreen === 'function') {
+                    tg.exitFullscreen();
+                } else if (typeof tg.requestFullscreen === 'function') {
+                    tg.requestFullscreen();
                 }
             } catch (e) {}
         }
@@ -477,9 +511,25 @@ $totalProductCount = count($cleanProducts);
             try {
                 tg.ready();
                 tg.expand();
+
+                // Show Fullscreen button if API is supported
+                const fsBtn = document.getElementById('fullscreen-btn');
+                if (fsBtn && typeof tg.requestFullscreen === 'function') {
+                    fsBtn.classList.remove('hidden');
+                }
+
+                // Automatically request Fullscreen mode (Telegram Bot API 8.0+)
+                if (typeof tg.requestFullscreen === 'function') {
+                    tg.requestFullscreen();
+                }
+
                 updateTelegramSafeArea();
+
+                tg.onEvent?.('fullscreenChanged', updateTelegramSafeArea);
+                tg.onEvent?.('fullscreenFailed', updateTelegramSafeArea);
                 tg.onEvent?.('safeAreaChanged', updateTelegramSafeArea);
                 tg.onEvent?.('contentSafeAreaChanged', updateTelegramSafeArea);
+                tg.onEvent?.('viewportChanged', updateTelegramSafeArea);
 
                 // Only set colors if supported by Telegram client version (6.1+)
                 if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
@@ -488,6 +538,17 @@ $totalProductCount = count($cleanProducts);
                 }
             } catch (e) {}
         }
+
+        // Retry fullscreen on user gesture if needed
+        const ensureFullscreen = () => {
+            if (tg && typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) {
+                try {
+                    tg.requestFullscreen();
+                } catch (e) {}
+            }
+        };
+        window.addEventListener('touchstart', ensureFullscreen, { passive: true, once: true });
+        window.addEventListener('click', ensureFullscreen, { passive: true, once: true });
 
         // Haptic feedback helper
         function hapticFeedback(type = 'light') {
