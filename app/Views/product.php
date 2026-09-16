@@ -2023,8 +2023,7 @@ $topProducts = array_slice($topProducts, 0, 6);
 						<h4 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
 							<i class="fas fa-tags text-indigo-600 mr-3"></i><?php echo htmlspecialchars(getSetting('categories_title', 'Product Categories')); ?>
 						</h4>
-						<div class="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-100">
-							<div class="space-y-3">
+						<div class="space-y-3">
 								<!-- All Products Button -->
 								<button onclick="filterProducts('all')" class="w-full text-left px-5 py-4 rounded-xl bg-yellow-50 text-black hover:bg-yellow-100 hover:shadow-md transition-all duration-300 flex items-center justify-between category-btn group active" data-category="all">
 									<span class="flex items-center">
@@ -2055,7 +2054,6 @@ $topProducts = array_slice($topProducts, 0, 6);
 										</button>
 									<?php endforeach; ?>
 								<?php endif; ?>
-							</div>
 						</div>
 
 
