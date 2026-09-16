@@ -429,6 +429,43 @@ $totalProductCount = count($cleanProducts);
             animation-play-state: paused;
         }
 
+        /* Quick Actions Floating Dock - Direct positioning with no wrapper to fix mobile WebKit hit-testing */
+        #fab-dock {
+            position: fixed;
+            z-index: 40;
+            right: 16px;
+            bottom: calc(1.5rem + var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.625rem;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+        }
+
+        @media (min-width: 672px) {
+            #fab-dock {
+                right: max(16px, calc(50% - 21rem + 16px));
+            }
+        }
+
+        #fab-dock a,
+        #fab-dock button {
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 48px;
+            text-decoration: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Pass touches on inner icon/div directly to the parent clickable anchor/button */
+        #fab-dock a *,
+        #fab-dock button * {
+            pointer-events: none;
+        }
+
         a, button, .category-pill, [onclick] {
             cursor: pointer;
             touch-action: manipulation;
@@ -702,52 +739,50 @@ $totalProductCount = count($cleanProducts);
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- Floating Action Dock (Bottom Right Stack: Website, Maps, About) -->
     <!-- ───────────────────────────────────────────────────────────── -->
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 pointer-events-none z-40 flex justify-end" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));">
-        <aside id="fab-dock" aria-label="Quick Actions" class="flex flex-col items-center gap-2.5 pointer-events-auto transition-all duration-300">
-            <!-- 1. Website Button -->
-            <a href="<?php echo htmlspecialchars($websiteUrl); ?>" 
-               onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event)" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               class="group flex flex-col items-center focus:outline-none cursor-pointer select-none active:scale-95 transition-transform"
-               aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
-                <div class="fab-float-1 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 shadow-blue-500/10">
-                    <i class="fas fa-globe text-base"></i>
-                </div>
-                <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
-                    <?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>
-                </span>
-            </a>
+    <aside id="fab-dock" aria-label="Quick Actions" class="transition-all duration-300 select-none">
+        <!-- 1. Website Button -->
+        <a href="<?php echo htmlspecialchars($websiteUrl); ?>" 
+           onclick="return openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event);" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="group flex flex-col items-center focus:outline-none active:scale-95 transition-transform"
+           aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
+            <div class="fab-float-1 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 shadow-blue-500/10">
+                <i class="fas fa-globe text-base"></i>
+            </div>
+            <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
+                <?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>
+            </span>
+        </a>
 
-            <!-- 2. Maps Button -->
-            <a href="<?php echo htmlspecialchars($mapsUrl); ?>" 
-               onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event)" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               class="group flex flex-col items-center focus:outline-none cursor-pointer select-none active:scale-95 transition-transform"
-               aria-label="<?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>">
-                <div class="fab-float-2 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 shadow-emerald-500/10">
-                    <i class="fas fa-map-marker-alt text-base"></i>
-                </div>
-                <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
-                    <?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>
-                </span>
-            </a>
+        <!-- 2. Maps Button -->
+        <a href="<?php echo htmlspecialchars($mapsUrl); ?>" 
+           onclick="return openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event);" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="group flex flex-col items-center focus:outline-none active:scale-95 transition-transform"
+           aria-label="<?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>">
+            <div class="fab-float-2 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 shadow-emerald-500/10">
+                <i class="fas fa-map-marker-alt text-base"></i>
+            </div>
+            <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
+                <?php echo $currentLanguage === 'km' ? 'ផែនទី' : 'Maps'; ?>
+            </span>
+        </a>
 
-            <!-- 3. About Button -->
-            <button onclick="openAboutModal()" 
-                    type="button"
-                    class="group flex flex-col items-center focus:outline-none cursor-pointer select-none active:scale-95 transition-transform"
-                    aria-label="<?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>">
-                <div class="fab-float-3 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 shadow-orange-500/10">
-                    <i class="fas fa-info text-base"></i>
-                </div>
-                <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
-                    <?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>
-                </span>
-            </button>
-        </aside>
-    </div>
+        <!-- 3. About Button -->
+        <button onclick="openAboutModal()" 
+                type="button"
+                class="group flex flex-col items-center focus:outline-none active:scale-95 transition-transform"
+                aria-label="<?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>">
+            <div class="fab-float-3 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 transition-all duration-200 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 shadow-orange-500/10">
+                <i class="fas fa-info text-base"></i>
+            </div>
+            <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.2 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-tight">
+                <?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About'; ?>
+            </span>
+        </button>
+    </aside>
 
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- About Store Modal (Bottom Sheet - Brand Info, Maps, Contact) -->
@@ -1152,21 +1187,8 @@ $totalProductCount = count($cleanProducts);
             } catch (e) {}
         }
 
-        // Expand & Fullscreen: Trigger once on first user gesture to prevent interrupting clicks
-        let hasTriggeredExpandOnGesture = false;
-        function triggerExpandOnce() {
-            if (hasTriggeredExpandOnGesture) return;
-            hasTriggeredExpandOnGesture = true;
-            forceExpandAndFullscreen();
-            window.removeEventListener('touchstart', triggerExpandOnce);
-            window.removeEventListener('pointerdown', triggerExpandOnce);
-            window.removeEventListener('click', triggerExpandOnce);
-        }
         document.addEventListener('DOMContentLoaded', forceExpandAndFullscreen);
         window.addEventListener('load', forceExpandAndFullscreen);
-        window.addEventListener('touchstart', triggerExpandOnce, { passive: true, once: true });
-        window.addEventListener('pointerdown', triggerExpandOnce, { passive: true, once: true });
-        window.addEventListener('click', triggerExpandOnce, { passive: true, once: true });
 
         // Haptic feedback helper
         function hapticFeedback(type = 'light') {
@@ -1191,7 +1213,7 @@ $totalProductCount = count($cleanProducts);
             }
         }
 
-        // Open External Links via Telegram SDK if available with reliable fallback
+        // Open External Links reliably across Telegram Mobile, iOS WKWebView, Android WebView and Web
         function openExternalUrl(url, event) {
             if (event && typeof event.stopPropagation === 'function') {
                 event.stopPropagation();
@@ -1199,56 +1221,72 @@ $totalProductCount = count($cleanProducts);
             hapticFeedback('medium');
             if (!url) return false;
 
-            const isTelegram = Boolean(
-                window.Telegram?.WebApp &&
-                (
-                    Boolean(window.TelegramWebviewProxy) ||
-                    (window.Telegram.WebApp.platform && window.Telegram.WebApp.platform !== 'unknown') ||
-                    (window.Telegram.WebApp.initData && window.Telegram.WebApp.initData.length > 0)
-                )
-            );
+            const targetUrl = String(url).trim();
+            const isTgLink = targetUrl.includes('t.me/') || targetUrl.startsWith('tg:');
+            const tgApp = window.Telegram?.WebApp;
 
             // 1. Telegram links (t.me/... or tg://)
-            if (url.includes('t.me/') || url.startsWith('tg:')) {
-                if (isTelegram && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
+            if (isTgLink) {
+                if (tgApp && typeof tgApp.openTelegramLink === 'function') {
                     try {
-                        window.Telegram.WebApp.openTelegramLink(url);
+                        tgApp.openTelegramLink(targetUrl);
                         if (event && typeof event.preventDefault === 'function') event.preventDefault();
                         return false;
                     } catch (e) {
                         console.warn('[GoGo] openTelegramLink error:', e);
                     }
                 }
-                // Fallback for non-Telegram or failed SDK call
                 try {
-                    window.location.href = url;
-                    if (event && typeof event.preventDefault === 'function') event.preventDefault();
-                } catch (e) {
-                    window.open(url, '_blank');
-                }
-                return false;
-            }
-
-            // 2. Regular Web / Maps Links (https://www.kouprey.asia/, Google Maps, etc.)
-            if (isTelegram && typeof window.Telegram.WebApp.openLink === 'function') {
-                try {
-                    window.Telegram.WebApp.openLink(url);
+                    window.location.href = targetUrl;
                     if (event && typeof event.preventDefault === 'function') event.preventDefault();
                     return false;
                 } catch (e) {
-                    console.warn('[GoGo] openLink error:', e);
+                    window.open(targetUrl, '_blank');
+                    return false;
                 }
+            }
+
+            // 2. Regular Web / Maps Links (https://www.kouprey.asia/, Google Maps, etc.)
+            // In Telegram Mobile App:
+            if (tgApp && typeof tgApp.openLink === 'function') {
+                try {
+                    // Try with try_browser: true (Bot API 7.6+) to open in system browser reliably
+                    tgApp.openLink(targetUrl, { try_browser: true, try_instant_view: false });
+                    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+                    return false;
+                } catch (e) {
+                    try {
+                        // Fallback without options for older Telegram SDK versions
+                        tgApp.openLink(targetUrl);
+                        if (event && typeof event.preventDefault === 'function') event.preventDefault();
+                        return false;
+                    } catch (e2) {
+                        console.warn('[GoGo] tg.openLink failed:', e2);
+                    }
+                }
+            }
+
+            // Fallback via Telegram WebView native postEvent bridge if available
+            if (window.Telegram?.WebView?.postEvent) {
+                try {
+                    window.Telegram.WebView.postEvent('web_app_open_link', false, { url: targetUrl, try_browser: true });
+                    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+                    return false;
+                } catch (e) {}
             }
 
             // 3. Standalone Browser / Direct Navigation Fallback
             try {
-                const win = window.open(url, '_blank', 'noopener,noreferrer');
-                if (!win) {
-                    window.location.href = url;
+                const win = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                if (!win || win.closed || typeof win.closed === 'undefined') {
+                    window.location.href = targetUrl;
                 }
-                if (event && typeof event.preventDefault === 'function') event.preventDefault();
             } catch (e) {
-                window.location.href = url;
+                window.location.href = targetUrl;
+            }
+
+            if (event && typeof event.preventDefault === 'function') {
+                event.preventDefault();
             }
             return false;
         }
@@ -1831,6 +1869,7 @@ $totalProductCount = count($cleanProducts);
             let isDragging = false;
 
             const onTouchStart = (e) => {
+                if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.cursor-pointer')) return;
                 const scrollBox = sheetContent.querySelector('.overflow-y-auto');
                 if (scrollBox && scrollBox.scrollTop > 5) return;
 
