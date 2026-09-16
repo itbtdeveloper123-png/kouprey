@@ -496,6 +496,29 @@ $totalProductCount = count($cleanProducts);
             } catch (e) {}
         }
 
+        function forceExpandAndFullscreen() {
+            if (!tg) return;
+            try {
+                // 1. Ready & expand to full viewport height (fixes partial/half-sheet "មួយកំណាត់")
+                if (typeof tg.ready === 'function') tg.ready();
+                if (typeof tg.expand === 'function' && !tg.isExpanded) {
+                    tg.expand();
+                }
+
+                // 2. Prevent vertical swipe drag from collapsing the sheet back down
+                if (typeof tg.disableVerticalSwipes === 'function') {
+                    tg.disableVerticalSwipes();
+                }
+
+                // 3. Request true Fullscreen (Bot API 8.0+)
+                if (typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) {
+                    tg.requestFullscreen();
+                }
+
+                updateTelegramSafeArea();
+            } catch (e) {}
+        }
+
         function toggleFullscreen() {
             if (!tg) return;
             try {
@@ -503,33 +526,40 @@ $totalProductCount = count($cleanProducts);
                     tg.exitFullscreen();
                 } else if (typeof tg.requestFullscreen === 'function') {
                     tg.requestFullscreen();
+                } else if (typeof tg.expand === 'function') {
+                    tg.expand();
                 }
             } catch (e) {}
         }
 
         if (tg) {
             try {
-                tg.ready();
-                tg.expand();
-
                 // Show Fullscreen button if API is supported
                 const fsBtn = document.getElementById('fullscreen-btn');
-                if (fsBtn && typeof tg.requestFullscreen === 'function') {
+                if (fsBtn && (typeof tg.requestFullscreen === 'function' || typeof tg.expand === 'function')) {
                     fsBtn.classList.remove('hidden');
                 }
 
-                // Automatically request Fullscreen mode (Telegram Bot API 8.0+)
-                if (typeof tg.requestFullscreen === 'function') {
-                    tg.requestFullscreen();
-                }
+                // Immediate trigger
+                forceExpandAndFullscreen();
 
-                updateTelegramSafeArea();
+                // Multi-interval retry: iOS Telegram takes ~300ms to finish its modal presentation animation.
+                // Calling expand/fullscreen during that animation is dropped by iOS Telegram. Retrying at these
+                // intervals guarantees it expands to full height as soon as the transition completes.
+                [30, 100, 250, 450, 750, 1200, 2000].forEach(delay => {
+                    setTimeout(forceExpandAndFullscreen, delay);
+                });
 
                 tg.onEvent?.('fullscreenChanged', updateTelegramSafeArea);
                 tg.onEvent?.('fullscreenFailed', updateTelegramSafeArea);
                 tg.onEvent?.('safeAreaChanged', updateTelegramSafeArea);
                 tg.onEvent?.('contentSafeAreaChanged', updateTelegramSafeArea);
-                tg.onEvent?.('viewportChanged', updateTelegramSafeArea);
+                tg.onEvent?.('viewportChanged', () => {
+                    if (tg && !tg.isExpanded) {
+                        try { tg.expand(); } catch (e) {}
+                    }
+                    updateTelegramSafeArea();
+                });
 
                 // Only set colors if supported by Telegram client version (6.1+)
                 if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')) {
@@ -539,16 +569,12 @@ $totalProductCount = count($cleanProducts);
             } catch (e) {}
         }
 
-        // Retry fullscreen on user gesture if needed
-        const ensureFullscreen = () => {
-            if (tg && typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) {
-                try {
-                    tg.requestFullscreen();
-                } catch (e) {}
-            }
-        };
-        window.addEventListener('touchstart', ensureFullscreen, { passive: true, once: true });
-        window.addEventListener('click', ensureFullscreen, { passive: true, once: true });
+        // Retry expand and fullscreen on lifecycle events & user gestures
+        document.addEventListener('DOMContentLoaded', forceExpandAndFullscreen);
+        window.addEventListener('load', forceExpandAndFullscreen);
+        window.addEventListener('touchstart', forceExpandAndFullscreen, { passive: true });
+        window.addEventListener('pointerdown', forceExpandAndFullscreen, { passive: true });
+        window.addEventListener('click', forceExpandAndFullscreen, { passive: true });
 
         // Haptic feedback helper
         function hapticFeedback(type = 'light') {
