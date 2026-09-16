@@ -158,6 +158,16 @@ $totalProductCount = count($cleanProducts);
         }
 
         /* Bottom Sheet Transition */
+        #product-modal {
+            transition: visibility 0.25s ease;
+        }
+        #product-modal.sheet-hidden {
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        #product-modal.sheet-hidden * {
+            pointer-events: none !important;
+        }
         .sheet-backdrop {
             transition: opacity 0.25s ease-out;
         }
@@ -170,10 +180,16 @@ $totalProductCount = count($cleanProducts);
         }
         .sheet-hidden .sheet-content {
             transform: translateY(100%);
+            pointer-events: none;
+        }
+
+        button, .category-pill, [onclick] {
+            cursor: pointer;
+            touch-action: manipulation;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col select-none">
+<body class="min-h-screen flex flex-col">
 
     <!-- Container wrapper for clean desktop & mobile presentation -->
     <div class="w-full max-w-2xl mx-auto flex flex-col min-h-screen bg-white shadow-xs border-x border-gray-100">
@@ -296,7 +312,7 @@ $totalProductCount = count($cleanProducts);
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- Product Detail Modal (Bottom Sheet - Full Details Showcase) -->
     <!-- ───────────────────────────────────────────────────────────── -->
-    <div id="product-modal" class="fixed inset-0 z-50 sheet-hidden flex flex-col justify-end">
+    <div id="product-modal" class="fixed inset-0 z-50 sheet-hidden flex flex-col justify-end" style="display: none;">
         <!-- Backdrop -->
         <div class="sheet-backdrop absolute inset-0 bg-black/60 backdrop-blur-xs" onclick="closeProductModal()"></div>
 
@@ -681,6 +697,9 @@ $totalProductCount = count($cleanProducts);
             badgesContainer.innerHTML = badgesHtml;
 
             const modal = document.getElementById('product-modal');
+            modal.style.display = 'flex';
+            // Trigger reflow for smooth bottom-sheet animation
+            modal.offsetHeight;
             modal.classList.remove('sheet-hidden');
             document.body.style.overflow = 'hidden';
 
@@ -695,6 +714,11 @@ $totalProductCount = count($cleanProducts);
             hapticFeedback('light');
             const modal = document.getElementById('product-modal');
             modal.classList.add('sheet-hidden');
+            setTimeout(() => {
+                if (modal.classList.contains('sheet-hidden')) {
+                    modal.style.display = 'none';
+                }
+            }, 260);
             document.body.style.overflow = '';
             currentModalProduct = null;
 
