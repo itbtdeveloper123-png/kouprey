@@ -28,6 +28,11 @@ $categories = $catalogData['categories'];
 
 // Ensure categories have Syrup (base_category_id 19) first, Powder (base_category_id 13) second
 if (!empty($categories)) {
+    foreach ($categories as &$c) {
+        $c['name'] = function_exists('normalizeKhmerSpelling') ? normalizeKhmerSpelling($c['name'] ?? '') : str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $c['name'] ?? '');
+    }
+    unset($c);
+
     usort($categories, function($a, $b) {
         $pA = ($a['base_category_id'] == '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $a['name'])) ? 1 : (($a['base_category_id'] == '13' || preg_match('/powder|matcha|ម្សៅ/iu', $a['name'])) ? 2 : 3);
         $pB = ($b['base_category_id'] == '19' || preg_match('/syrup|ស៊ីរ៉ូ|សុីរ៉ូ/iu', $b['name'])) ? 1 : (($b['base_category_id'] == '13' || preg_match('/powder|matcha|ម្សៅ/iu', $b['name'])) ? 2 : 3);
@@ -38,6 +43,13 @@ if (!empty($categories)) {
 
 // Ensure default product ordering prioritizes Syrup first, then Powder, then others
 if (!empty($products)) {
+    foreach ($products as &$p) {
+        $p['name'] = function_exists('normalizeKhmerSpelling') ? normalizeKhmerSpelling($p['name'] ?? '') : str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $p['name'] ?? '');
+        if (!empty($p['category_name'])) {
+            $p['category_name'] = function_exists('normalizeKhmerSpelling') ? normalizeKhmerSpelling($p['category_name']) : str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $p['category_name']);
+        }
+    }
+    unset($p);
     usort($products, function($a, $b) {
         $priority = function($p) {
             $baseCatId = (string)($p['base_category_id'] ?? '');

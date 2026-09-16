@@ -16,7 +16,10 @@ $products = $catalogData['products'] ?? [];
 $categories = $catalogData['categories'] ?? [];
 
 // General store settings
-$storeName = getSetting('company_name', 'GoGo Brand');
+$storeName = getSetting('company_name', $currentLanguage === 'km' ? 'ហ្គោ ហ្គោ' : 'GoGo Brand');
+if ($currentLanguage === 'km' && ($storeName === 'GoGo Brand' || $storeName === 'GoGo' || empty($storeName))) {
+    $storeName = 'ហ្គោ ហ្គោ';
+}
 $storeLogo = getSetting('company_logo', '');
 if (empty($storeLogo)) {
     $storeLogo = getSetting('site_logo', '/kouprey/public/assets/images/logo.png');
@@ -36,11 +39,13 @@ $categoryCounts = [];
 
 foreach ($categories as $cat) {
     $catKey = (string)($cat['base_category_id'] ?: $cat['id']);
+    $catRawName = $cat['name'] ?? '';
+    $catCleanName = function_exists('normalizeKhmerSpelling') ? normalizeKhmerSpelling($catRawName) : str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $catRawName);
     $cleanCategories[$catKey] = [
         'key' => $catKey,
         'base_id' => (string)($cat['base_category_id'] ?? ''),
         'id' => (string)($cat['id'] ?? ''),
-        'name' => $cat['name'] ?? ''
+        'name' => $catCleanName
     ];
     $categoryCounts[$catKey] = 0;
 }
@@ -115,10 +120,14 @@ foreach ($products as $p) {
     }
 
     $image = $p['image'] ?: '/kouprey/public/assets/images/product-medium.png';
+    $rawProdName = $p['name'] ?? '';
+    $cleanProdName = function_exists('normalizeKhmerSpelling') ? normalizeKhmerSpelling($rawProdName) : str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $rawProdName);
+    $cleanCatName = function_exists('normalizeKhmerSpelling') ? normalizeKhmerSpelling($matchedCatName) : str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $matchedCatName);
+
     $cleanProducts[] = [
         'id' => (int)($p['id'] ?? 0),
         'base_id' => (int)($p['base_product_id'] ?? $p['id'] ?? 0),
-        'name' => $p['name'] ?? '',
+        'name' => $cleanProdName,
         'price' => (float)($p['price'] ?? 0),
         'image' => $image,
         'description' => trim($p['description'] ?? ''),
@@ -127,7 +136,7 @@ foreach ($products as $p) {
         'roast_level' => trim($p['roast_level'] ?? ''),
         'custom_fields' => $customFields,
         'category_key' => $matchedCatKey,
-        'category_name' => $matchedCatName ?: ($currentLanguage === 'km' ? 'ផលិតផល' : 'Product'),
+        'category_name' => $cleanCatName ?: ($currentLanguage === 'km' ? 'ផលិតផល' : 'Product'),
         'featured' => !empty($p['featured']),
         'best_seller' => !empty($p['best_seller']),
         'avg_rating' => (float)($p['avg_rating'] ?? 5.0),
@@ -396,7 +405,7 @@ $totalProductCount = count($cleanProducts);
         <!-- ───────────────────────────────────────────────────────────── -->
         <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100/80 shadow-2xs tg-safe-header">
             <!-- Brand Row -->
-            <div class="px-4 pb-2.5 flex items-center justify-between gap-3">
+            <div class="px-4 pb-2 pt-0.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <!-- Store Logo -->
                     <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/60 p-1 border border-orange-200/60 shadow-2xs flex items-center justify-center flex-shrink-0">
@@ -406,29 +415,19 @@ $totalProductCount = count($cleanProducts);
                              onerror="this.src='/kouprey/public/assets/images/logo.png'">
                     </div>
 
-                    <!-- Store Title (Clean single line, perfectly centered vertically with logo) -->
-                    <div class="flex items-center gap-1.5 min-w-0">
-                        <h1 class="text-base sm:text-lg font-extrabold text-gray-900 tracking-tight leading-none truncate">
+                    <!-- Store Title (Clean Khmer title with generous line-height to prevent clipping descenders/ជើង) -->
+                    <div class="flex items-center min-w-0 py-0.5">
+                        <h1 class="text-base sm:text-lg font-extrabold text-gray-900 tracking-tight leading-normal py-0.5">
                             <?php echo htmlspecialchars($storeName); ?>
                         </h1>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-orange-500 text-white shadow-2xs flex-shrink-0">GoGo</span>
                     </div>
-                </div>
-
-                <!-- Actions: Language Switcher -->
-                <div class="flex items-center gap-1.5 flex-shrink-0">
-                    <a href="?lang=<?php echo $currentLanguage === 'km' ? 'en' : 'km'; ?>" 
-                       onclick="hapticFeedback('selection')"
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/80 text-gray-700 text-xs font-bold active:scale-95 transition-all shadow-2xs">
-                        <span><?php echo $currentLanguage === 'km' ? '🇬🇧 EN' : '🇰🇭 ខ្មែរ'; ?></span>
-                    </a>
                 </div>
             </div>
 
             <!-- Personalized Greeting Strip (Dedicated Row Above Search Bar) -->
             <div id="user-greeting-container" class="hidden px-4 pb-2">
-                <div class="flex items-center gap-1.5 text-xs text-gray-700 font-medium">
-                    <span id="user-greeting-badge"></span>
+                <div class="flex items-center gap-1.5 text-xs text-gray-700 font-medium leading-normal py-0.5">
+                    <span id="user-greeting-badge" class="leading-normal py-0.5"></span>
                 </div>
             </div>
 
@@ -705,6 +704,26 @@ $totalProductCount = count($cleanProducts);
                 <!-- Custom Fields / Table Specs (If available) -->
                 <div id="modal-custom-fields-box" class="hidden space-y-2"></div>
 
+                <!-- Related Products Section (ផលិតផលពាក់ព័ន្ធ) -->
+                <div id="modal-related-section" class="pt-3 border-t border-gray-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                            <h4 class="font-bold text-gray-900 text-xs sm:text-sm tracking-tight">
+                                <?php echo $currentLanguage === 'km' ? 'ផលិតផលពាក់ព័ន្ធ' : 'Related Products'; ?>
+                            </h4>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-medium">
+                            <?php echo $currentLanguage === 'km' ? 'ប្រភេទដូចគ្នា' : 'Similar items'; ?>
+                        </span>
+                    </div>
+
+                    <!-- Horizontal Scroll Container for Related Products -->
+                    <div id="modal-related-container" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1.5 pt-0.5 scroll-smooth">
+                        <!-- Injected dynamically via JS based on current product & category -->
+                    </div>
+                </div>
+
                 <!-- Back / Close Button -->
                 <div class="pt-2">
                     <button onclick="closeProductModal()" 
@@ -834,16 +853,34 @@ $totalProductCount = count($cleanProducts);
             } catch (e) {}
         }
 
+        // Normalize Khmer Unicode typo: ស + ុ (U+17BB) + ី (U+17B8) -> ស + ៊ (U+17CA, Triisap) + ី (U+17B8) = ស៊ី
+        function normalizeKhmer(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/\u179F\u17BB\u17B8/g, '\u179F\u17CA\u17B8')
+                .replace(/\u179F\u17B8\u17BB/g, '\u179F\u17CA\u17B8')
+                .replace(/សុី/g, 'ស៊ី');
+        }
+
         // HTML escape helper
         function escapeHtml(str) {
             if (!str) return '';
-            return String(str)
+            return normalizeKhmer(String(str))
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
         }
+
+        // Live DOM cleanup for any initial server-rendered elements
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.category-pill span, #top-banner-section h3, #top-banner-section span').forEach(el => {
+                if (el.innerText && (el.innerText.includes('សុី') || el.innerText.includes('\u179F\u17BB\u17B8'))) {
+                    el.innerText = normalizeKhmer(el.innerText);
+                }
+            });
+        });
 
         // Filter and Render Products
         function filterAndRenderProducts() {
@@ -1001,9 +1038,9 @@ $totalProductCount = count($cleanProducts);
             modalImg.onload = () => modalImg.classList.add('loaded');
             modalImg.src = product.image;
 
-            document.getElementById('modal-title').innerText = product.name;
+            document.getElementById('modal-title').innerText = normalizeKhmer(product.name);
             document.getElementById('modal-price').innerText = '$' + product.price.toFixed(2);
-            document.getElementById('modal-category').innerText = product.category_name;
+            document.getElementById('modal-category').innerText = normalizeKhmer(product.category_name);
             document.getElementById('modal-rating').innerText = product.avg_rating.toFixed(1);
             document.getElementById('modal-reviews').innerText = `(${product.review_count || 0})`;
 
@@ -1209,6 +1246,15 @@ $totalProductCount = count($cleanProducts);
             }
             badgesContainer.innerHTML = badgesHtml;
 
+            // Render Related Products (ផលិតផលពាក់ព័ន្ធ)
+            renderRelatedProducts(product);
+
+            // Reset scroll position of sheet body to top
+            const sheetBody = document.querySelector('#product-modal .overflow-y-auto');
+            if (sheetBody) {
+                sheetBody.scrollTop = 0;
+            }
+
             const modal = document.getElementById('product-modal');
             modal.style.display = 'flex';
             // Trigger reflow for smooth bottom-sheet animation
@@ -1221,6 +1267,85 @@ $totalProductCount = count($cleanProducts);
                 tg.BackButton.show();
                 tg.BackButton.onClick(closeProductModal);
             }
+        }
+
+        // Render Related Products (ផលិតផលពាក់ព័ន្ធ) inside Detail Modal
+        function renderRelatedProducts(currentProduct) {
+            const container = document.getElementById('modal-related-container');
+            const section = document.getElementById('modal-related-section');
+            if (!container || !section) return;
+
+            // 1. Same category products first (excluding current product)
+            const sameCategory = ALL_PRODUCTS.filter(p => 
+                p.id !== currentProduct.id && 
+                String(p.category_key) === String(currentProduct.category_key)
+            );
+
+            // 2. If fewer than 6, supplement with other top products
+            let related = [...sameCategory];
+            if (related.length < 6) {
+                const others = ALL_PRODUCTS.filter(p => 
+                    p.id !== currentProduct.id && 
+                    !related.some(r => r.id === p.id)
+                );
+                for (const o of others) {
+                    related.push(o);
+                    if (related.length >= 6) break;
+                }
+            } else if (related.length > 10) {
+                related = related.slice(0, 10);
+            }
+
+            if (related.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+
+            let html = '';
+            related.forEach(rp => {
+                const priceFormatted = '$' + rp.price.toFixed(2);
+                const safeName = escapeHtml(rp.name);
+                const safeCat = escapeHtml(rp.category_name);
+
+                html += `
+                    <div class="w-[125px] min-w-[125px] sm:w-[140px] sm:min-w-[140px] bg-gray-50/90 hover:bg-orange-50/20 border border-gray-100 rounded-2xl p-2 flex flex-col justify-between cursor-pointer active:scale-95 transition-all group flex-shrink-0"
+                         onclick="openProductModal(${rp.id})">
+                        <div>
+                            <div class="relative w-full aspect-square bg-white rounded-xl overflow-hidden p-1.5 mb-1.5 flex items-center justify-center border border-gray-100/70 shadow-2xs">
+                                <img src="${rp.image}" 
+                                     alt="${safeName}" 
+                                     loading="lazy"
+                                     onerror="this.src='/kouprey/public/assets/images/product-medium.png'"
+                                     class="w-full h-full object-contain filter drop-shadow-xs group-hover:scale-105 transition-transform duration-300">
+                                ${rp.featured ? `
+                                    <span class="absolute top-1 left-1 px-1 py-0.2 rounded bg-yellow-500 text-white text-[8px] font-bold">
+                                        ★
+                                    </span>
+                                ` : ''}
+                                ${rp.best_seller ? `
+                                    <span class="absolute top-1 right-1 px-1 py-0.2 rounded bg-red-500 text-white text-[8px] font-bold">
+                                        HOT
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <span class="text-[9px] text-orange-600 font-semibold block truncate leading-tight">${safeCat}</span>
+                            <h5 class="text-[11px] font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-orange-600 transition-colors mt-0.5">
+                                ${safeName}
+                            </h5>
+                        </div>
+                        <div class="pt-1.5 flex items-center justify-between border-t border-gray-200/50 mt-1">
+                            <span class="text-xs font-extrabold text-orange-600">${priceFormatted}</span>
+                            <span class="w-5 h-5 rounded-full bg-white group-hover:bg-orange-500 group-hover:text-white text-gray-400 flex items-center justify-center text-[8px] transition-colors shadow-2xs">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
         function closeProductModal() {

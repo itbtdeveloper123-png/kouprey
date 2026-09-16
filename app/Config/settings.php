@@ -11,9 +11,30 @@ $GLOBALS['__SETTINGS_CACHE__'] = [];
 $GLOBALS['__SETTINGS_CATEGORY_CACHE__'] = [];
 
 /**
+ * Normalize Khmer text by repairing common Unicode typing errors (e.g. invalid double vowels)
+ * Specifically replaces 'ស' + 'ុ' (U+17BB) + 'ី' (U+17B8) with the grammatically correct 'ស' + '៊' (U+17CA, Triisap) + 'ី' (U+17B8) -> 'ស៊ី'
+ */
+function normalizeKhmerSpelling($data) {
+    if (is_string($data)) {
+        return str_replace(
+            ["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "\xE1\x9E\x9F\xE1\x9E\xB8\xE1\x9E\xBB", "សុី"],
+            "ស៊ី",
+            $data
+        );
+    }
+    if (is_array($data)) {
+        foreach ($data as $k => $v) {
+            $data[$k] = normalizeKhmerSpelling($v);
+        }
+    }
+    return $data;
+}
+
+/**
  * Replace occurrences of 'កាហ្វេ' with 'គ្រឿងបន្ថែមរស់ជាតិ' and specific customized phrases
  */
 function replaceCoffeeKhmer($data) {
+    $data = normalizeKhmerSpelling($data);
     if (is_string($data)) {
         // Direct phrase replacements requested by user
         $data = str_replace(

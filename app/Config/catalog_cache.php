@@ -27,6 +27,12 @@ if (!function_exists('getCatalogData')) {
         }
 
         try {
+            // Auto-repair any Khmer Unicode typing mistakes in DB (replace invalid 'សុី' with 'ស៊ី')
+            try {
+                $pdo->exec("UPDATE categories SET name = REPLACE(REPLACE(name, 'សុី', 'ស៊ី'), '\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8', 'ស៊ី') WHERE name LIKE '%សុី%'");
+                $pdo->exec("UPDATE products SET name = REPLACE(REPLACE(name, 'សុី', 'ស៊ី'), '\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8', 'ស៊ី') WHERE name LIKE '%សុី%'");
+            } catch (Exception $ignored) {}
+
             // Fetch all products with rating stats
             $stmt = $pdo->prepare("
                 SELECT
@@ -183,6 +189,31 @@ if (!function_exists('getCatalogData')) {
                 if ($pA !== $pB) return $pA <=> $pB;
                 return strcmp($a['name'] ?? '', $b['name'] ?? '');
             });
+
+            // Normalize Khmer spelling on categories
+            foreach ($categories as &$c) {
+                if (function_exists('normalizeKhmerSpelling')) {
+                    $c['name'] = normalizeKhmerSpelling($c['name'] ?? '');
+                    if (!empty($c['description'])) $c['description'] = normalizeKhmerSpelling($c['description']);
+                } else {
+                    $c['name'] = str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $c['name'] ?? '');
+                }
+            }
+            unset($c);
+
+            // Normalize Khmer spelling on products
+            foreach ($products as &$p) {
+                if (function_exists('normalizeKhmerSpelling')) {
+                    $p['name'] = normalizeKhmerSpelling($p['name'] ?? '');
+                    if (!empty($p['category_name'])) $p['category_name'] = normalizeKhmerSpelling($p['category_name']);
+                } else {
+                    $p['name'] = str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $p['name'] ?? '');
+                    if (!empty($p['category_name'])) $p['category_name'] = str_replace(["\xE1\x9E\x9F\xE1\x9E\xBB\xE1\x9E\xB8", "សុី"], "ស៊ី", $p['category_name']);
+                }
+            }
+            unset($p);
+
+            $allAvailableProducts = $products;
 
             $catalogData = [
                 'products' => $products,
