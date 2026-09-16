@@ -104,6 +104,27 @@ foreach ($products as $p) {
     ];
 }
 
+// Select spotlight products for top compact banner slider (featured or best sellers, fallback to top products)
+$bannerProducts = array_values(array_filter($cleanProducts, function($p) {
+    return !empty($p['featured']) || !empty($p['best_seller']);
+}));
+if (count($bannerProducts) < 3) {
+    foreach ($cleanProducts as $p) {
+        $alreadyIn = false;
+        foreach ($bannerProducts as $bp) {
+            if ($bp['id'] === $p['id']) {
+                $alreadyIn = true;
+                break;
+            }
+        }
+        if (!$alreadyIn) {
+            $bannerProducts[] = $p;
+        }
+        if (count($bannerProducts) >= 5) break;
+    }
+}
+$bannerProducts = array_slice($bannerProducts, 0, 5);
+
 $totalProductCount = count($cleanProducts);
 ?>
 <!DOCTYPE html>
@@ -154,6 +175,9 @@ $totalProductCount = count($cleanProducts);
 
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper 11 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -228,6 +252,23 @@ $totalProductCount = count($cleanProducts);
             :root {
                 --app-safe-top: 16px;
             }
+        }
+
+        /* Compact Banner Slider Custom Dots */
+        .compact-banner-dot {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 9999px;
+            background: #fed7aa;
+            margin: 0 3px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .compact-banner-dot-active {
+            width: 16px;
+            background: #f97316;
+            border-radius: 9999px;
         }
 
         button, .category-pill, [onclick] {
@@ -321,6 +362,83 @@ $totalProductCount = count($cleanProducts);
         <!-- Products Catalog Grid (Mobile 2-Column) -->
         <!-- ───────────────────────────────────────────────────────────── -->
         <main class="flex-1 px-3.5 pt-3 pb-8">
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <!-- Top Compact Product Banner Slider (Spotlight) -->
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <?php if (!empty($bannerProducts)): ?>
+            <section id="top-banner-section" class="mb-3.5" aria-label="Spotlight Products">
+                <div class="swiper compact-banner-swiper rounded-2xl overflow-hidden">
+                    <div class="swiper-wrapper">
+                        <?php foreach ($bannerProducts as $idx => $bp): 
+                            $gradients = [
+                                'from-amber-500/10 via-orange-500/10 to-amber-50/50 border-amber-200/60',
+                                'from-rose-500/10 via-orange-500/10 to-rose-50/50 border-rose-200/60',
+                                'from-emerald-500/10 via-teal-500/10 to-emerald-50/50 border-emerald-200/60',
+                                'from-blue-500/10 via-indigo-500/10 to-sky-50/50 border-blue-200/60',
+                                'from-purple-500/10 via-pink-500/10 to-purple-50/60 border-purple-200/60',
+                            ];
+                            $gradClass = $gradients[$idx % count($gradients)];
+                        ?>
+                        <div class="swiper-slide cursor-pointer" onclick="openProductModal(<?php echo (int)$bp['id']; ?>)">
+                            <div class="relative w-full h-[98px] sm:h-[108px] bg-gradient-to-r <?php echo $gradClass; ?> border rounded-2xl p-2.5 sm:p-3 flex items-center justify-between overflow-hidden group shadow-2xs active:scale-[0.99] transition-all">
+                                <!-- Background subtle light glow -->
+                                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/40 rounded-full blur-xl pointer-events-none"></div>
+
+                                <!-- Left Info Section -->
+                                <div class="flex-1 min-w-0 pr-2 z-10 flex flex-col justify-between h-full py-0.5">
+                                    <div class="flex items-center gap-1.5">
+                                        <?php if (!empty($bp['best_seller'])): ?>
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-amber-800 bg-amber-200/80 px-1.5 py-0.5 rounded-md">
+                                                <i class="fas fa-crown text-[8px] text-amber-600"></i>
+                                                <span><?php echo $currentLanguage === 'km' ? 'លក់ដាច់' : 'HOT'; ?></span>
+                                            </span>
+                                        <?php elseif (!empty($bp['featured'])): ?>
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-orange-800 bg-orange-200/80 px-1.5 py-0.5 rounded-md">
+                                                <i class="fas fa-fire text-[8px] text-orange-600"></i>
+                                                <span><?php echo $currentLanguage === 'km' ? 'ពិសេស' : 'FEATURED'; ?></span>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-gray-700 bg-white/80 px-1.5 py-0.5 rounded-md">
+                                                <i class="fas fa-star text-[8px] text-amber-500"></i>
+                                                <span>TOP</span>
+                                            </span>
+                                        <?php endif; ?>
+                                        <span class="text-[10px] text-gray-500 font-medium truncate"><?php echo htmlspecialchars($bp['category_name']); ?></span>
+                                    </div>
+
+                                    <h3 class="text-xs sm:text-sm font-bold text-gray-900 truncate leading-snug group-hover:text-orange-600 transition-colors">
+                                        <?php echo htmlspecialchars($bp['name']); ?>
+                                    </h3>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs sm:text-sm font-extrabold text-orange-600">
+                                            $<?php echo number_format((float)$bp['price'], 2); ?>
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold text-gray-700 bg-white/90 group-hover:bg-orange-500 group-hover:text-white px-2 py-0.5 rounded-full border border-gray-200/80 shadow-2xs transition-colors">
+                                            <span><?php echo $currentLanguage === 'km' ? 'មើលលម្អិត' : 'View'; ?></span>
+                                            <i class="fas fa-chevron-right text-[7px]"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Right Image Section -->
+                                <div class="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 flex items-center justify-center z-10">
+                                    <div class="absolute inset-0 bg-white/85 rounded-xl shadow-2xs border border-white/60"></div>
+                                    <img src="<?php echo htmlspecialchars($bp['image']); ?>" 
+                                         alt="<?php echo htmlspecialchars($bp['name']); ?>" 
+                                         class="relative w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+                                         onerror="this.src='/kouprey/public/assets/images/logo.png'">
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <!-- Pagination bullets -->
+                    <div class="compact-banner-pagination flex justify-center items-center pt-1.5 pb-0.5"></div>
+                </div>
+            </section>
+            <?php endif; ?>
+
             <!-- Products Count / Active Filter Info -->
             <div class="flex items-center justify-between mb-3 px-1">
                 <span class="text-xs font-bold text-gray-600" id="product-counter">
@@ -477,6 +595,9 @@ $totalProductCount = count($cleanProducts);
         </div>
     </div>
 
+    <!-- Swiper 11 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- Client-side Logic (Fast, Offline-Capable, Telegram Integrated) -->
     <!-- ───────────────────────────────────────────────────────────── -->
@@ -607,8 +728,18 @@ $totalProductCount = count($cleanProducts);
             const grid = document.getElementById('product-grid');
             const emptyState = document.getElementById('empty-state');
             const counter = document.getElementById('product-counter');
+            const topBanner = document.getElementById('top-banner-section');
 
             const q = searchQuery.toLowerCase().trim();
+
+            // Hide compact top banner slider when search query is typed, show when empty
+            if (topBanner) {
+                if (q.length > 0) {
+                    topBanner.classList.add('hidden');
+                } else {
+                    topBanner.classList.remove('hidden');
+                }
+            }
 
             const filtered = ALL_PRODUCTS.filter(p => {
                 // Exact category match
@@ -983,10 +1114,41 @@ $totalProductCount = count($cleanProducts);
             }
         }
 
+        // Compact Banner Swiper Controller
+        let bannerSwiperInstance = null;
+        function initBannerSwiper() {
+            if (typeof Swiper === 'undefined') return;
+            const container = document.querySelector('.compact-banner-swiper');
+            if (!container || bannerSwiperInstance) return;
+
+            try {
+                bannerSwiperInstance = new Swiper('.compact-banner-swiper', {
+                    slidesPerView: 1,
+                    spaceBetween: 12,
+                    loop: true,
+                    autoplay: {
+                        delay: 3500,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                    },
+                    pagination: {
+                        el: '.compact-banner-pagination',
+                        clickable: true,
+                        bulletClass: 'compact-banner-dot',
+                        bulletActiveClass: 'compact-banner-dot-active',
+                    },
+                    touchRatio: 1,
+                    resistanceRatio: 0.85,
+                });
+            } catch (e) {}
+        }
+
         // Initial Load
         document.addEventListener('DOMContentLoaded', () => {
             filterAndRenderProducts();
+            initBannerSwiper();
         });
+        window.addEventListener('load', initBannerSwiper);
     </script>
 </body>
 </html>
