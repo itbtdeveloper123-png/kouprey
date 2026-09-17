@@ -1,0 +1,7 @@
+[2026-09-17 11:37:25,082] INFO: Failed to load SSL library: <class 'OSError'> (no library called "ssl" found)
+[2026-09-17 11:37:25,083] INFO: cryptg module not installed and libssl not found, falling back to (slower) Python encryption
+[2026-09-17 11:37:25,738] INFO: Created template config at e:\KouPrey\kouprey\scripts\userbot_config.json. Please fill in api_id and api_hash.
+[2026-09-17 11:37:25,738] ERROR: =======================================================
+[2026-09-17 11:37:25,738] ERROR: កំហុស៖ សូមបញ្ចូល api_id និង api_hash ក្នុង userbot_config.json
+[2026-09-17 11:37:25,777] ERROR: ទទួលបានពី: https://my.telegram.org (API development tools)
+[2026-09-17 11:37:25,778] ERROR: =======================================================

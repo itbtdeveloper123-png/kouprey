@@ -180,7 +180,7 @@ if (!$isStartCommand) {
 // Build Greeting Message Text
 $greetingTemplate = trim($cfg['telegram_autoreply_message'] ?? '');
 if (empty($greetingTemplate)) {
-    $greetingTemplate = "<b>សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand (KouPrey) ☕✨</b>\n\n"
+    $greetingTemplate = "<b>សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand ✨</b>\n\n"
         . "យើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ, ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n"
         . "👉 សូមជ្រើសរើសជម្រើសខាងក្រោមដើម្បីមើលផលិតផល ឬទាក់ទងមកកាន់យើងខ្ញុំ៖";
 }
@@ -195,10 +195,10 @@ $responseText = str_replace(array_keys($replacements), array_values($replacement
 
 // Build Inline Buttons
 $btnMiniappText = trim($cfg['telegram_autoreply_btn_miniapp_text'] ?? '🛍️ បើកមើលទំនិញ (Open Mini App)');
-$btnMiniappUrl  = trim($cfg['telegram_autoreply_btn_miniapp_url'] ?? 'https://www.kouprey.asia/telegram.php');
+$btnMiniappUrl  = trim($cfg['telegram_autoreply_btn_miniapp_url'] ?? 'https://t.me/gogobrand_bot');
 
 $btnChannelText = trim($cfg['telegram_autoreply_btn_channel_text'] ?? '📢 ចូលរួម Telegram Channel');
-$btnChannelUrl  = trim($cfg['telegram_autoreply_btn_channel_url'] ?? 'https://t.me/kouprey_channel');
+$btnChannelUrl  = trim($cfg['telegram_autoreply_btn_channel_url'] ?? 'https://t.me/gogobrand98');
 
 $btnSupportText = trim($cfg['telegram_autoreply_btn_support_text'] ?? '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់');
 $btnSupportUrl  = trim($cfg['telegram_autoreply_btn_support_url'] ?? 'https://t.me/Bos_Sauveli98');

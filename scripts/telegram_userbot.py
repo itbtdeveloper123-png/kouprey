@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import time
+import random
 import asyncio
 import logging
 import urllib.request
@@ -37,6 +38,12 @@ CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userbot_
 CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "responded_users.json")
 SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kouprey_personal")
 
+# Keywords that re-trigger auto-reply even if customer already chatted before
+TRIGGER_KEYWORDS = [
+    "menu", "មីនុយ", "/start", "start", "តម្លៃ", "price", 
+    "ទំនិញ", "info", "shop", "order", "កាតាឡុក", "catalog", "help"
+]
+
 def load_config():
     """Load config from local json file or create default template"""
     default_config = {
@@ -45,13 +52,14 @@ def load_config():
         "phone_number": "",
         "admin_api_url": "https://www.kouprey.asia/admin-api.php?action=telegram_get_settings",
         "fallback_message": (
-            "សួស្តី! សូមស្វាគមន៍មកកាន់ GoGo Brand (KouPrey) ☕✨\n\n"
+            "សួស្តី! សូមស្វាគមន៍មកកាន់ GoGo Brand ✨\n\n"
             "យើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n"
             "👉 បើកមើលទំនិញក្នុង Mini App៖\n"
-            "https://www.kouprey.asia/telegram.php\n\n"
+            "@gogobrand_bot\n\n"
             "👉 ចូលរួម Telegram Channel៖\n"
-            "https://t.me/kouprey_channel"
+            "https://t.me/gogobrand98"
         ),
+        "welcome_photo": "https://i.ibb.co/WW1FQSG2/Gemini-Generated-Image-l5ljj5l5ljj5l5lj.jpg",
         "cooldown_hours": 24
     }
 
@@ -59,7 +67,10 @@ def load_config():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                default_config.update(data)
+                for k, v in data.items():
+                    # Only override if key exists in config file and is non-empty
+                    if v is not None and v != "":
+                        default_config[k] = v
         except Exception as e:
             logger.warning(f"Failed to read {CONFIG_FILE}: {e}")
     else:
@@ -114,7 +125,6 @@ async def main():
         logger.error("កំហុស៖ សូមបញ្ចូល api_id និង api_hash ក្នុង userbot_config.json")
         logger.error("ទទួលបានពី: https://my.telegram.org (API development tools)")
         logger.error("=======================================================")
-        # Prompt interactively if run in terminal
         try:
             api_id = input("បញ្ចូល API ID: ").strip()
             api_hash = input("បញ្ចូល API HASH: ").strip()
@@ -133,10 +143,86 @@ async def main():
     me = await client.get_me()
     logger.info("=======================================================")
     logger.info(f"✓ ភ្ជាប់ជោគជ័យជាមួយ Personal Account: {me.first_name} (@{me.username or 'No username'})")
-    logger.info("✓ Userbot កំពុងរង់ចាំអតិថិជនឆាតមកដំបូងដើម្បីឆ្លើយតបស្វ័យប្រវត្តិ...")
+    logger.info("✓ Userbot កំពុងរង់ចាំអតិថិជនឆាតមកដំបូង ឬវាយពាក្យ Menu ដើម្បីឆ្លើយតបស្វ័យប្រវត្តិ...")
     logger.info("=======================================================")
 
     responded_users = load_responded_cache()
+
+    # Remote Management via Telegram 'Saved Messages' (សារដែលបានរក្សាទុក)
+    @client.on(events.NewMessage(chats='me'))
+    async def handle_saved_messages_command(event):
+        raw_text = (event.raw_text or "").strip()
+        cmd = raw_text.lower()
+
+        # Prevent bot looping on its own responses
+        if raw_text.startswith("✅") or raw_text.startswith("🤖"):
+            return
+
+        if cmd in ["/reset", "reset"]:
+            cleared_count = len(responded_users)
+            responded_users.clear()
+            save_responded_cache(responded_users)
+            await event.reply(
+                f"✅ **បាន Reset ប្រវត្តិអតិថិជនជោគជ័យ!**\n\n"
+                f"• ចំនួនសម្អាត: {cleared_count} នាក់\n"
+                f"• ពេលនេះ Userbot នឹងឆ្លើយតបស្វាគមន៍ចំពោះអតិថិជនទាំងអស់ឡើងវិញ (ទោះធ្លាប់ឆាតរួចក៏ដោយ)។"
+            )
+            logger.info(f"Admin reset customer cache via Saved Messages ({cleared_count} records cleared).")
+
+        elif cmd in ["/status", "status"]:
+            photo_info = config.get("welcome_photo") or "(គ្មានរូបភាព)"
+            await event.reply(
+                f"🤖 **GoGo Brand Userbot Status**\n\n"
+                f"• គណនី: {me.first_name} (@{me.username or 'No username'})\n"
+                f"• ស្ថានភាព: កំពុងដំណើរការ (Online)\n"
+                f"• ចំនួនអ្នកធ្លាប់ឆ្លើយតប: {len(responded_users)} នាក់\n"
+                f"• រូបភាពស្វាគមន៍: {photo_info}\n"
+                f"• Cooldown ធម្មតា: {config.get('cooldown_hours', 24)} ម៉ោង\n\n"
+                f"💡 **ពាក្យបញ្ជាបញ្ជាពីចម្ងាយ (Remote Control):**\n"
+                f"• វាយ `/test` ដើម្បីមើលទម្រង់សារ Auto-Reply លើខ្លួនឯង\n"
+                f"• វាយ `/reset` ដើម្បី Reset អ្នកធ្លាប់ឆាតឱ្យឆ្លើយតបឡើងវិញទាំងអស់\n"
+                f"• វាយ `/status` ដើម្បីឆែកមើលស្ថានភាព"
+            )
+
+        elif cmd in ["/test", "test"]:
+            # Preview greeting message and photo directly in Saved Messages
+            settings = fetch_admin_settings(config.get("admin_api_url", ""))
+            preview_msg = config.get("fallback_message")
+            photo_url = config.get("welcome_photo", "")
+
+            if settings:
+                raw_msg = settings.get("telegram_autoreply_message")
+                miniapp_url = settings.get("telegram_miniapp_url")
+                channel_url = settings.get("telegram_channel_url")
+                if not miniapp_url or "telegram.php" in miniapp_url:
+                    miniapp_url = "@gogobrand_bot"
+                if not channel_url or "kouprey_channel" in channel_url:
+                    channel_url = "https://t.me/gogobrand98"
+
+                if settings.get("telegram_autoreply_photo"):
+                    photo_url = settings.get("telegram_autoreply_photo")
+
+                if raw_msg:
+                    raw_msg = raw_msg.replace("(KouPrey)", "").replace("  ", " ")
+                    clean_msg = raw_msg.replace("<b>", "**").replace("</b>", "**")
+                    clean_msg = clean_msg.replace("<i>", "*").replace("</i>", "*")
+                    clean_msg = clean_msg.replace("{name}", me.first_name or "អតិថិជន")
+                    clean_msg = clean_msg.replace("{username}", f"@{me.username}" if me.username else "")
+                    preview_msg = (
+                        f"{clean_msg}\n\n"
+                        f"👉 **បើកមើលទំនិញក្នុង Mini App៖**\n{miniapp_url}\n\n"
+                        f"👉 **ចូលរួម Telegram Channel៖**\n{channel_url}"
+                    )
+
+            full_preview = "🔍 **[តេស្តសាកល្បង] ទម្រង់សារ Auto-Reply៖**\n\n" + preview_msg
+
+            if photo_url and (os.path.exists(photo_url) or photo_url.startswith("http")):
+                try:
+                    await client.send_file('me', file=photo_url, caption=full_preview)
+                except Exception as e:
+                    await event.reply(f"{full_preview}\n\n⚠️ *(បញ្ជូនរូបភាពមិនជោគជ័យ: {e})*")
+            else:
+                await event.reply(full_preview)
 
     @client.on(events.NewMessage(incoming=True, func=lambda e: e.is_private))
     async def handle_private_message(event):
@@ -148,24 +234,46 @@ async def main():
         now = time.time()
         cooldown = config.get("cooldown_hours", 24) * 3600
 
-        # Check if customer already received a greeting within cooldown period
+        text = (event.raw_text or "").strip().lower()
+
+        # Check if incoming text contains any trigger keywords (e.g. menu, price, /start)
+        is_keyword = any(k in text for k in TRIGGER_KEYWORDS)
+
         last_reply_time = responded_users.get(user_id, 0)
-        if now - last_reply_time < cooldown:
+
+        # Skip if already greeted within cooldown AND message is not a keyword request
+        if (now - last_reply_time < cooldown) and not is_keyword:
             logger.info(f"User {sender.first_name} (ID: {user_id}) sent a message, but was already greeted. Skipping.")
             return
 
-        logger.info(f"New customer detected: {sender.first_name} (@{sender.username or 'none'}). Preparing auto-reply...")
+        # Mini rate-limit: avoid spamming back-to-back within 30 seconds for the same user
+        if now - last_reply_time < 30:
+            return
+
+        if is_keyword:
+            logger.info(f"Keyword trigger ('{text}') from {sender.first_name} (ID: {user_id}). Preparing reply...")
+        else:
+            logger.info(f"New customer detected: {sender.first_name} (@{sender.username or 'none'}). Preparing auto-reply...")
 
         # Fetch latest settings from Admin Panel
         settings = fetch_admin_settings(config.get("admin_api_url", ""))
         message_to_send = config.get("fallback_message")
+        photo_to_send = config.get("welcome_photo", "")
 
         if settings:
             raw_msg = settings.get("telegram_autoreply_message")
-            miniapp_url = settings.get("telegram_miniapp_url") or "https://www.kouprey.asia/telegram.php"
-            channel_url = settings.get("telegram_channel_url") or "https://t.me/kouprey_channel"
+            miniapp_url = settings.get("telegram_miniapp_url")
+            channel_url = settings.get("telegram_channel_url")
+            if not miniapp_url or "telegram.php" in miniapp_url:
+                miniapp_url = "@gogobrand_bot"
+            if not channel_url or "kouprey_channel" in channel_url:
+                channel_url = "https://t.me/gogobrand98"
+
+            if settings.get("telegram_autoreply_photo"):
+                photo_to_send = settings.get("telegram_autoreply_photo")
 
             if raw_msg:
+                raw_msg = raw_msg.replace("(KouPrey)", "").replace("  ", " ")
                 # Strip basic HTML tags since MTProto client formats via markdown
                 clean_msg = raw_msg.replace("<b>", "**").replace("</b>", "**")
                 clean_msg = clean_msg.replace("<i>", "*").replace("</i>", "*")
@@ -179,9 +287,27 @@ async def main():
                 )
 
         try:
-            # Send auto-reply directly from personal account
-            await client.send_message(sender.id, message_to_send)
-            logger.info(f"✓ Successfully sent auto-reply to {sender.first_name} ({user_id})")
+            # 1. Mark incoming message as seen/read
+            await event.mark_read()
+
+            # 2. Anti-ban: Simulate human typing behavior (2 to 3.5s delay)
+            typing_delay = round(random.uniform(2.0, 3.5), 1)
+            logger.info(f"Simulating human typing for {typing_delay}s before reply...")
+            async with client.action(sender.id, 'typing'):
+                await asyncio.sleep(typing_delay)
+
+            # 3. Send auto-reply (with photo if configured, otherwise text message)
+            if photo_to_send and (os.path.exists(photo_to_send) or photo_to_send.startswith("http")):
+                try:
+                    await client.send_file(sender.id, file=photo_to_send, caption=message_to_send)
+                    logger.info(f"✓ Successfully sent auto-reply with photo to {sender.first_name} ({user_id})")
+                except Exception as file_err:
+                    logger.warning(f"Could not send photo ({file_err}). Falling back to text.")
+                    await client.send_message(sender.id, message_to_send)
+                    logger.info(f"✓ Successfully sent fallback text auto-reply to {sender.first_name} ({user_id})")
+            else:
+                await client.send_message(sender.id, message_to_send)
+                logger.info(f"✓ Successfully sent auto-reply to {sender.first_name} ({user_id})")
 
             # Update cache
             responded_users[user_id] = now

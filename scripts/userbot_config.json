@@ -1,0 +1,9 @@
+{
+    "api_id": "",
+    "api_hash": "",
+    "phone_number": "",
+    "admin_api_url": "https://www.kouprey.asia/admin-api.php?action=telegram_get_settings",
+    "fallback_message": "សួស្តី! សូមស្វាគមន៍មកកាន់ GoGo Brand ✨\n\nយើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n👉 បើកមើលទំនិញក្នុង Mini App៖\n@gogobrand_bot\n\n👉 ចូលរួម Telegram Channel៖\nhttps://t.me/gogobrand98",
+    "welcome_photo": "https://i.ibb.co/WW1FQSG2/Gemini-Generated-Image-l5ljj5l5ljj5l5lj.jpg",
+    "cooldown_hours": 24
+}

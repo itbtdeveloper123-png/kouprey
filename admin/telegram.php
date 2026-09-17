@@ -22,14 +22,14 @@ $defaultWebhook = "$scheme://$host/telegram-webhook.php";
 
 $botToken = $cfg['telegram_bot_token'] ?? '';
 $groupId = $cfg['telegram_group_id'] ?? '';
-$channelUrl = $cfg['telegram_channel_url'] ?? 'https://t.me/kouprey_channel';
-$miniappUrl = $cfg['telegram_miniapp_url'] ?? 'https://www.kouprey.asia/telegram.php';
+$channelUrl = $cfg['telegram_channel_url'] ?? 'https://t.me/gogobrand98';
+$miniappUrl = $cfg['telegram_miniapp_url'] ?? '@gogobrand_bot';
 $supportUrl = $cfg['telegram_support_url'] ?? 'https://t.me/Bos_Sauveli98';
 $webhookUrl = $cfg['telegram_webhook_url'] ?? $defaultWebhook;
 $autoreplyEnabled = $cfg['telegram_autoreply_enabled'] ?? '1';
 $autoreplyBusinessEnabled = $cfg['telegram_autoreply_business_enabled'] ?? '1';
-$autoreplyMsg = $cfg['telegram_autoreply_message'] ?? "<b>សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand (KouPrey) ☕✨</b>\n\nយើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ, ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n👉 សូមជ្រើសរើសជម្រើសខាងក្រោមដើម្បីមើលផលិតផល ឬទាក់ទងមកកាន់យើងខ្ញុំ៖";
-$autoreplyPhoto = $cfg['telegram_autoreply_photo'] ?? '';
+$autoreplyMsg = $cfg['telegram_autoreply_message'] ?? "<b>សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand ✨</b>\n\nយើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ, ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n👉 សូមជ្រើសរើសជម្រើសខាងក្រោមដើម្បីមើលផលិតផល ឬទាក់ទងមកកាន់យើងខ្ញុំ៖";
+$autoreplyPhoto = $cfg['telegram_autoreply_photo'] ?? 'https://i.ibb.co/WW1FQSG2/Gemini-Generated-Image-l5ljj5l5ljj5l5lj.jpg';
 
 // Handle Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
