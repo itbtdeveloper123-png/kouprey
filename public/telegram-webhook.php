@@ -153,6 +153,30 @@ if (!empty($from['is_bot'])) {
     exit;
 }
 
+// Check if this is the customer's FIRST message (within 24 hours) or /start command
+// /start always triggers the greeting menu, while normal messages only auto-reply once per 24h
+$isStartCommand = (strtolower(trim($text)) === '/start' || strpos(strtolower(trim($text)), '/start ') === 0);
+
+if (!$isStartCommand) {
+    try {
+        $lastReplyStmt = $pdo->prepare("SELECT created_at FROM telegram_customer_logs WHERE chat_id = ? AND replied_status = 'replied' ORDER BY id DESC LIMIT 1");
+        $lastReplyStmt->execute([(string)$chatId]);
+        $lastReplyTime = $lastReplyStmt->fetchColumn();
+
+        if ($lastReplyTime) {
+            $secondsSince = time() - strtotime($lastReplyTime);
+            // If customer received a greeting less than 24 hours ago, do not auto-reply again
+            if ($secondsSince < 86400) {
+                logCustomerMessage($pdo, $chatId, $customerName, $customerUsername, $isBusiness ? 'business_message' : 'direct_message', $text, 'skipped_already_replied');
+                echo json_encode(['ok' => true, 'info' => 'Customer was already greeted on their first message within 24h']);
+                exit;
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error checking previous customer replies: " . $e->getMessage());
+    }
+}
+
 // Build Greeting Message Text
 $greetingTemplate = trim($cfg['telegram_autoreply_message'] ?? '');
 if (empty($greetingTemplate)) {

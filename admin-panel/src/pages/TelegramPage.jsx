@@ -76,7 +76,10 @@ export default function TelegramPage() {
     telegram_autoreply_btn_channel_text: '📢 ចូលរួម Telegram Channel',
     telegram_autoreply_btn_channel_url: 'https://t.me/kouprey_channel',
     telegram_autoreply_btn_support_text: '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
-    telegram_autoreply_btn_support_url: 'https://t.me/Bos_Sauveli98'
+    telegram_autoreply_btn_support_url: 'https://t.me/Bos_Sauveli98',
+    telegram_api_id: '',
+    telegram_api_hash: '',
+    telegram_phone_number: ''
   });
 
   // Bot Information Status
@@ -1276,6 +1279,69 @@ export default function TelegramPage() {
                   </div>
                 </div>
 
+                {/* Personal Account Userbot (api_id & api_hash) */}
+                <div className="border border-blue-200/80 bg-blue-50/40 rounded-2xl p-4.5 space-y-3.5">
+                  <div className="flex items-center justify-between pb-2 border-b border-blue-200/60">
+                    <div className="flex items-center gap-2 text-blue-950 font-bold text-xs sm:text-sm">
+                      <ShieldCheck size={16} className="text-blue-700" />
+                      <span>វិធីទី ៣: Telegram Userbot (api_id & api_hash សម្រាប់ cPanel)</span>
+                    </div>
+                    <a
+                      href="https://my.telegram.org"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-semibold text-blue-700 hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink size={12} />
+                      <span>យក Keys នៅ my.telegram.org</span>
+                    </a>
+                  </div>
+
+                  <p className="text-[11px] text-blue-900/80 leading-relaxed">
+                    ប្រសិនបើលោកអ្នកចង់ឱ្យ Personal Account ឆ្លើយតបស្វ័យប្រវត្តិតាមរយៈ Python Userbot លើ cPanel
+                    សូមបញ្ចូល <code>api_id</code> និង <code>api_hash</code> ខាងក្រោម។ Script របស់យើងនឹងទាញយកទិន្នន័យនេះទៅដំណើរការស្វ័យប្រវត្តិ៖
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-4">
+                      <label className="block text-[10px] font-bold text-blue-900 mb-1">
+                        API ID (លេខ)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.telegram_api_id || ''}
+                        onChange={(e) =>
+                          setSettings({ ...settings, telegram_api_id: e.target.value })
+                        }
+                        placeholder="28472910"
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-blue-300 bg-white font-mono outline-hidden focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-8">
+                      <label className="block text-[10px] font-bold text-blue-900 mb-1">
+                        API HASH
+                      </label>
+                      <input
+                        type="password"
+                        value={settings.telegram_api_hash || ''}
+                        onChange={(e) =>
+                          setSettings({ ...settings, telegram_api_hash: e.target.value })
+                        }
+                        placeholder="a1b2c3d4e5f6g7h8..."
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-blue-300 bg-white font-mono outline-hidden focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-blue-200 text-[11px] text-blue-900 flex items-center gap-2">
+                    <Info size={16} className="text-blue-600 shrink-0" />
+                    <span>
+                      Script Python ត្រូវបានបង្កើតរួចរាល់នៅ៖ <code>scripts/telegram_userbot.py</code> (អាចរត់លើ cPanel តាមរយៈ Cron Job ឬ Setup Python App)។
+                    </span>
+                  </div>
+                </div>
+
                 <div className="flex justify-end pt-2">
                   <button
                     type="button"
@@ -1296,6 +1362,38 @@ export default function TelegramPage() {
 
             {/* Right Guide: 5 cols */}
             <div className="lg:col-span-5 space-y-6">
+              {/* cPanel Setup Guide */}
+              <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl border border-indigo-700/50 space-y-4">
+                <div className="flex items-center gap-2.5 text-indigo-300 font-bold text-sm">
+                  <Layers size={20} />
+                  <span>របៀបរត់ Userbot (api_id/hash) លើ cPanel</span>
+                </div>
+
+                <p className="text-xs text-indigo-200/80 leading-relaxed">
+                  ដើម្បីឱ្យ Script ដំណើរការលើ Web Hosting <code>kouprey.asia</code> ២៤/៧៖
+                </p>
+
+                <div className="space-y-3 pt-1">
+                  <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs space-y-1">
+                    <div className="font-bold text-indigo-300">ជម្រើស A: ប្រើ cPanel Cron Job (@reboot)</div>
+                    <div className="text-[11px] text-slate-300">
+                      1. ចូល cPanel &rarr; <b>Cron Jobs</b><br />
+                      2. ត្រង់ Common Settings ជ្រើសយក <b>Once Per Minute</b> ឬ <b>@reboot</b><br />
+                      3. Command: <code className="bg-black/50 px-1 py-0.5 rounded text-indigo-200">nohup python3 /home/.../scripts/telegram_userbot.py &gt;/dev/null 2&gt;&amp;1 &amp;</code>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs space-y-1">
+                    <div className="font-bold text-teal-300">ជម្រើស B: ប្រើ Setup Python App លើ cPanel</div>
+                    <div className="text-[11px] text-slate-300">
+                      1. ចូល cPanel &rarr; <b>Setup Python App</b><br />
+                      2. បង្កើត Application (Python 3.10+) ដាក់ Application root: <code>scripts</code><br />
+                      3. ចុច Run Pip Install: <code>telethon</code> រួច Start App ជាការស្រេច!
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Telegram Business Setup Visual Guide */}
               <div className="bg-gradient-to-br from-teal-900 to-emerald-950 text-white rounded-3xl p-6 shadow-xl border border-teal-700/50 space-y-4">
                 <div className="flex items-center gap-2.5 text-teal-300 font-bold text-sm">

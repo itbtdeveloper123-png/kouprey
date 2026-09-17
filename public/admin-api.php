@@ -1771,6 +1771,9 @@ switch ($action) {
                 'telegram_autoreply_btn_channel_url' => 'https://t.me/kouprey_channel',
                 'telegram_autoreply_btn_support_text' => '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
                 'telegram_autoreply_btn_support_url' => 'https://t.me/Bos_Sauveli98',
+                'telegram_api_id' => '',
+                'telegram_api_hash' => '',
+                'telegram_phone_number' => '',
             ];
 
             $settings = array_merge($defaults, $rows);
@@ -1807,7 +1810,10 @@ switch ($action) {
                 'telegram_autoreply_btn_channel_text',
                 'telegram_autoreply_btn_channel_url',
                 'telegram_autoreply_btn_support_text',
-                'telegram_autoreply_btn_support_url'
+                'telegram_autoreply_btn_support_url',
+                'telegram_api_id',
+                'telegram_api_hash',
+                'telegram_phone_number'
             ];
 
             $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = VALUES(category)");
