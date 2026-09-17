@@ -197,4 +197,35 @@ export const adminApi = {
       body: { folder },
       params: folder ? { folder } : {},
     }),
+
+  // Telegram Bot & Broadcast
+  telegramGetSettings: () =>
+    request('telegram_get_settings'),
+
+  telegramSaveSettings: (settings) =>
+    request('telegram_save_settings', { method: 'POST', body: { settings } }),
+
+  telegramTestBot: (bot_token) =>
+    request('telegram_test_bot', { method: 'POST', body: { bot_token } }),
+
+  telegramSendBroadcast: (broadcastData) =>
+    request('telegram_send_broadcast', { method: 'POST', body: broadcastData }),
+
+  telegramGetHistory: () =>
+    request('telegram_get_history'),
+
+  telegramClearHistory: () =>
+    request('telegram_clear_history', { method: 'POST' }),
+
+  telegramSetWebhook: (webhook_url, bot_token) =>
+    request('telegram_set_webhook', { method: 'POST', body: { webhook_url, bot_token } }),
+
+  telegramGetWebhookInfo: () =>
+    request('telegram_get_webhook_info'),
+
+  telegramDeleteWebhook: () =>
+    request('telegram_delete_webhook', { method: 'POST' }),
+
+  telegramGetCustomerLogs: () =>
+    request('telegram_get_customer_logs'),
 };

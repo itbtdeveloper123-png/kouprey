@@ -12,6 +12,7 @@ const titlesMap = {
   '/settings': 'ការកំណត់គេហទំព័រ (Site Settings)',
   '/about': 'គ្រប់គ្រងទំព័រអំពីយើង (About Us Page)',
   '/admins': 'គ្រប់គ្រងអ្នកប្រើប្រាស់ (Admin Users)',
+  '/telegram': 'គ្រប់គ្រង Telegram Bot & Auto-Reply',
 };
 
 export default function Layout() {

@@ -27,6 +27,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../app/Config/database.php';
 require_once __DIR__ . '/../app/Config/settings.php';
+require_once __DIR__ . '/../app/Config/telegram_helper.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -1732,6 +1733,409 @@ switch ($action) {
             }
 
             echo json_encode(['success' => true, 'total_updated' => $totalUpdated, 'details' => $details]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── TELEGRAM BOT & BROADCAST API ────────────────
+    case 'telegram_get_settings':
+        try {
+            $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM settings WHERE category = 'telegram' OR setting_key LIKE 'telegram_%'");
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+
+            // Compute default webhook url based on current host
+            $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? 'www.kouprey.asia';
+            $projectPath = (strpos($_SERVER['REQUEST_URI'] ?? '', '/kouprey/') !== false) ? '/kouprey/public' : '';
+            $defaultWebhook = "$scheme://$host$projectPath/telegram-webhook.php";
+            if ($host === 'localhost' || strpos($host, '127.0.0.1') !== false) {
+                $defaultWebhook = 'https://www.kouprey.asia/telegram-webhook.php';
+            }
+
+            $defaults = [
+                'telegram_bot_token' => '',
+                'telegram_group_id' => '',
+                'telegram_channel_url' => 'https://t.me/kouprey_channel',
+                'telegram_miniapp_url' => 'https://www.kouprey.asia/telegram.php',
+                'telegram_support_url' => 'https://t.me/Bos_Sauveli98',
+                'telegram_webhook_url' => $defaultWebhook,
+                'telegram_autoreply_enabled' => '1',
+                'telegram_autoreply_business_enabled' => '1',
+                'telegram_autoreply_message' => "<b>សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand (KouPrey) ☕✨</b>\n\nយើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ, ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n👉 សូមជ្រើសរើសជម្រើសខាងក្រោមដើម្បីមើលផលិតផល ឬទាក់ទងមកកាន់យើងខ្ញុំ៖",
+                'telegram_autoreply_photo' => '',
+                'telegram_autoreply_btn_miniapp_text' => '🛍️ បើកមើលទំនិញ (Open Mini App)',
+                'telegram_autoreply_btn_miniapp_url' => 'https://www.kouprey.asia/telegram.php',
+                'telegram_autoreply_btn_channel_text' => '📢 ចូលរួម Telegram Channel',
+                'telegram_autoreply_btn_channel_url' => 'https://t.me/kouprey_channel',
+                'telegram_autoreply_btn_support_text' => '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
+                'telegram_autoreply_btn_support_url' => 'https://t.me/Bos_Sauveli98',
+            ];
+
+            $settings = array_merge($defaults, $rows);
+
+            echo json_encode(['success' => true, 'settings' => $settings]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_save_settings':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $items = $data['settings'] ?? $data;
+
+            if (!is_array($items)) {
+                echo json_encode(['success' => false, 'error' => 'Settings must be key-value array']);
+                break;
+            }
+
+            $allowedKeys = [
+                'telegram_bot_token',
+                'telegram_group_id',
+                'telegram_channel_url',
+                'telegram_miniapp_url',
+                'telegram_support_url',
+                'telegram_webhook_url',
+                'telegram_autoreply_enabled',
+                'telegram_autoreply_business_enabled',
+                'telegram_autoreply_message',
+                'telegram_autoreply_photo',
+                'telegram_autoreply_btn_miniapp_text',
+                'telegram_autoreply_btn_miniapp_url',
+                'telegram_autoreply_btn_channel_text',
+                'telegram_autoreply_btn_channel_url',
+                'telegram_autoreply_btn_support_text',
+                'telegram_autoreply_btn_support_url'
+            ];
+
+            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = VALUES(category)");
+
+            $savedCount = 0;
+            foreach ($items as $k => $v) {
+                if (in_array($k, $allowedKeys)) {
+                    $stmt->execute([$k, is_bool($v) ? ($v ? '1' : '0') : (string)$v]);
+                    $savedCount++;
+                }
+            }
+
+            if (function_exists('clearSettingsCache')) {
+                clearSettingsCache();
+            }
+
+            echo json_encode(['success' => true, 'saved_count' => $savedCount]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_test_bot':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $token = trim($data['bot_token'] ?? '');
+
+            if (empty($token)) {
+                $st = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'telegram_bot_token' LIMIT 1");
+                $st->execute();
+                $token = trim((string)$st->fetchColumn());
+            }
+
+            if (empty($token)) {
+                echo json_encode(['success' => false, 'error' => 'សូមបញ្ចូល Telegram Bot Token ជាមុនសិន']);
+                break;
+            }
+
+            $res = getTelegramBotInfo($token);
+            if ($res['success']) {
+                echo json_encode(['success' => true, 'bot' => $res['data']]);
+            } else {
+                echo json_encode(['success' => false, 'error' => $res['error'] ?? 'Token មិនត្រឹមត្រូវ']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_send_broadcast':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+
+            // Resolve bot token
+            $botToken = trim($data['bot_token'] ?? '');
+            if (empty($botToken)) {
+                $st = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'telegram_bot_token' LIMIT 1");
+                $st->execute();
+                $botToken = trim((string)$st->fetchColumn());
+            }
+
+            if (empty($botToken)) {
+                echo json_encode(['success' => false, 'error' => 'សូមបញ្ចូល Telegram Bot Token នៅក្នុងការកំណត់']);
+                break;
+            }
+
+            // Resolve chat ID
+            $chatId = trim($data['chat_id'] ?? '');
+            if (empty($chatId)) {
+                $st = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'telegram_group_id' LIMIT 1");
+                $st->execute();
+                $chatId = trim((string)$st->fetchColumn());
+            }
+
+            if (empty($chatId)) {
+                echo json_encode(['success' => false, 'error' => 'សូមបញ្ចូល Group ឬ Channel ID (ឧទាហរណ៍៖ -100xxxxxxxxxx)']);
+                break;
+            }
+
+            $messageText = trim($data['message_text'] ?? $data['caption'] ?? '');
+            $photoUrl = trim($data['photo_url'] ?? $data['image'] ?? '');
+
+            if (empty($messageText) && empty($photoUrl)) {
+                echo json_encode(['success' => false, 'error' => 'សូមបញ្ចូលអត្ថបទ ឬរូបភាពដែលត្រូវផ្ញើ']);
+                break;
+            }
+
+            // Construct Inline Buttons
+            $buttonRows = [];
+
+            // Mini App button
+            $includeMiniapp = !empty($data['include_miniapp']);
+            $miniappText = trim($data['miniapp_text'] ?? '🛍️ បើកមើលទំនិញ (Open Mini App)');
+            $miniappUrl = trim($data['miniapp_url'] ?? 'https://www.kouprey.asia/telegram.php');
+            $miniappMode = $data['miniapp_mode'] ?? 'web_app'; // 'web_app' or 'url'
+
+            if ($includeMiniapp && !empty($miniappUrl)) {
+                if ($miniappMode === 'url' || strpos($chatId, '@') === 0) {
+                    // For public channels or URL mode
+                    $buttonRows[] = [['text' => $miniappText, 'url' => $miniappUrl]];
+                } else {
+                    // For groups and supergroups, web_app opens the Mini App directly inside Telegram
+                    $buttonRows[] = [['text' => $miniappText, 'web_app' => $miniappUrl]];
+                }
+            }
+
+            // Secondary row: Channel + Support buttons
+            $row2 = [];
+            if (!empty($data['include_channel']) && !empty($data['channel_url'])) {
+                $row2[] = [
+                    'text' => trim($data['channel_text'] ?? '📢 ចូលរួមឆានែល'),
+                    'url'  => trim($data['channel_url'])
+                ];
+            }
+            if (!empty($data['include_support']) && !empty($data['support_url'])) {
+                $row2[] = [
+                    'text' => trim($data['support_text'] ?? '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់'),
+                    'url'  => trim($data['support_url'])
+                ];
+            }
+            if (!empty($row2)) {
+                $buttonRows[] = $row2;
+            }
+
+            // Custom buttons if any
+            if (!empty($data['custom_buttons']) && is_array($data['custom_buttons'])) {
+                foreach ($data['custom_buttons'] as $cRow) {
+                    if (!is_array($cRow)) continue;
+                    $validRow = [];
+                    foreach ($cRow as $cBtn) {
+                        if (!empty($cBtn['text']) && (!empty($cBtn['url']) || !empty($cBtn['web_app']))) {
+                            $b = ['text' => $cBtn['text']];
+                            if (!empty($cBtn['web_app'])) $b['web_app'] = $cBtn['web_app'];
+                            else $b['url'] = $cBtn['url'];
+                            $validRow[] = $b;
+                        }
+                    }
+                    if (!empty($validRow)) $buttonRows[] = $validRow;
+                }
+            }
+
+            $replyMarkup = buildTelegramInlineKeyboard($buttonRows);
+
+            // Execute Telegram API call
+            $sendResult = null;
+            if (!empty($photoUrl)) {
+                // If local relative file path
+                if (strpos($photoUrl, 'http') !== 0) {
+                    $localPhoto = __DIR__ . '/' . ltrim($photoUrl, '/');
+                    if (file_exists($localPhoto)) {
+                        $photoUrl = $localPhoto;
+                    } else {
+                        $photoUrl = 'https://www.kouprey.asia/' . ltrim($photoUrl, '/');
+                    }
+                }
+                $sendResult = sendTelegramPhoto($botToken, $chatId, $photoUrl, $messageText, [
+                    'reply_markup' => $replyMarkup,
+                    'parse_mode'   => 'HTML'
+                ]);
+            } else {
+                $sendResult = sendTelegramMessage($botToken, $chatId, $messageText, [
+                    'reply_markup' => $replyMarkup,
+                    'parse_mode'   => 'HTML'
+                ]);
+            }
+
+            // Log broadcast into database
+            try {
+                $pdo->exec("
+                    CREATE TABLE IF NOT EXISTS telegram_broadcast_logs (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        chat_id VARCHAR(100) NOT NULL,
+                        chat_title VARCHAR(255) NULL,
+                        message_text TEXT NULL,
+                        photo_url VARCHAR(500) NULL,
+                        buttons_json TEXT NULL,
+                        status VARCHAR(50) DEFAULT 'success',
+                        error_message TEXT NULL,
+                        sent_by VARCHAR(100) NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_created (created_at)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                ");
+
+                $adminUser = $_SESSION['admin_username'] ?? 'admin';
+                $status = !empty($sendResult['success']) ? 'success' : 'failed';
+                $errMsg = !empty($sendResult['success']) ? null : ($sendResult['error'] ?? 'Unknown error');
+
+                $stLog = $pdo->prepare("INSERT INTO telegram_broadcast_logs (chat_id, message_text, photo_url, buttons_json, status, error_message, sent_by) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stLog->execute([
+                    $chatId,
+                    $messageText,
+                    is_string($photoUrl) ? $photoUrl : '',
+                    json_encode($buttonRows, JSON_UNESCAPED_UNICODE),
+                    $status,
+                    $errMsg,
+                    $adminUser
+                ]);
+            } catch (Exception $logErr) {
+                error_log("Failed to insert into telegram_broadcast_logs: " . $logErr->getMessage());
+            }
+
+            if (!empty($sendResult['success'])) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'បានផ្ញើសារទៅ Telegram Group រួចរាល់ដោយជោគជ័យ!',
+                    'result'  => $sendResult['data']
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error'   => $sendResult['error'] ?? 'ការផ្ញើសារបានបរាជ័យ'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_get_history':
+        try {
+            $check = $pdo->query("SHOW TABLES LIKE 'telegram_broadcast_logs'")->fetch();
+            if (!$check) {
+                echo json_encode(['success' => true, 'history' => []]);
+                break;
+            }
+
+            $stmt = $pdo->query("SELECT * FROM telegram_broadcast_logs ORDER BY id DESC LIMIT 50");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'history' => $rows]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_clear_history':
+        try {
+            $pdo->exec("TRUNCATE TABLE telegram_broadcast_logs");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_set_webhook':
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            $webhookUrl = trim($data['webhook_url'] ?? '');
+
+            // Fallback to saved bot token
+            $botToken = trim($data['bot_token'] ?? '');
+            if (empty($botToken)) {
+                $st = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'telegram_bot_token' LIMIT 1");
+                $st->execute();
+                $botToken = trim((string)$st->fetchColumn());
+            }
+
+            if (empty($botToken)) {
+                echo json_encode(['success' => false, 'error' => 'Bot Token មិនទាន់ត្រូវបានកំណត់']);
+                break;
+            }
+
+            if (empty($webhookUrl)) {
+                $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'] ?? 'www.kouprey.asia';
+                $webhookUrl = "$scheme://$host/telegram-webhook.php";
+            }
+
+            $res = setTelegramWebhook($botToken, $webhookUrl);
+            if ($res['success']) {
+                // Save webhook url in settings
+                $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES ('telegram_webhook_url', ?, 'telegram', 'km') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$webhookUrl]);
+                echo json_encode(['success' => true, 'message' => 'បានដំឡើង Webhook ដោយជោគជ័យ!', 'result' => $res['data']]);
+            } else {
+                echo json_encode(['success' => false, 'error' => $res['error'] ?? 'បរាជ័យក្នុងការដំឡើង Webhook']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_get_webhook_info':
+        try {
+            $st = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'telegram_bot_token' LIMIT 1");
+            $st->execute();
+            $botToken = trim((string)$st->fetchColumn());
+
+            if (empty($botToken)) {
+                echo json_encode(['success' => false, 'error' => 'Bot Token មិនទាន់ត្រូវបានកំណត់']);
+                break;
+            }
+
+            $res = getTelegramWebhookInfo($botToken);
+            echo json_encode(['success' => $res['success'], 'info' => $res['data'] ?? null, 'error' => $res['error'] ?? null]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_delete_webhook':
+        try {
+            $st = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'telegram_bot_token' LIMIT 1");
+            $st->execute();
+            $botToken = trim((string)$st->fetchColumn());
+
+            if (empty($botToken)) {
+                echo json_encode(['success' => false, 'error' => 'Bot Token មិនទាន់ត្រូវបានកំណត់']);
+                break;
+            }
+
+            $res = deleteTelegramWebhook($botToken);
+            echo json_encode(['success' => $res['success'], 'result' => $res['data'] ?? null, 'error' => $res['error'] ?? null]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        break;
+
+    case 'telegram_get_customer_logs':
+        try {
+            $check = $pdo->query("SHOW TABLES LIKE 'telegram_customer_logs'")->fetch();
+            if (!$check) {
+                echo json_encode(['success' => true, 'logs' => []]);
+                break;
+            }
+
+            $stmt = $pdo->query("SELECT * FROM telegram_customer_logs ORDER BY id DESC LIMIT 100");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'logs' => $rows]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }

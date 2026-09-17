@@ -11,6 +11,7 @@ import FeaturesPage from './pages/FeaturesPage';
 import SettingsPage from './pages/SettingsPage';
 import AboutPage from './pages/AboutPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import TelegramPage from './pages/TelegramPage';
 import { Loader2 } from 'lucide-react';
 
 function ProtectedRoute({ children }) {
@@ -82,6 +83,7 @@ export default function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="admins" element={<AdminUsersPage />} />
+            <Route path="telegram" element={<TelegramPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

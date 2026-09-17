@@ -11,7 +11,8 @@ import {
   Users,
   ExternalLink,
   LogOut,
-  Coffee
+  Coffee,
+  Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,6 +20,7 @@ const navItems = [
   { path: '/', label: 'ផ្ទាំងដើម', sub: 'Dashboard', icon: LayoutDashboard },
   { path: '/products', label: 'ផលិតផល', sub: 'Products', icon: Package },
   { path: '/categories', label: 'ប្រភេទ', sub: 'Categories', icon: Tags },
+  { path: '/telegram', label: 'Telegram Bot', sub: 'Broadcast & Auto-Reply', icon: Send },
   { path: '/reviews', label: 'ការវាយតម្លៃ', sub: 'Reviews', icon: Star },
   { path: '/features', label: 'លក្ខណៈពិសេស', sub: 'Features', icon: Sparkles },
   { path: '/settings', label: 'ការកំណត់', sub: 'Settings', icon: Settings },

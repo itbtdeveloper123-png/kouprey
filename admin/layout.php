@@ -80,6 +80,9 @@ $projectRoot = (strpos($requestUri, '/kouprey/') !== false) ? '/kouprey/' : '/';
                 <a href="<?php echo $adminBase; ?>reviews.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'reviews.php') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-chat-heart-fill"></i> Reviews
                 </a>
+                <a href="<?php echo $adminBase; ?>telegram.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'telegram.php') !== false) ? 'active' : ''; ?>">
+                    <i class="bi bi-telegram"></i> Telegram Bot
+                </a>
                 
                 <div class="nav-label mt-4">System</div>
                 <a href="<?php echo $adminBase; ?>about.php" class="nav-link-item <?php echo (strpos($_SERVER['PHP_SELF'], 'about.php') !== false) ? 'active' : ''; ?>">
