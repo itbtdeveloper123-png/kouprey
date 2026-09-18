@@ -94,9 +94,32 @@ function buildTelegramInlineKeyboard($buttons) {
             
             $b = ['text' => (string)$btn['text']];
             if (!empty($btn['web_app'])) {
-                $b['web_app'] = ['url' => (string)$btn['web_app']];
+                $rawUrl = trim((string)$btn['web_app']);
+                // Telegram Bot API requires web_app to have a valid HTTPS URL pointing to a web application.
+                // If a user provides a bot handle (@username) or t.me link, it CANNOT be opened as web_app.
+                // Safely convert it to a standard Telegram URL button instead of failing with 400 Bad Request.
+                if (strpos($rawUrl, '@') === 0) {
+                    $b['url'] = 'https://t.me/' . ltrim($rawUrl, '@');
+                } elseif (preg_match('#^(https?:\/\/)?(t\.me|telegram\.me)\/#i', $rawUrl)) {
+                    $b['url'] = preg_match('#^https?:\/\/#i', $rawUrl) ? $rawUrl : 'https://' . $rawUrl;
+                } elseif (strpos($rawUrl, 'https://') === 0) {
+                    $b['web_app'] = ['url' => $rawUrl];
+                } elseif (strpos($rawUrl, 'http://') === 0) {
+                    $b['web_app'] = ['url' => 'https://' . substr($rawUrl, 7)];
+                } elseif (strpos($rawUrl, '/') === 0) {
+                    $b['web_app'] = ['url' => 'https://www.kouprey.asia' . $rawUrl];
+                } else {
+                    $b['url'] = 'https://t.me/' . ltrim($rawUrl, '@');
+                }
             } elseif (!empty($btn['url'])) {
-                $b['url'] = (string)$btn['url'];
+                $rawUrl = trim((string)$btn['url']);
+                if (strpos($rawUrl, '@') === 0) {
+                    $b['url'] = 'https://t.me/' . ltrim($rawUrl, '@');
+                } elseif (strpos($rawUrl, 't.me/') === 0) {
+                    $b['url'] = 'https://' . $rawUrl;
+                } else {
+                    $b['url'] = $rawUrl;
+                }
             } elseif (!empty($btn['callback_data'])) {
                 $b['callback_data'] = (string)$btn['callback_data'];
             } else {

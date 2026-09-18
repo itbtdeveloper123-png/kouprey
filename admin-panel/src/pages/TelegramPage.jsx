@@ -64,7 +64,7 @@ export default function TelegramPage() {
     telegram_bot_token: '',
     telegram_group_id: '',
     telegram_channel_url: 'https://t.me/gogobrand98',
-    telegram_miniapp_url: 'https://t.me/gogobrand_bot',
+    telegram_miniapp_url: 'https://www.kouprey.asia/telegram.php',
     telegram_support_url: 'https://t.me/Bos_Sauveli98',
     telegram_webhook_url: 'https://www.kouprey.asia/telegram-webhook.php',
     telegram_autoreply_enabled: '1',
@@ -72,7 +72,7 @@ export default function TelegramPage() {
     telegram_autoreply_message: '',
     telegram_autoreply_photo: '',
     telegram_autoreply_btn_miniapp_text: '🛍️ បើកមើលទំនិញ (Open Mini App)',
-    telegram_autoreply_btn_miniapp_url: 'https://t.me/gogobrand_bot',
+    telegram_autoreply_btn_miniapp_url: 'https://www.kouprey.asia/telegram.php',
     telegram_autoreply_btn_channel_text: '📢 ចូលរួម Telegram Channel',
     telegram_autoreply_btn_channel_url: 'https://t.me/gogobrand98',
     telegram_autoreply_btn_support_text: '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
@@ -134,10 +134,14 @@ export default function TelegramPage() {
         setSettings((prev) => ({ ...prev, ...res.settings }));
         // Sync default broadcast chat ID
         if (res.settings.telegram_group_id) {
+          const rawMiniapp = res.settings.telegram_miniapp_url?.trim();
+          const cleanMiniapp = (rawMiniapp && !rawMiniapp.startsWith('@'))
+            ? rawMiniapp
+            : 'https://www.kouprey.asia/telegram.php';
           setBroadcast((prev) => ({
             ...prev,
             chat_id: prev.chat_id || res.settings.telegram_group_id,
-            miniapp_url: res.settings.telegram_miniapp_url || prev.miniapp_url,
+            miniapp_url: cleanMiniapp || prev.miniapp_url,
             channel_url: res.settings.telegram_channel_url || prev.channel_url,
             support_url: res.settings.telegram_support_url || prev.support_url
           }));
@@ -259,14 +263,19 @@ export default function TelegramPage() {
 
     setSending(true);
     try {
+      const rawMiniapp = broadcast.miniapp_url?.trim() || 'https://www.kouprey.asia/telegram.php';
+      const isTgLink = rawMiniapp.startsWith('@') || rawMiniapp.toLowerCase().includes('t.me/');
+      const resolvedMiniappUrl = rawMiniapp.startsWith('@') ? `https://t.me/${rawMiniapp.replace(/^@+/, '')}` : rawMiniapp;
+      const resolvedMiniappMode = isTgLink ? 'url' : broadcast.miniapp_mode;
+
       const payload = {
         chat_id: broadcast.chat_id.trim(),
         message_text: broadcast.message_text,
         photo_url: broadcast.photo_url,
         include_miniapp: broadcast.include_miniapp,
         miniapp_text: broadcast.miniapp_text,
-        miniapp_url: broadcast.miniapp_url,
-        miniapp_mode: broadcast.miniapp_mode,
+        miniapp_url: resolvedMiniappUrl,
+        miniapp_mode: resolvedMiniappMode,
         include_channel: broadcast.include_channel,
         channel_text: broadcast.channel_text,
         channel_url: broadcast.channel_url,

@@ -195,7 +195,7 @@ $responseText = str_replace(array_keys($replacements), array_values($replacement
 
 // Build Inline Buttons
 $btnMiniappText = trim($cfg['telegram_autoreply_btn_miniapp_text'] ?? '🛍️ បើកមើលទំនិញ (Open Mini App)');
-$btnMiniappUrl  = trim($cfg['telegram_autoreply_btn_miniapp_url'] ?? 'https://t.me/gogobrand_bot');
+$btnMiniappUrl  = trim($cfg['telegram_autoreply_btn_miniapp_url'] ?? 'https://www.kouprey.asia/telegram.php');
 
 $btnChannelText = trim($cfg['telegram_autoreply_btn_channel_text'] ?? '📢 ចូលរួម Telegram Channel');
 $btnChannelUrl  = trim($cfg['telegram_autoreply_btn_channel_url'] ?? 'https://t.me/gogobrand98');
@@ -207,11 +207,12 @@ $buttonRows = [];
 
 // Row 1: Mini App button
 if (!empty($btnMiniappUrl)) {
-    // For business_message in Personal Chat, Telegram API requires standard URL buttons,
-    // whereas for direct bot chat, web_app is fully supported.
-    if ($isBusiness) {
+    $isTgLink = (strpos($btnMiniappUrl, '@') === 0 || stripos($btnMiniappUrl, 't.me/') !== false);
+    // For business_message in Personal Chat or Telegram links, standard URL buttons must be used
+    if ($isBusiness || $isTgLink) {
+        $cleanUrl = (strpos($btnMiniappUrl, '@') === 0) ? ('https://t.me/' . ltrim($btnMiniappUrl, '@')) : $btnMiniappUrl;
         $buttonRows[] = [
-            ['text' => $btnMiniappText, 'url' => $btnMiniappUrl]
+            ['text' => $btnMiniappText, 'url' => $cleanUrl]
         ];
     } else {
         $buttonRows[] = [

@@ -7,6 +7,7 @@ Dynamically fetches greeting message and links from your kouprey.asia Admin Pane
 """
 
 import os
+import re
 import sys
 import json
 import time
@@ -28,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger("Userbot")
 
 try:
-    from telethon import TelegramClient, events
+    from telethon import TelegramClient, events, utils
 except ImportError:
     logger.error("Telethon is not installed! Please run: pip install telethon")
     sys.exit(1)
@@ -52,12 +53,18 @@ def load_config():
         "phone_number": "",
         "admin_api_url": "https://www.kouprey.asia/admin-api.php?action=telegram_get_settings",
         "fallback_message": (
-            "សួស្តី! សូមស្វាគមន៍មកកាន់ GoGo Brand ✨\n\n"
-            "យើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n"
-            "👉 បើកមើលទំនិញក្នុង Mini App៖\n"
-            "@gogobrand_bot\n\n"
-            "👉 ចូលរួម Telegram Channel៖\n"
-            "https://t.me/gogobrand98"
+            "✨ **សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand** ☕️🍹\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "🌟 **យើងខ្ញុំជាអ្នកឯកទេសផ្គត់ផ្គង់គ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ៖**\n"
+            "• 🥤 **ស៊ីរ៉ូ (Syrup)** — ឈ្ងុយឆ្ងាញ់ បង្កើនគុណភាពភេសជ្ជៈ\n"
+            "• 🥛 **ម្សៅ (Powder)** — ងាយស្រួលឆុង បង្កើនឱជារស\n\n"
+            "🎯 **ស្វែងរក និងកម្ម៉ង់ទំនិញងាយស្រួល៖**\n"
+            "👉 **បើកមើលទំនិញក្នុង Mini App៖**\n"
+            "🤖 @gogobrand_bot\n\n"
+            "👉 **ចូលរួម Telegram Channel ផ្លូវការ៖**\n"
+            "📢 https://t.me/gogobrand98\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "💬 *ត្រូវការជំនួយ ឬកម្ម៉ង់ទំនិញ សូមឆាតមកកាន់យើងខ្ញុំបានគ្រប់ពេល!*"
         ),
         "welcome_photo": "https://i.ibb.co/WW1FQSG2/Gemini-Generated-Image-l5ljj5l5ljj5l5lj.jpg",
         "cooldown_hours": 24
@@ -67,16 +74,19 @@ def load_config():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for k, v in data.items():
-                    # Only override if key exists in config file and is non-empty
-                    if v is not None and v != "":
-                        default_config[k] = v
+                # Only load credentials and system configs, never old fallback messages
+                for k in ["api_id", "api_hash", "phone_number", "cooldown_hours"]:
+                    if data.get(k):
+                        default_config[k] = data[k]
         except Exception as e:
             logger.warning(f"Failed to read {CONFIG_FILE}: {e}")
-    else:
+
+    # Always synchronize CONFIG_FILE with the clean message and Gemini photo
+    try:
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(default_config, f, indent=4, ensure_ascii=False)
-        logger.info(f"Created template config at {CONFIG_FILE}. Please fill in api_id and api_hash.")
+    except Exception as e:
+        logger.warning(f"Failed to update {CONFIG_FILE}: {e}")
 
     return default_config
 
@@ -190,6 +200,11 @@ async def main():
             preview_msg = config.get("fallback_message")
             photo_url = config.get("welcome_photo", "")
 
+            my_full_name = utils.get_display_name(me).strip() if me else ""
+            if not my_full_name:
+                my_full_name = f"{(me.first_name or '')} {(me.last_name or '')}".strip() or "អតិថិជន"
+            my_username = f"@{me.username}" if (me and me.username) else ""
+
             if settings:
                 raw_msg = settings.get("telegram_autoreply_message")
                 miniapp_url = settings.get("telegram_miniapp_url")
@@ -206,13 +221,24 @@ async def main():
                     raw_msg = raw_msg.replace("(KouPrey)", "").replace("  ", " ")
                     clean_msg = raw_msg.replace("<b>", "**").replace("</b>", "**")
                     clean_msg = clean_msg.replace("<i>", "*").replace("</i>", "*")
-                    clean_msg = clean_msg.replace("{name}", me.first_name or "អតិថិជន")
-                    clean_msg = clean_msg.replace("{username}", f"@{me.username}" if me.username else "")
+                    clean_msg = clean_msg.replace("{name}", my_full_name)
+                    clean_msg = clean_msg.replace("{username}", my_username)
                     preview_msg = (
                         f"{clean_msg}\n\n"
-                        f"👉 **បើកមើលទំនិញក្នុង Mini App៖**\n{miniapp_url}\n\n"
-                        f"👉 **ចូលរួម Telegram Channel៖**\n{channel_url}"
+                        f"👉 **បើកមើលទំនិញក្នុង Mini App៖**\n🤖 {miniapp_url}\n\n"
+                        f"👉 **ចូលរួម Telegram Channel ផ្លូវការ៖**\n📢 {channel_url}"
                     )
+
+            # Personalize fallback_message with Telegram name
+            preview_msg = preview_msg.replace("{name}", my_full_name)
+            preview_msg = preview_msg.replace("{username}", my_username)
+
+            # Remove any traces of KouPrey or old links
+            for old in ["( KouPrey )", "(KouPrey)", "( kouprey )", "(kouprey)", "KouPrey", "kouprey"]:
+                preview_msg = preview_msg.replace(old, "")
+            preview_msg = preview_msg.replace("https://www.kouprey.asia/telegram.php", "@gogobrand_bot")
+            preview_msg = preview_msg.replace("https://t.me/kouprey_channel", "https://t.me/gogobrand98")
+            preview_msg = re.sub(r'[ \t]+', ' ', preview_msg).strip()
 
             full_preview = "🔍 **[តេស្តសាកល្បង] ទម្រង់សារ Auto-Reply៖**\n\n" + preview_msg
 
@@ -229,6 +255,11 @@ async def main():
         sender = await event.get_sender()
         if not sender or sender.bot or sender.is_self:
             return
+
+        customer_name = utils.get_display_name(sender).strip() if sender else ""
+        if not customer_name:
+            customer_name = f"{(sender.first_name or '')} {(sender.last_name or '')}".strip() or "អតិថិជន"
+        customer_username = f"@{sender.username}" if (sender and sender.username) else ""
 
         user_id = str(sender.id)
         now = time.time()
@@ -251,9 +282,9 @@ async def main():
             return
 
         if is_keyword:
-            logger.info(f"Keyword trigger ('{text}') from {sender.first_name} (ID: {user_id}). Preparing reply...")
+            logger.info(f"Keyword trigger ('{text}') from {customer_name} (ID: {user_id}). Preparing reply...")
         else:
-            logger.info(f"New customer detected: {sender.first_name} (@{sender.username or 'none'}). Preparing auto-reply...")
+            logger.info(f"New customer detected: {customer_name} (@{sender.username or 'none'}). Preparing auto-reply...")
 
         # Fetch latest settings from Admin Panel
         settings = fetch_admin_settings(config.get("admin_api_url", ""))
@@ -277,14 +308,25 @@ async def main():
                 # Strip basic HTML tags since MTProto client formats via markdown
                 clean_msg = raw_msg.replace("<b>", "**").replace("</b>", "**")
                 clean_msg = clean_msg.replace("<i>", "*").replace("</i>", "*")
-                clean_msg = clean_msg.replace("{name}", sender.first_name or "អតិថិជន")
-                clean_msg = clean_msg.replace("{username}", f"@{sender.username}" if sender.username else "")
+                clean_msg = clean_msg.replace("{name}", customer_name)
+                clean_msg = clean_msg.replace("{username}", customer_username)
 
                 message_to_send = (
                     f"{clean_msg}\n\n"
-                    f"👉 **បើកមើលទំនិញក្នុង Mini App៖**\n{miniapp_url}\n\n"
-                    f"👉 **ចូលរួម Telegram Channel៖**\n{channel_url}"
+                    f"👉 **បើកមើលទំនិញក្នុង Mini App៖**\n🤖 {miniapp_url}\n\n"
+                    f"👉 **ចូលរួម Telegram Channel ផ្លូវការ៖**\n📢 {channel_url}"
                 )
+
+        # Personalize fallback_message with Telegram name
+        message_to_send = message_to_send.replace("{name}", customer_name)
+        message_to_send = message_to_send.replace("{username}", customer_username)
+
+        # Remove any traces of KouPrey or old links
+        for old in ["( KouPrey )", "(KouPrey)", "( kouprey )", "(kouprey)", "KouPrey", "kouprey"]:
+            message_to_send = message_to_send.replace(old, "")
+        message_to_send = message_to_send.replace("https://www.kouprey.asia/telegram.php", "@gogobrand_bot")
+        message_to_send = message_to_send.replace("https://t.me/kouprey_channel", "https://t.me/gogobrand98")
+        message_to_send = re.sub(r'[ \t]+', ' ', message_to_send).strip()
 
         try:
             # 1. Mark incoming message as seen/read

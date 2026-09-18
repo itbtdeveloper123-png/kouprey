@@ -1758,7 +1758,7 @@ switch ($action) {
                 'telegram_bot_token' => '',
                 'telegram_group_id' => '',
                 'telegram_channel_url' => 'https://t.me/gogobrand98',
-                'telegram_miniapp_url' => '@gogobrand_bot',
+                'telegram_miniapp_url' => 'https://www.kouprey.asia/telegram.php',
                 'telegram_support_url' => 'https://t.me/Bos_Sauveli98',
                 'telegram_webhook_url' => $defaultWebhook,
                 'telegram_autoreply_enabled' => '1',
@@ -1766,7 +1766,7 @@ switch ($action) {
                 'telegram_autoreply_message' => "<b>សួស្តី {name}! សូមស្វាគមន៍មកកាន់ GoGo Brand ✨</b>\n\nយើងខ្ញុំមានលក់ផលិតផលគ្រឿងបន្ថែមរស់ជាតិភេសជ្ជៈ, ស៊ីរ៉ូ (Syrup) និងម្សៅ (Powder) គុណភាពខ្ពស់។\n\n👉 សូមជ្រើសរើសជម្រើសខាងក្រោមដើម្បីមើលផលិតផល ឬទាក់ទងមកកាន់យើងខ្ញុំ៖",
                 'telegram_autoreply_photo' => 'https://i.ibb.co/WW1FQSG2/Gemini-Generated-Image-l5ljj5l5ljj5l5lj.jpg',
                 'telegram_autoreply_btn_miniapp_text' => '🛍️ បើកមើលទំនិញ (Open Mini App)',
-                'telegram_autoreply_btn_miniapp_url' => 'https://t.me/gogobrand_bot',
+                'telegram_autoreply_btn_miniapp_url' => 'https://www.kouprey.asia/telegram.php',
                 'telegram_autoreply_btn_channel_text' => '📢 ចូលរួម Telegram Channel',
                 'telegram_autoreply_btn_channel_url' => 'https://t.me/gogobrand98',
                 'telegram_autoreply_btn_support_text' => '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
@@ -1911,9 +1911,10 @@ switch ($action) {
             $miniappMode = $data['miniapp_mode'] ?? 'web_app'; // 'web_app' or 'url'
 
             if ($includeMiniapp && !empty($miniappUrl)) {
-                if ($miniappMode === 'url' || strpos($chatId, '@') === 0) {
-                    // For public channels or URL mode
-                    $buttonRows[] = [['text' => $miniappText, 'url' => $miniappUrl]];
+                $isTgLink = (strpos($miniappUrl, '@') === 0 || stripos($miniappUrl, 't.me/') !== false);
+                if ($miniappMode === 'url' || strpos($chatId, '@') === 0 || $isTgLink) {
+                    $cleanUrl = (strpos($miniappUrl, '@') === 0) ? ('https://t.me/' . ltrim($miniappUrl, '@')) : $miniappUrl;
+                    $buttonRows[] = [['text' => $miniappText, 'url' => $cleanUrl]];
                 } else {
                     // For groups and supergroups, web_app opens the Mini App directly inside Telegram
                     $buttonRows[] = [['text' => $miniappText, 'web_app' => $miniappUrl]];

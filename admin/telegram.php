@@ -23,7 +23,7 @@ $defaultWebhook = "$scheme://$host/telegram-webhook.php";
 $botToken = $cfg['telegram_bot_token'] ?? '';
 $groupId = $cfg['telegram_group_id'] ?? '';
 $channelUrl = $cfg['telegram_channel_url'] ?? 'https://t.me/gogobrand98';
-$miniappUrl = $cfg['telegram_miniapp_url'] ?? '@gogobrand_bot';
+$miniappUrl = $cfg['telegram_miniapp_url'] ?? 'https://www.kouprey.asia/telegram.php';
 $supportUrl = $cfg['telegram_support_url'] ?? 'https://t.me/Bos_Sauveli98';
 $webhookUrl = $cfg['telegram_webhook_url'] ?? $defaultWebhook;
 $autoreplyEnabled = $cfg['telegram_autoreply_enabled'] ?? '1';
@@ -57,9 +57,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $buttonRows = [];
         if ($includeMiniapp && !empty($_POST['miniapp_url'])) {
-            $buttonRows[] = [
-                ['text' => $_POST['miniapp_text'] ?: '🛍️ បើកមើលទំនិញ (Open Mini App)', 'web_app' => $_POST['miniapp_url']]
-            ];
+            $mUrl = trim($_POST['miniapp_url']);
+            $isTgLink = (strpos($mUrl, '@') === 0 || stripos($mUrl, 't.me/') !== false);
+            if ($isTgLink) {
+                $cleanUrl = (strpos($mUrl, '@') === 0) ? ('https://t.me/' . ltrim($mUrl, '@')) : $mUrl;
+                $buttonRows[] = [
+                    ['text' => $_POST['miniapp_text'] ?: '🛍️ បើកមើលទំនិញ (Open Mini App)', 'url' => $cleanUrl]
+                ];
+            } else {
+                $buttonRows[] = [
+                    ['text' => $_POST['miniapp_text'] ?: '🛍️ បើកមើលទំនិញ (Open Mini App)', 'web_app' => $mUrl]
+                ];
+            }
         }
 
         $row2 = [];
