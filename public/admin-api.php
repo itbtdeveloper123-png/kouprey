@@ -1741,7 +1741,7 @@ switch ($action) {
     // ── TELEGRAM BOT & BROADCAST API ────────────────
     case 'telegram_get_settings':
         try {
-            $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM settings WHERE category = 'telegram' OR setting_key LIKE 'telegram_%'");
+            $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM settings WHERE category = 'telegram' OR setting_key LIKE 'telegram_%' ORDER BY CASE WHEN language = 'km' THEN 2 WHEN language = 'en' THEN 1 ELSE 0 END ASC, id ASC");
             $stmt->execute();
             $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
 
@@ -1758,8 +1758,11 @@ switch ($action) {
                 'telegram_bot_token' => '',
                 'telegram_group_id' => '',
                 'telegram_channel_url' => 'https://t.me/gogobrand98',
+                'telegram_channel_text' => '📢 ចូលរួម Telegram Channel',
                 'telegram_miniapp_url' => 'https://www.kouprey.asia/telegram.php',
+                'telegram_miniapp_text' => '🛍️ បើកមើលទំនិញ (Open Mini App)',
                 'telegram_support_url' => 'https://t.me/Bos_Sauveli98',
+                'telegram_support_text' => '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
                 'telegram_webhook_url' => $defaultWebhook,
                 'telegram_autoreply_enabled' => '1',
                 'telegram_autoreply_business_enabled' => '1',
@@ -1776,6 +1779,9 @@ switch ($action) {
                 'telegram_phone_number' => '',
                 'telegram_broadcast_custom_buttons' => '[]',
                 'telegram_autoreply_custom_buttons' => '[]',
+                'telegram_broadcast_include_miniapp' => '1',
+                'telegram_broadcast_include_channel' => '1',
+                'telegram_broadcast_include_support' => '1',
             ];
 
             $settings = array_merge($defaults, $rows);
@@ -1800,8 +1806,11 @@ switch ($action) {
                 'telegram_bot_token',
                 'telegram_group_id',
                 'telegram_channel_url',
+                'telegram_channel_text',
                 'telegram_miniapp_url',
+                'telegram_miniapp_text',
                 'telegram_support_url',
+                'telegram_support_text',
                 'telegram_webhook_url',
                 'telegram_autoreply_enabled',
                 'telegram_autoreply_business_enabled',
@@ -1817,15 +1826,26 @@ switch ($action) {
                 'telegram_api_hash',
                 'telegram_phone_number',
                 'telegram_broadcast_custom_buttons',
-                'telegram_autoreply_custom_buttons'
+                'telegram_autoreply_custom_buttons',
+                'telegram_broadcast_include_miniapp',
+                'telegram_broadcast_include_channel',
+                'telegram_broadcast_include_support',
             ];
 
-            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = VALUES(category)");
+            $checkStmt = $pdo->prepare("SELECT id FROM settings WHERE setting_key = ? LIMIT 1");
+            $updateStmt = $pdo->prepare("UPDATE settings SET setting_value = ?, category = 'telegram' WHERE setting_key = ?");
+            $insertStmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km')");
 
             $savedCount = 0;
             foreach ($items as $k => $v) {
                 if (in_array($k, $allowedKeys)) {
-                    $stmt->execute([$k, is_bool($v) ? ($v ? '1' : '0') : (string)$v]);
+                    $valStr = is_bool($v) ? ($v ? '1' : '0') : (string)$v;
+                    $checkStmt->execute([$k]);
+                    if ($checkStmt->fetch()) {
+                        $updateStmt->execute([$valStr, $k]);
+                    } else {
+                        $insertStmt->execute([$k, $valStr]);
+                    }
                     $savedCount++;
                 }
             }

@@ -65,8 +65,11 @@ export default function TelegramPage() {
     telegram_bot_token: '',
     telegram_group_id: '',
     telegram_channel_url: 'https://t.me/gogobrand98',
+    telegram_channel_text: '📢 ចូលរួម Telegram Channel',
     telegram_miniapp_url: 'https://www.kouprey.asia/telegram.php',
+    telegram_miniapp_text: '🛍️ បើកមើលទំនិញ (Open Mini App)',
     telegram_support_url: 'https://t.me/Bos_Sauveli98',
+    telegram_support_text: '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
     telegram_webhook_url: 'https://www.kouprey.asia/telegram-webhook.php',
     telegram_autoreply_enabled: '1',
     telegram_autoreply_business_enabled: '1',
@@ -82,7 +85,10 @@ export default function TelegramPage() {
     telegram_api_hash: '',
     telegram_phone_number: '',
     telegram_broadcast_custom_buttons: '[]',
-    telegram_autoreply_custom_buttons: '[]'
+    telegram_autoreply_custom_buttons: '[]',
+    telegram_broadcast_include_miniapp: '1',
+    telegram_broadcast_include_channel: '1',
+    telegram_broadcast_include_support: '1'
   });
 
   // Bot Information Status
@@ -177,20 +183,26 @@ export default function TelegramPage() {
         setAutoReplyCustomButtons(savedAutoReplyBtns);
 
         // Sync default broadcast settings
-        if (res.settings.telegram_group_id || savedCustomBtns.length > 0) {
-          const rawMiniapp = res.settings.telegram_miniapp_url?.trim();
-          const cleanMiniapp = (rawMiniapp && !rawMiniapp.startsWith('@'))
-            ? rawMiniapp
-            : 'https://www.kouprey.asia/telegram.php';
-          setBroadcast((prev) => ({
-            ...prev,
-            chat_id: prev.chat_id || res.settings.telegram_group_id,
-            miniapp_url: cleanMiniapp || prev.miniapp_url,
-            channel_url: res.settings.telegram_channel_url || prev.channel_url,
-            support_url: res.settings.telegram_support_url || prev.support_url,
-            custom_buttons: savedCustomBtns.length > 0 ? savedCustomBtns : prev.custom_buttons
-          }));
-        }
+        const s = res.settings;
+        const rawMiniapp = s.telegram_miniapp_url?.trim();
+        const cleanMiniapp = (rawMiniapp && !rawMiniapp.startsWith('@'))
+          ? rawMiniapp
+          : 'https://www.kouprey.asia/telegram.php';
+
+        setBroadcast((prev) => ({
+          ...prev,
+          chat_id: s.telegram_group_id || prev.chat_id,
+          miniapp_url: cleanMiniapp,
+          miniapp_text: s.telegram_miniapp_text || prev.miniapp_text,
+          include_miniapp: s.telegram_broadcast_include_miniapp !== '0',
+          channel_url: s.telegram_channel_url || prev.channel_url,
+          channel_text: s.telegram_channel_text || prev.channel_text,
+          include_channel: s.telegram_broadcast_include_channel !== '0',
+          support_url: s.telegram_support_url || prev.support_url,
+          support_text: s.telegram_support_text || prev.support_text,
+          include_support: s.telegram_broadcast_include_support !== '0',
+          custom_buttons: savedCustomBtns.length > 0 ? savedCustomBtns : prev.custom_buttons
+        }));
 
         // Test bot token if available
         if (res.settings.telegram_bot_token) {
@@ -230,15 +242,25 @@ export default function TelegramPage() {
   const handleSaveSettings = async (customSettings = null) => {
     setSaving(true);
     try {
-      const toSave = customSettings ? { ...customSettings } : { ...settings };
-      if (!toSave.telegram_broadcast_custom_buttons) {
-        toSave.telegram_broadcast_custom_buttons = JSON.stringify(broadcast.custom_buttons || []);
-      }
-      if (!toSave.telegram_autoreply_custom_buttons) {
-        toSave.telegram_autoreply_custom_buttons = JSON.stringify(autoReplyCustomButtons || []);
-      }
+      const toSave = {
+        ...settings,
+        telegram_group_id: settings.telegram_group_id || broadcast.chat_id || '',
+        telegram_miniapp_url: settings.telegram_miniapp_url || broadcast.miniapp_url || '',
+        telegram_miniapp_text: settings.telegram_miniapp_text || broadcast.miniapp_text || '',
+        telegram_broadcast_include_miniapp: settings.telegram_broadcast_include_miniapp !== undefined ? settings.telegram_broadcast_include_miniapp : (broadcast.include_miniapp ? '1' : '0'),
+        telegram_channel_url: settings.telegram_channel_url || broadcast.channel_url || '',
+        telegram_channel_text: settings.telegram_channel_text || broadcast.channel_text || '',
+        telegram_broadcast_include_channel: settings.telegram_broadcast_include_channel !== undefined ? settings.telegram_broadcast_include_channel : (broadcast.include_channel ? '1' : '0'),
+        telegram_support_url: settings.telegram_support_url || broadcast.support_url || '',
+        telegram_support_text: settings.telegram_support_text || broadcast.support_text || '',
+        telegram_broadcast_include_support: settings.telegram_broadcast_include_support !== undefined ? settings.telegram_broadcast_include_support : (broadcast.include_support ? '1' : '0'),
+        telegram_broadcast_custom_buttons: JSON.stringify(broadcast.custom_buttons || []),
+        telegram_autoreply_custom_buttons: JSON.stringify(autoReplyCustomButtons || []),
+        ...(customSettings || {})
+      };
       const res = await adminApi.telegramSaveSettings(toSave);
       if (res.success) {
+        setSettings(toSave);
         notify('success', 'បានរក្សាទុកការកំណត់ Telegram ដោយជោគជ័យ!');
       } else {
         notify('error', res.error || 'បរាជ័យក្នុងការរក្សាទុក');
@@ -1059,8 +1081,14 @@ export default function TelegramPage() {
                       ...settings,
                       telegram_group_id: broadcast.chat_id,
                       telegram_miniapp_url: broadcast.miniapp_url,
+                      telegram_miniapp_text: broadcast.miniapp_text,
+                      telegram_broadcast_include_miniapp: broadcast.include_miniapp ? '1' : '0',
                       telegram_channel_url: broadcast.channel_url,
+                      telegram_channel_text: broadcast.channel_text,
+                      telegram_broadcast_include_channel: broadcast.include_channel ? '1' : '0',
                       telegram_support_url: broadcast.support_url,
+                      telegram_support_text: broadcast.support_text,
+                      telegram_broadcast_include_support: broadcast.include_support ? '1' : '0',
                       telegram_broadcast_custom_buttons: JSON.stringify(broadcast.custom_buttons || [])
                     })
                   }
@@ -2010,84 +2038,192 @@ export default function TelegramPage() {
                   <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Smartphone size={14} className="text-emerald-600" />
-                        <span className="text-xs font-bold text-gray-900">
-                          ប៊ូតុងបើក Bot Mini App (Web App)
-                        </span>
+                        <input
+                          type="checkbox"
+                          id="tab3-toggle-miniapp"
+                          checked={settings.telegram_broadcast_include_miniapp !== '0'}
+                          onChange={(e) => {
+                            const val = e.target.checked ? '1' : '0';
+                            setSettings({ ...settings, telegram_broadcast_include_miniapp: val });
+                            setBroadcast((prev) => ({ ...prev, include_miniapp: e.target.checked }));
+                          }}
+                          className="w-4 h-4 text-emerald-600 rounded-sm border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <label
+                          htmlFor="tab3-toggle-miniapp"
+                          className="text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Smartphone size={14} className="text-emerald-600" />
+                          <span>ប៊ូតុងបើក Bot Mini App (Web App)</span>
+                        </label>
                       </div>
                       <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
-                        Default App
+                        Primary Action
                       </span>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        URL Mini App (Default: https://www.kouprey.asia/telegram.php)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_miniapp_url}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setSettings({ ...settings, telegram_miniapp_url: val });
-                          setBroadcast((prev) => ({ ...prev, miniapp_url: val }));
-                        }}
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
-                      />
-                    </div>
+
+                    {settings.telegram_broadcast_include_miniapp !== '0' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                        <div className="sm:col-span-5">
+                          <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                            ឈ្មោះលើប៊ូតុង (Button Label)
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.telegram_miniapp_text}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSettings({ ...settings, telegram_miniapp_text: val });
+                              setBroadcast((prev) => ({ ...prev, miniapp_text: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                          />
+                        </div>
+                        <div className="sm:col-span-7">
+                          <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                            URL Mini App (Default: /telegram.php)
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.telegram_miniapp_url}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSettings({ ...settings, telegram_miniapp_url: val });
+                              setBroadcast((prev) => ({ ...prev, miniapp_url: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Button 2: Telegram Channel */}
                   <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Users size={14} className="text-teal-600" />
-                        <span className="text-xs font-bold text-gray-900">
-                          ប៊ូតុងចូលរួម Telegram Channel
-                        </span>
+                        <input
+                          type="checkbox"
+                          id="tab3-toggle-channel"
+                          checked={settings.telegram_broadcast_include_channel !== '0'}
+                          onChange={(e) => {
+                            const val = e.target.checked ? '1' : '0';
+                            setSettings({ ...settings, telegram_broadcast_include_channel: val });
+                            setBroadcast((prev) => ({ ...prev, include_channel: e.target.checked }));
+                          }}
+                          className="w-4 h-4 text-emerald-600 rounded-sm border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <label
+                          htmlFor="tab3-toggle-channel"
+                          className="text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Users size={14} className="text-teal-600" />
+                          <span>ប៊ូតុងចូលរួម Telegram Channel</span>
+                        </label>
                       </div>
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-teal-100 text-teal-800">
+                        Channel
+                      </span>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        Channel Link (https://t.me/...)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_channel_url}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setSettings({ ...settings, telegram_channel_url: val });
-                          setBroadcast((prev) => ({ ...prev, channel_url: val }));
-                        }}
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
-                      />
-                    </div>
+
+                    {settings.telegram_broadcast_include_channel !== '0' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                        <div className="sm:col-span-5">
+                          <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                            ឈ្មោះលើប៊ូតុង (Button Label)
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.telegram_channel_text}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSettings({ ...settings, telegram_channel_text: val });
+                              setBroadcast((prev) => ({ ...prev, channel_text: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                          />
+                        </div>
+                        <div className="sm:col-span-7">
+                          <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                            Channel Link (https://t.me/...)
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.telegram_channel_url}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSettings({ ...settings, telegram_channel_url: val });
+                              setBroadcast((prev) => ({ ...prev, channel_url: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Button 3: Support / Contact */}
                   <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <MessageSquare size={14} className="text-indigo-600" />
-                        <span className="text-xs font-bold text-gray-900">
-                          ប៊ូតុងទាក់ទងផ្ទាល់ / កម្ម៉ង់ (Personal Account)
-                        </span>
+                        <input
+                          type="checkbox"
+                          id="tab3-toggle-support"
+                          checked={settings.telegram_broadcast_include_support !== '0'}
+                          onChange={(e) => {
+                            const val = e.target.checked ? '1' : '0';
+                            setSettings({ ...settings, telegram_broadcast_include_support: val });
+                            setBroadcast((prev) => ({ ...prev, include_support: e.target.checked }));
+                          }}
+                          className="w-4 h-4 text-emerald-600 rounded-sm border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <label
+                          htmlFor="tab3-toggle-support"
+                          className="text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1.5"
+                        >
+                          <MessageSquare size={14} className="text-indigo-600" />
+                          <span>ប៊ូតុងទាក់ទងផ្ទាល់ / កម្ម៉ង់ (Personal Account)</span>
+                        </label>
                       </div>
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">
+                        Direct Chat
+                      </span>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        Link Personal / Support (https://t.me/...)
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_support_url}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setSettings({ ...settings, telegram_support_url: val });
-                          setBroadcast((prev) => ({ ...prev, support_url: val }));
-                        }}
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
-                      />
-                    </div>
+
+                    {settings.telegram_broadcast_include_support !== '0' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                        <div className="sm:col-span-5">
+                          <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                            ឈ្មោះលើប៊ូតុង (Button Label)
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.telegram_support_text}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSettings({ ...settings, telegram_support_text: val });
+                              setBroadcast((prev) => ({ ...prev, support_text: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                          />
+                        </div>
+                        <div className="sm:col-span-7">
+                          <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                            Link Personal / Support (https://t.me/...)
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.telegram_support_url}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSettings({ ...settings, telegram_support_url: val });
+                              setBroadcast((prev) => ({ ...prev, support_url: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Custom Buttons in Tab 3 */}

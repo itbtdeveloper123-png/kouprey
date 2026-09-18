@@ -13,7 +13,7 @@ $successMsg = '';
 $errorMsg = '';
 
 // Fetch current telegram settings
-$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE category = 'telegram' OR setting_key LIKE 'telegram_%'");
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE category = 'telegram' OR setting_key LIKE 'telegram_%' ORDER BY CASE WHEN language = 'km' THEN 2 WHEN language = 'en' THEN 1 ELSE 0 END ASC, id ASC");
 $cfg = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
 
 $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
@@ -137,9 +137,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'telegram_autoreply_message' => trim($_POST['telegram_autoreply_message'] ?? '')
         ];
 
-        $st = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $checkStmt = $pdo->prepare("SELECT id FROM settings WHERE setting_key = ? LIMIT 1");
+        $updateStmt = $pdo->prepare("UPDATE settings SET setting_value = ?, category = 'telegram' WHERE setting_key = ?");
+        $insertStmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km')");
         foreach ($updates as $k => $v) {
-            $st->execute([$k, $v]);
+            $checkStmt->execute([$k]);
+            if ($checkStmt->fetch()) {
+                $updateStmt->execute([$v, $k]);
+            } else {
+                $insertStmt->execute([$k, $v]);
+            }
+        }
+        if (function_exists('clearSettingsCache')) {
+            clearSettingsCache();
         }
         $successMsg = 'បានរក្សាទុកការកំណត់ Telegram ដោយជោគជ័យ!';
         // Refresh local variables
