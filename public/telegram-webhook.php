@@ -233,6 +233,24 @@ if (!empty($row2)) {
     $buttonRows[] = $row2;
 }
 
+// Row 3: Custom buttons if configured
+if (!empty($cfg['telegram_autoreply_custom_buttons'])) {
+    $customBtns = json_decode($cfg['telegram_autoreply_custom_buttons'], true);
+    if (is_array($customBtns)) {
+        foreach ($customBtns as $c) {
+            if (!empty($c['text']) && (!empty($c['url']) || !empty($c['web_app']))) {
+                $b = ['text' => (string)$c['text']];
+                if (!empty($c['web_app'])) {
+                    $b['web_app'] = (string)$c['web_app'];
+                } else {
+                    $b['url'] = (string)$c['url'];
+                }
+                $buttonRows[] = [$b];
+            }
+        }
+    }
+}
+
 $inlineKeyboard = buildTelegramInlineKeyboard($buttonRows);
 
 $options = [

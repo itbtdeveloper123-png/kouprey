@@ -25,6 +25,7 @@ import {
   Sliders,
   Radio,
   Plus,
+  PlusCircle,
   X
 } from 'lucide-react';
 import { adminApi } from '../api/adminClient';
@@ -79,7 +80,9 @@ export default function TelegramPage() {
     telegram_autoreply_btn_support_url: 'https://t.me/Bos_Sauveli98',
     telegram_api_id: '',
     telegram_api_hash: '',
-    telegram_phone_number: ''
+    telegram_phone_number: '',
+    telegram_broadcast_custom_buttons: '[]',
+    telegram_autoreply_custom_buttons: '[]'
   });
 
   // Bot Information Status
@@ -100,8 +103,12 @@ export default function TelegramPage() {
     channel_url: 'https://t.me/kouprey_channel',
     include_support: true,
     support_text: '💬 ទាក់ទងផ្ទាល់ / កម្ម៉ង់',
-    support_url: 'https://t.me/Bos_Sauveli98'
+    support_url: 'https://t.me/Bos_Sauveli98',
+    custom_buttons: []
   });
+
+  // Auto-Reply Custom Buttons State
+  const [autoReplyCustomButtons, setAutoReplyCustomButtons] = useState([]);
 
   // Broadcast History
   const [history, setHistory] = useState([]);
@@ -132,8 +139,45 @@ export default function TelegramPage() {
       const res = await adminApi.telegramGetSettings();
       if (res && res.settings) {
         setSettings((prev) => ({ ...prev, ...res.settings }));
-        // Sync default broadcast chat ID
-        if (res.settings.telegram_group_id) {
+        // Parse saved custom buttons
+        let savedCustomBtns = [];
+        try {
+          if (res.settings.telegram_broadcast_custom_buttons) {
+            const parsed = typeof res.settings.telegram_broadcast_custom_buttons === 'string'
+              ? JSON.parse(res.settings.telegram_broadcast_custom_buttons)
+              : res.settings.telegram_broadcast_custom_buttons;
+            if (Array.isArray(parsed)) {
+              savedCustomBtns = parsed.map((b, idx) => ({
+                id: b.id || Date.now() + idx,
+                text: b.text || '',
+                url: b.url || '',
+                active: b.active !== false
+              }));
+            }
+          }
+        } catch (e) {}
+
+        // Parse saved auto-reply custom buttons
+        let savedAutoReplyBtns = [];
+        try {
+          if (res.settings.telegram_autoreply_custom_buttons) {
+            const parsed = typeof res.settings.telegram_autoreply_custom_buttons === 'string'
+              ? JSON.parse(res.settings.telegram_autoreply_custom_buttons)
+              : res.settings.telegram_autoreply_custom_buttons;
+            if (Array.isArray(parsed)) {
+              savedAutoReplyBtns = parsed.map((b, idx) => ({
+                id: b.id || Date.now() + idx,
+                text: b.text || '',
+                url: b.url || '',
+                active: b.active !== false
+              }));
+            }
+          }
+        } catch (e) {}
+        setAutoReplyCustomButtons(savedAutoReplyBtns);
+
+        // Sync default broadcast settings
+        if (res.settings.telegram_group_id || savedCustomBtns.length > 0) {
           const rawMiniapp = res.settings.telegram_miniapp_url?.trim();
           const cleanMiniapp = (rawMiniapp && !rawMiniapp.startsWith('@'))
             ? rawMiniapp
@@ -143,7 +187,8 @@ export default function TelegramPage() {
             chat_id: prev.chat_id || res.settings.telegram_group_id,
             miniapp_url: cleanMiniapp || prev.miniapp_url,
             channel_url: res.settings.telegram_channel_url || prev.channel_url,
-            support_url: res.settings.telegram_support_url || prev.support_url
+            support_url: res.settings.telegram_support_url || prev.support_url,
+            custom_buttons: savedCustomBtns.length > 0 ? savedCustomBtns : prev.custom_buttons
           }));
         }
 
@@ -185,7 +230,13 @@ export default function TelegramPage() {
   const handleSaveSettings = async (customSettings = null) => {
     setSaving(true);
     try {
-      const toSave = customSettings || settings;
+      const toSave = customSettings ? { ...customSettings } : { ...settings };
+      if (!toSave.telegram_broadcast_custom_buttons) {
+        toSave.telegram_broadcast_custom_buttons = JSON.stringify(broadcast.custom_buttons || []);
+      }
+      if (!toSave.telegram_autoreply_custom_buttons) {
+        toSave.telegram_autoreply_custom_buttons = JSON.stringify(autoReplyCustomButtons || []);
+      }
       const res = await adminApi.telegramSaveSettings(toSave);
       if (res.success) {
         notify('success', 'បានរក្សាទុកការកំណត់ Telegram ដោយជោគជ័យ!');
@@ -250,6 +301,66 @@ export default function TelegramPage() {
     }
   };
 
+  // Custom Button Handlers for Broadcast
+  const handleAddCustomButton = () => {
+    setBroadcast((prev) => ({
+      ...prev,
+      custom_buttons: [
+        ...(prev.custom_buttons || []),
+        { id: Date.now(), text: '', url: '', active: true }
+      ]
+    }));
+  };
+
+  const handleUpdateCustomButton = (id, field, value) => {
+    setBroadcast((prev) => ({
+      ...prev,
+      custom_buttons: (prev.custom_buttons || []).map((b) =>
+        b.id === id ? { ...b, [field]: value } : b
+      )
+    }));
+  };
+
+  const handleRemoveCustomButton = (id) => {
+    setBroadcast((prev) => ({
+      ...prev,
+      custom_buttons: (prev.custom_buttons || []).filter((b) => b.id !== id)
+    }));
+  };
+
+  const handleToggleCustomButton = (id, checked) => {
+    setBroadcast((prev) => ({
+      ...prev,
+      custom_buttons: (prev.custom_buttons || []).map((b) =>
+        b.id === id ? { ...b, active: checked } : b
+      )
+    }));
+  };
+
+  // Auto-Reply Custom Button Handlers
+  const handleAddAutoReplyCustomButton = () => {
+    setAutoReplyCustomButtons((prev) => [
+      ...prev,
+      { id: Date.now(), text: '', url: '', active: true }
+    ]);
+  };
+
+  const handleUpdateAutoReplyCustomButton = (id, field, value) => {
+    setAutoReplyCustomButtons((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, [field]: value } : b))
+    );
+  };
+
+  const handleRemoveAutoReplyCustomButton = (id) => {
+    setAutoReplyCustomButtons((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const handleToggleAutoReplyCustomButton = (id, checked) => {
+    setAutoReplyCustomButtons((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, active: checked } : b))
+    );
+  };
+
   // Send Broadcast Message
   const handleSendBroadcast = async () => {
     if (!broadcast.chat_id?.trim()) {
@@ -268,6 +379,15 @@ export default function TelegramPage() {
       const resolvedMiniappUrl = rawMiniapp.startsWith('@') ? `https://t.me/${rawMiniapp.replace(/^@+/, '')}` : rawMiniapp;
       const resolvedMiniappMode = isTgLink ? 'url' : broadcast.miniapp_mode;
 
+      // Format custom buttons into button rows for Telegram
+      const validCustomBtns = (broadcast.custom_buttons || [])
+        .filter((b) => b.active && b.text?.trim() && b.url?.trim())
+        .map((b) => {
+          const rawUrl = b.url.trim();
+          const cleanUrl = rawUrl.startsWith('@') ? `https://t.me/${rawUrl.replace(/^@+/, '')}` : rawUrl;
+          return [{ text: b.text.trim(), url: cleanUrl }];
+        });
+
       const payload = {
         chat_id: broadcast.chat_id.trim(),
         message_text: broadcast.message_text,
@@ -281,7 +401,8 @@ export default function TelegramPage() {
         channel_url: broadcast.channel_url,
         include_support: broadcast.include_support,
         support_text: broadcast.support_text,
-        support_url: broadcast.support_url
+        support_url: broadcast.support_url,
+        custom_buttons: validCustomBtns
       };
 
       const res = await adminApi.telegramSendBroadcast(payload);
@@ -825,6 +946,108 @@ export default function TelegramPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Dynamic Custom Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <PlusCircle size={15} className="text-emerald-600" />
+                      <span className="text-xs font-bold text-gray-900">
+                        ប៊ូតុងបន្ថែមផ្សេងៗ (Custom Buttons)
+                      </span>
+                      {broadcast.custom_buttons?.length > 0 && (
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                          {broadcast.custom_buttons.length}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomButton}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-2xs transition cursor-pointer active:scale-95"
+                    >
+                      <Plus size={13} />
+                      <span>+ បន្ថែមប៊ូតុងថ្មី</span>
+                    </button>
+                  </div>
+
+                  {broadcast.custom_buttons && broadcast.custom_buttons.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {broadcast.custom_buttons.map((btn, index) => (
+                        <div
+                          key={btn.id || index}
+                          className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs transition hover:border-emerald-300"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`toggle-custom-btn-${btn.id}`}
+                                checked={btn.active}
+                                onChange={(e) => handleToggleCustomButton(btn.id, e.target.checked)}
+                                className="w-4 h-4 text-emerald-600 rounded-sm border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                              />
+                              <label
+                                htmlFor={`toggle-custom-btn-${btn.id}`}
+                                className="text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1.5"
+                              >
+                                <LinkIcon size={13} className="text-emerald-600" />
+                                <span>ប៊ូតុងបន្ថែមទី {index + 1} {btn.text ? `(${btn.text})` : ''}</span>
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomButton(btn.id)}
+                              className="p-1.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                              title="លុបប៊ូតុងនេះ"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+
+                          {btn.active && (
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                              <div className="sm:col-span-5">
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                                  ឈ្មោះលើប៊ូតុង
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="ឧទាហរណ៍៖ 🌐 គេហទំព័រ ឬ 📞 ទូរស័ព្ទ"
+                                  value={btn.text}
+                                  onChange={(e) => handleUpdateCustomButton(btn.id, 'text', e.target.value)}
+                                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                                />
+                              </div>
+                              <div className="sm:col-span-7">
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                                  Link URL / Telegram (https://...)
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="https://... ឬ https://t.me/..."
+                                  value={btn.url}
+                                  onChange={(e) => handleUpdateCustomButton(btn.id, 'url', e.target.value)}
+                                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div
+                      onClick={handleAddCustomButton}
+                      className="p-3 border border-dashed border-emerald-200 rounded-xl bg-emerald-50/40 text-center cursor-pointer hover:bg-emerald-50 transition group"
+                    >
+                      <p className="text-xs text-emerald-700 font-medium group-hover:underline flex items-center justify-center gap-1.5">
+                        <Plus size={14} />
+                        <span>ចុចទីនេះដើម្បីបូកបន្ថែមប៊ូតុងថ្មី (គេហទំព័រ, ផែនទី, ឆាណែលផ្សេងទៀត...)</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -837,7 +1060,8 @@ export default function TelegramPage() {
                       telegram_group_id: broadcast.chat_id,
                       telegram_miniapp_url: broadcast.miniapp_url,
                       telegram_channel_url: broadcast.channel_url,
-                      telegram_support_url: broadcast.support_url
+                      telegram_support_url: broadcast.support_url,
+                      telegram_broadcast_custom_buttons: JSON.stringify(broadcast.custom_buttons || [])
                     })
                   }
                   className="px-4 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-gray-700 transition cursor-pointer"
@@ -965,6 +1189,22 @@ export default function TelegramPage() {
                       </button>
                     )}
                   </div>
+
+                  {/* Dynamic Custom Buttons Preview */}
+                  {broadcast.custom_buttons && broadcast.custom_buttons.filter(b => b.active && b.text?.trim()).length > 0 && (
+                    <div className="space-y-1.5 pt-0.5">
+                      {broadcast.custom_buttons.filter(b => b.active && b.text?.trim()).map((b, idx) => (
+                        <button
+                          key={b.id || idx}
+                          type="button"
+                          className="w-full py-1.5 px-3 rounded-xl bg-[#24374b] hover:bg-[#2b5278] text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5 shadow-xs"
+                        >
+                          <ExternalLink size={12} className="text-teal-300" />
+                          <span className="truncate">{b.text}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1174,117 +1414,261 @@ export default function TelegramPage() {
                 </div>
 
                 {/* Buttons for Auto Reply */}
-                <div className="border border-gray-200 rounded-2xl p-4.5 space-y-3.5 bg-gray-50/50">
-                  <h4 className="text-xs font-bold text-gray-800">
-                    ប៊ូតុងដែលអតិថិជននឹងឃើញក្នុងសារឆ្លើយតប (Buttons in Auto-Reply)
-                  </h4>
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                      <Layers size={14} className="text-emerald-600" />
+                      <span>ប៊ូតុងដែលអតិថិជននឹងឃើញក្នុងសារឆ្លើយតប (Buttons in Auto-Reply)</span>
+                    </label>
+                    <span className="text-[10px] text-gray-500 font-medium">
+                      អតិថិជនចុចមើលពេល Chatbot ឆ្លើយតប
+                    </span>
+                  </div>
 
-                  {/* Mini App Button */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-white p-3 rounded-xl border border-gray-200">
-                    <div className="sm:col-span-5">
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        ប៊ូតុង Mini App
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_autoreply_btn_miniapp_text}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            telegram_autoreply_btn_miniapp_text: e.target.value
-                          })
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 outline-hidden"
-                      />
+                  {/* Button 1: Mini App */}
+                  <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Smartphone size={14} className="text-emerald-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងបើក Bot Mini App (Web App)
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                        Primary Action
+                      </span>
                     </div>
-                    <div className="sm:col-span-7">
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        Mini App URL
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_autoreply_btn_miniapp_url}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            telegram_autoreply_btn_miniapp_url: e.target.value
-                          })
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 outline-hidden font-mono"
-                      />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                      <div className="sm:col-span-5">
+                        <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                          ឈ្មោះលើប៊ូតុង
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.telegram_autoreply_btn_miniapp_text}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              telegram_autoreply_btn_miniapp_text: e.target.value
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                        />
+                      </div>
+                      <div className="sm:col-span-7">
+                        <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                          URL Mini App (Default: https://www.kouprey.asia/telegram.php)
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.telegram_autoreply_btn_miniapp_url}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              telegram_autoreply_btn_miniapp_url: e.target.value
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Channel Button */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-white p-3 rounded-xl border border-gray-200">
-                    <div className="sm:col-span-5">
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        ប៊ូតុង Channel
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_autoreply_btn_channel_text}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            telegram_autoreply_btn_channel_text: e.target.value
-                          })
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 outline-hidden"
-                      />
+                  {/* Button 2: Channel Button */}
+                  <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users size={14} className="text-teal-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងចូលរួម Telegram Channel
+                        </span>
+                      </div>
                     </div>
-                    <div className="sm:col-span-7">
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        Channel Link
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_autoreply_btn_channel_url}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            telegram_autoreply_btn_channel_url: e.target.value
-                          })
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 outline-hidden font-mono"
-                      />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                      <div className="sm:col-span-5">
+                        <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                          ឈ្មោះលើប៊ូតុង
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.telegram_autoreply_btn_channel_text}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              telegram_autoreply_btn_channel_text: e.target.value
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                        />
+                      </div>
+                      <div className="sm:col-span-7">
+                        <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                          Channel Link (https://t.me/...)
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.telegram_autoreply_btn_channel_url}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              telegram_autoreply_btn_channel_url: e.target.value
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Support Button */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-white p-3 rounded-xl border border-gray-200">
-                    <div className="sm:col-span-5">
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        ប៊ូតុង Personal / Support
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_autoreply_btn_support_text}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            telegram_autoreply_btn_support_text: e.target.value
-                          })
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 outline-hidden"
-                      />
+                  {/* Button 3: Support Button */}
+                  <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare size={14} className="text-indigo-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងទាក់ទងផ្ទាល់ / កម្ម៉ង់ (Personal Account)
+                        </span>
+                      </div>
                     </div>
-                    <div className="sm:col-span-7">
-                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
-                        Personal Account Link
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.telegram_autoreply_btn_support_url}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            telegram_autoreply_btn_support_url: e.target.value
-                          })
-                        }
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-300 outline-hidden font-mono"
-                      />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                      <div className="sm:col-span-5">
+                        <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                          ឈ្មោះលើប៊ូតុង
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.telegram_autoreply_btn_support_text}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              telegram_autoreply_btn_support_text: e.target.value
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                        />
+                      </div>
+                      <div className="sm:col-span-7">
+                        <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                          Link Personal / Support (https://t.me/...)
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.telegram_autoreply_btn_support_url}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              telegram_autoreply_btn_support_url: e.target.value
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                        />
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Dynamic Custom Buttons for Auto Reply */}
+                  <div className="space-y-2.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <PlusCircle size={15} className="text-emerald-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងបន្ថែមផ្សេងៗក្នុងសារឆ្លើយតប (Auto-Reply Custom Buttons)
+                        </span>
+                        {autoReplyCustomButtons?.length > 0 && (
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                            {autoReplyCustomButtons.length}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddAutoReplyCustomButton}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-2xs transition cursor-pointer active:scale-95"
+                      >
+                        <Plus size={13} />
+                        <span>+ បន្ថែមប៊ូតុងថ្មី</span>
+                      </button>
+                    </div>
+
+                    {autoReplyCustomButtons && autoReplyCustomButtons.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {autoReplyCustomButtons.map((btn, index) => (
+                          <div
+                            key={btn.id || index}
+                            className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs transition hover:border-emerald-300"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`autoreply-custom-btn-${btn.id}`}
+                                  checked={btn.active}
+                                  onChange={(e) => handleToggleAutoReplyCustomButton(btn.id, e.target.checked)}
+                                  className="w-4 h-4 text-emerald-600 rounded-sm border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                                />
+                                <label
+                                  htmlFor={`autoreply-custom-btn-${btn.id}`}
+                                  className="text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <LinkIcon size={13} className="text-emerald-600" />
+                                  <span>ប៊ូតុងបន្ថែមទី {index + 1} {btn.text ? `(${btn.text})` : ''}</span>
+                                </label>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAutoReplyCustomButton(btn.id)}
+                                className="p-1.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                                title="លុបប៊ូតុងនេះ"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+
+                            {btn.active && (
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                                <div className="sm:col-span-5">
+                                  <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                                    ឈ្មោះលើប៊ូតុង
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="ឧទាហរណ៍៖ 🌐 គេហទំព័រ ឬ 📞 ទូរស័ព្ទ"
+                                    value={btn.text}
+                                    onChange={(e) => handleUpdateAutoReplyCustomButton(btn.id, 'text', e.target.value)}
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                                  />
+                                </div>
+                                <div className="sm:col-span-7">
+                                  <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                                    Link URL / Telegram (https://...)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="https://... ឬ https://t.me/..."
+                                    value={btn.url}
+                                    onChange={(e) => handleUpdateAutoReplyCustomButton(btn.id, 'url', e.target.value)}
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={handleAddAutoReplyCustomButton}
+                        className="p-3 border border-dashed border-emerald-200 rounded-xl bg-emerald-50/40 text-center cursor-pointer hover:bg-emerald-50 transition group"
+                      >
+                        <p className="text-xs text-emerald-700 font-medium group-hover:underline flex items-center justify-center gap-1.5">
+                          <Plus size={14} />
+                          <span>ចុចទីនេះដើម្បីបូកបន្ថែមប៊ូតុងថ្មីក្នុងសារឆ្លើយតបស្វ័យប្រវត្តិ...</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1610,48 +1994,202 @@ export default function TelegramPage() {
                   </p>
                 </div>
 
-                {/* URLs Configuration */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Mini App URL
+                {/* Default URLs & Buttons Configuration */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                      <Layers size={14} className="text-emerald-600" />
+                      <span>តំណភ្ជាប់លំនាំដើម និងប៊ូតុង (Default Links & Buttons)</span>
                     </label>
-                    <input
-                      type="text"
-                      value={settings.telegram_miniapp_url}
-                      onChange={(e) =>
-                        setSettings({ ...settings, telegram_miniapp_url: e.target.value })
-                      }
-                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs font-mono outline-hidden"
-                    />
+                    <span className="text-[10px] text-gray-500 font-medium">
+                      ប្រើជា Default សម្រាប់ Broadcast និងការភ្ជាប់ទូទៅ
+                    </span>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Telegram Channel Link
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.telegram_channel_url}
-                      onChange={(e) =>
-                        setSettings({ ...settings, telegram_channel_url: e.target.value })
-                      }
-                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs font-mono outline-hidden"
-                    />
+                  {/* Button 1: Mini App */}
+                  <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Smartphone size={14} className="text-emerald-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងបើក Bot Mini App (Web App)
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                        Default App
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                        URL Mini App (Default: https://www.kouprey.asia/telegram.php)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.telegram_miniapp_url}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSettings({ ...settings, telegram_miniapp_url: val });
+                          setBroadcast((prev) => ({ ...prev, miniapp_url: val }));
+                        }}
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Personal Support Link
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.telegram_support_url}
-                      onChange={(e) =>
-                        setSettings({ ...settings, telegram_support_url: e.target.value })
-                      }
-                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs font-mono outline-hidden"
-                    />
+                  {/* Button 2: Telegram Channel */}
+                  <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users size={14} className="text-teal-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងចូលរួម Telegram Channel
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                        Channel Link (https://t.me/...)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.telegram_channel_url}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSettings({ ...settings, telegram_channel_url: val });
+                          setBroadcast((prev) => ({ ...prev, channel_url: val }));
+                        }}
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Button 3: Support / Contact */}
+                  <div className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare size={14} className="text-indigo-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងទាក់ទងផ្ទាល់ / កម្ម៉ង់ (Personal Account)
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                        Link Personal / Support (https://t.me/...)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.telegram_support_url}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSettings({ ...settings, telegram_support_url: val });
+                          setBroadcast((prev) => ({ ...prev, support_url: val }));
+                        }}
+                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Custom Buttons in Tab 3 */}
+                  <div className="space-y-2.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <PlusCircle size={15} className="text-emerald-600" />
+                        <span className="text-xs font-bold text-gray-900">
+                          ប៊ូតុងបន្ថែមលំនាំដើម (Default Custom Buttons)
+                        </span>
+                        {broadcast.custom_buttons?.length > 0 && (
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                            {broadcast.custom_buttons.length}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddCustomButton}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-2xs transition cursor-pointer active:scale-95"
+                      >
+                        <Plus size={13} />
+                        <span>+ បន្ថែមប៊ូតុងថ្មី</span>
+                      </button>
+                    </div>
+
+                    {broadcast.custom_buttons && broadcast.custom_buttons.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {broadcast.custom_buttons.map((btn, index) => (
+                          <div
+                            key={btn.id || index}
+                            className="bg-white rounded-xl p-3.5 border border-emerald-100 space-y-2.5 shadow-xs transition hover:border-emerald-300"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`tab3-custom-btn-${btn.id}`}
+                                  checked={btn.active}
+                                  onChange={(e) => handleToggleCustomButton(btn.id, e.target.checked)}
+                                  className="w-4 h-4 text-emerald-600 rounded-sm border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                                />
+                                <label
+                                  htmlFor={`tab3-custom-btn-${btn.id}`}
+                                  className="text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <LinkIcon size={13} className="text-emerald-600" />
+                                  <span>ប៊ូតុងបន្ថែមទី {index + 1} {btn.text ? `(${btn.text})` : ''}</span>
+                                </label>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCustomButton(btn.id)}
+                                className="p-1.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                                title="លុបប៊ូតុងនេះ"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+
+                            {btn.active && (
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+                                <div className="sm:col-span-5">
+                                  <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                                    ឈ្មោះលើប៊ូតុង
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="ឧទាហរណ៍៖ 🌐 គេហទំព័រ ឬ 📞 ទូរស័ព្ទ"
+                                    value={btn.text}
+                                    onChange={(e) => handleUpdateCustomButton(btn.id, 'text', e.target.value)}
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden"
+                                  />
+                                </div>
+                                <div className="sm:col-span-7">
+                                  <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                                    Link URL / Telegram (https://...)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="https://... ឬ https://t.me/..."
+                                    value={btn.url}
+                                    onChange={(e) => handleUpdateCustomButton(btn.id, 'url', e.target.value)}
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-300 focus:ring-1 focus:ring-emerald-500 outline-hidden font-mono"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={handleAddCustomButton}
+                        className="p-3 border border-dashed border-emerald-200 rounded-xl bg-emerald-50/40 text-center cursor-pointer hover:bg-emerald-50 transition group"
+                      >
+                        <p className="text-xs text-emerald-700 font-medium group-hover:underline flex items-center justify-center gap-1.5">
+                          <Plus size={14} />
+                          <span>ចុចទីនេះដើម្បីបូកបន្ថែមប៊ូតុងលំនាំដើមថ្មី...</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

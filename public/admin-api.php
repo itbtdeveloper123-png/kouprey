@@ -1774,6 +1774,8 @@ switch ($action) {
                 'telegram_api_id' => '',
                 'telegram_api_hash' => '',
                 'telegram_phone_number' => '',
+                'telegram_broadcast_custom_buttons' => '[]',
+                'telegram_autoreply_custom_buttons' => '[]',
             ];
 
             $settings = array_merge($defaults, $rows);
@@ -1813,7 +1815,9 @@ switch ($action) {
                 'telegram_autoreply_btn_support_url',
                 'telegram_api_id',
                 'telegram_api_hash',
-                'telegram_phone_number'
+                'telegram_phone_number',
+                'telegram_broadcast_custom_buttons',
+                'telegram_autoreply_custom_buttons'
             ];
 
             $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category, language) VALUES (?, ?, 'telegram', 'km') ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), category = VALUES(category)");
@@ -1942,13 +1946,26 @@ switch ($action) {
             // Custom buttons if any
             if (!empty($data['custom_buttons']) && is_array($data['custom_buttons'])) {
                 foreach ($data['custom_buttons'] as $cRow) {
+                    if (isset($cRow['text'])) {
+                        // Support 1D array of buttons: [ {text: '...', url: '...'} ]
+                        $cRow = [$cRow];
+                    }
                     if (!is_array($cRow)) continue;
                     $validRow = [];
                     foreach ($cRow as $cBtn) {
                         if (!empty($cBtn['text']) && (!empty($cBtn['url']) || !empty($cBtn['web_app']))) {
-                            $b = ['text' => $cBtn['text']];
-                            if (!empty($cBtn['web_app'])) $b['web_app'] = $cBtn['web_app'];
-                            else $b['url'] = $cBtn['url'];
+                            $b = ['text' => (string)$cBtn['text']];
+                            if (!empty($cBtn['web_app'])) {
+                                $b['web_app'] = (string)$cBtn['web_app'];
+                            } else {
+                                $rawUrl = trim((string)$cBtn['url']);
+                                if (strpos($rawUrl, '@') === 0) {
+                                    $rawUrl = 'https://t.me/' . ltrim($rawUrl, '@');
+                                } elseif (preg_match('#^t\.me\/#i', $rawUrl)) {
+                                    $rawUrl = 'https://' . $rawUrl;
+                                }
+                                $b['url'] = $rawUrl;
+                            }
                             $validRow[] = $b;
                         }
                     }
