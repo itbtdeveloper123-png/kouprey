@@ -515,21 +515,29 @@ $totalProductCount = count($cleanProducts);
                     </div>
                 </div>
 
-                <!-- Language Switcher Pill (KM | EN) -->
+                <!-- Language Switcher Pill (KM | EN with National Flags) -->
                 <div class="flex items-center bg-gray-100/90 p-0.5 rounded-xl border border-gray-200/80 shadow-2xs flex-shrink-0" role="group" aria-label="Language Switcher">
                     <button onclick="switchLanguage('km')" 
                             type="button"
-                            title="Khmer"
+                            title="ភាសាខ្មែរ (Khmer)"
                             aria-label="Khmer Language"
-                            class="px-2.5 py-1 rounded-lg text-xs transition-all <?php echo $currentLanguage === 'km' ? 'bg-white text-orange-600 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-semibold'; ?>">
-                        KM
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all active:scale-95 <?php echo $currentLanguage === 'km' ? 'bg-white text-orange-600 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-semibold opacity-75 hover:opacity-100'; ?>">
+                        <img src="/assets/images/flags/kh.svg" 
+                             alt="Khmer" 
+                             class="w-4 h-3 rounded-2xs object-cover border border-black/10 flex-shrink-0"
+                             onerror="this.src='https://flagcdn.com/w40/kh.png'">
+                        <span>KM</span>
                     </button>
                     <button onclick="switchLanguage('en')" 
                             type="button"
                             title="English"
                             aria-label="English Language"
-                            class="px-2.5 py-1 rounded-lg text-xs transition-all <?php echo $currentLanguage === 'en' ? 'bg-white text-orange-600 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-semibold'; ?>">
-                        EN
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all active:scale-95 <?php echo $currentLanguage === 'en' ? 'bg-white text-orange-600 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-semibold opacity-75 hover:opacity-100'; ?>">
+                        <img src="/assets/images/flags/gb.svg" 
+                             alt="English" 
+                             class="w-4 h-3 rounded-2xs object-cover border border-black/10 flex-shrink-0"
+                             onerror="this.src='https://flagcdn.com/w40/gb.png'">
+                        <span>EN</span>
                     </button>
                 </div>
             </div>
