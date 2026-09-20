@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-KouPrey / GoGo Brand - Telegram Personal Account Userbot
-Automatically replies to new customers chatting with your personal Telegram account for the first time.
+KouPrey / GoGo Brand - Telegram Personal Account Userbot (Account 2)
+Automatically replies to new customers chatting with your SECOND personal Telegram account.
 Connects directly using api_id and api_hash from my.telegram.org.
 Dynamically fetches greeting message and links from your kouprey.asia Admin Panel!
 """
@@ -23,10 +23,10 @@ logging.basicConfig(
     level=logging.INFO,
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler("userbot.log", encoding="utf-8")
+        logging.FileHandler("userbot2.log", encoding="utf-8")
     ]
 )
-logger = logging.getLogger("Userbot")
+logger = logging.getLogger("Userbot2")
 
 try:
     from telethon import TelegramClient, events, utils
@@ -34,10 +34,10 @@ except ImportError:
     logger.error("Telethon is not installed! Please run: pip install telethon")
     sys.exit(1)
 
-# Default configuration file path
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userbot_config.json")
-CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "responded_users.json")
-SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kouprey_personal")
+# Configuration file paths for Account 2
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "userbot_config2.json")
+CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "responded_users2.json")
+SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kouprey_personal2")
 
 # Keywords that re-trigger auto-reply even if customer already chatted before
 TRIGGER_KEYWORDS = [
@@ -156,14 +156,14 @@ async def main():
     # 2. Check if still missing
     if not api_id or not api_hash or str(api_id).strip() == "":
         logger.error("=======================================================")
-        logger.error("❌ កំហុស៖ មិនទាន់មាន api_id និង api_hash នៅឡើយទេ!")
+        logger.error("❌ [Account 2] កំហុស៖ មិនទាន់មាន api_id និង api_hash នៅឡើយទេ!")
         logger.error("👉 សូមចូល my.telegram.org (API development tools) ដើម្បីយក API ID & HASH")
-        logger.error("👉 រួចបញ្ចូលក្នុង userbot_config.json ឬក្នុង Admin Panel (Tab Auto-Reply)")
+        logger.error("👉 រួចបញ្ចូលក្នុង userbot_config2.json (អាចប្រើ api_id & api_hash ដូចគណនីទី ១ បាន)")
         logger.error("=======================================================")
         if sys.stdin.isatty():
             try:
-                api_id = input("បញ្ចូល API ID: ").strip()
-                api_hash = input("បញ្ចូល API HASH: ").strip()
+                api_id = input("បញ្ចូល API ID សម្រាប់គណនីទី ២: ").strip()
+                api_hash = input("បញ្ចូល API HASH សម្រាប់គណនីទី ២: ").strip()
                 config["api_id"] = int(api_id) if api_id.isdigit() else api_id
                 config["api_hash"] = api_hash
                 with open(CONFIG_FILE, "w", encoding="utf-8") as f:
@@ -171,30 +171,30 @@ async def main():
             except Exception:
                 return
         else:
-            logger.error("⚠️ កំពុងដំណើរការក្នុង Background (nohup) ដូច្នេះមិនអាចវាយបញ្ចូលក្នុង Terminal បានទេ សូមកែ file userbot_config.json ដោយផ្ទាល់ជាមុនសិន។")
+            logger.error("⚠️ កំពុងដំណើរការក្នុង Background (nohup) ដូច្នេះមិនអាចវាយបញ្ចូលក្នុង Terminal បានទេ សូមកែ file userbot_config2.json ដោយផ្ទាល់ជាមុនសិន។")
             return
 
     session_file_full = f"{SESSION_FILE}.session"
     if not os.path.exists(session_file_full) and not sys.stdin.isatty():
         logger.error("=======================================================")
-        logger.error("❌ កំហុស៖ មិនទាន់បាន Login លើកដំបូងដើម្បីបង្កើត Session ទេ!")
+        logger.error("❌ [Account 2] កំហុស៖ មិនទាន់បាន Login លើកដំបូងដើម្បីបង្កើត Session ទេ!")
         logger.error("👉 កាលណាប្រើ 'nohup ... &' គឺមិនអាចវាយលេខកូដ Login (OTP Code) បានឡើយ។")
         logger.error("👉 ដំណោះស្រាយ៖ សូមរត់ផ្ទាល់ក្នុង Terminal ដោយមិនប្រើ nohup ជាមុនសិន៖")
-        logger.error("       python3 telegram_userbot.py")
+        logger.error("       python3 telegram_userbot2.py")
         logger.error("   បន្ទាប់ពីវាយលេខទូរស័ព្ទ និងលេខកូដ Telegram ជោគជ័យហើយ ទើបអាចរត់ nohup បាន។")
         logger.error("=======================================================")
         return
 
     client = TelegramClient(SESSION_FILE, int(api_id), str(api_hash))
 
-    logger.info("Connecting to Telegram...")
-    phone_cb = lambda: config.get("phone_number") or (input("បញ្ចូលលេខទូរស័ព្ទ Telegram (ឧ. +855...): ") if sys.stdin.isatty() else None)
+    logger.info("Connecting to Telegram (Account 2)...")
+    phone_cb = lambda: config.get("phone_number") or (input("បញ្ចូលលេខទូរស័ព្ទ Telegram ទី ២ (ឧ. +855...): ") if sys.stdin.isatty() else None)
     await client.start(phone=phone_cb)
 
     me = await client.get_me()
     logger.info("=======================================================")
-    logger.info(f"✓ ភ្ជាប់ជោគជ័យជាមួយ Personal Account: {me.first_name} (@{me.username or 'No username'})")
-    logger.info("✓ Userbot កំពុងរង់ចាំអតិថិជនឆាតមកដំបូង ឬវាយពាក្យ Menu ដើម្បីឆ្លើយតបស្វ័យប្រវត្តិ...")
+    logger.info(f"✓ ភ្ជាប់ជោគជ័យជាមួយ Personal Account 2: {me.first_name} (@{me.username or 'No username'})")
+    logger.info("✓ Userbot 2 កំពុងរង់ចាំអតិថិជនឆាតមកដំបូង ឬវាយពាក្យ Menu ដើម្បីឆ្លើយតបស្វ័យប្រវត្តិ...")
     logger.info("=======================================================")
 
     responded_users = load_responded_cache()
@@ -214,16 +214,16 @@ async def main():
             responded_users.clear()
             save_responded_cache(responded_users)
             await event.reply(
-                f"✅ **បាន Reset ប្រវត្តិអតិថិជនជោគជ័យ!**\n\n"
+                f"✅ **[Account 2] បាន Reset ប្រវត្តិអតិថិជនជោគជ័យ!**\n\n"
                 f"• ចំនួនសម្អាត: {cleared_count} នាក់\n"
-                f"• ពេលនេះ Userbot នឹងឆ្លើយតបស្វាគមន៍ចំពោះអតិថិជនទាំងអស់ឡើងវិញ (ទោះធ្លាប់ឆាតរួចក៏ដោយ)។"
+                f"• ពេលនេះ Userbot 2 នឹងឆ្លើយតបស្វាគមន៍ចំពោះអតិថិជនទាំងអស់ឡើងវិញ។"
             )
-            logger.info(f"Admin reset customer cache via Saved Messages ({cleared_count} records cleared).")
+            logger.info(f"[Account 2] Admin reset customer cache via Saved Messages ({cleared_count} records cleared).")
 
         elif cmd in ["/status", "status"]:
             photo_info = config.get("welcome_photo") or "(គ្មានរូបភាព)"
             await event.reply(
-                f"🤖 **GoGo Brand Userbot Status**\n\n"
+                f"🤖 **GoGo Brand Userbot (Account 2) Status**\n\n"
                 f"• គណនី: {me.first_name} (@{me.username or 'No username'})\n"
                 f"• ស្ថានភាព: កំពុងដំណើរការ (Online)\n"
                 f"• ចំនួនអ្នកធ្លាប់ឆ្លើយតប: {len(responded_users)} នាក់\n"
@@ -281,7 +281,7 @@ async def main():
             preview_msg = preview_msg.replace("https://t.me/kouprey_channel", "https://t.me/gogobrand98")
             preview_msg = re.sub(r'[ \t]+', ' ', preview_msg).strip()
 
-            full_preview = "🔍 **[តេស្តសាកល្បង] ទម្រង់សារ Auto-Reply៖**\n\n" + preview_msg
+            full_preview = "🔍 **[Account 2 តេស្តសាកល្បង] ទម្រង់សារ Auto-Reply៖**\n\n" + preview_msg
 
             if photo_url and (os.path.exists(photo_url) or photo_url.startswith("http")):
                 try:
@@ -323,9 +323,9 @@ async def main():
             return
 
         if is_keyword:
-            logger.info(f"Keyword trigger ('{text}') from {customer_name} (ID: {user_id}). Preparing reply...")
+            logger.info(f"[Account 2] Keyword trigger ('{text}') from {customer_name} (ID: {user_id}). Preparing reply...")
         else:
-            logger.info(f"New customer detected: {customer_name} (@{sender.username or 'none'}). Preparing auto-reply...")
+            logger.info(f"[Account 2] New customer detected: {customer_name} (@{sender.username or 'none'}). Preparing auto-reply...")
 
         # Fetch latest settings from Admin Panel
         settings = fetch_admin_settings(config.get("admin_api_url", ""))
@@ -397,7 +397,7 @@ async def main():
             save_responded_cache(responded_users)
 
         except Exception as err:
-            logger.error(f"Failed to send auto-reply to {user_id}: {err}")
+            logger.error(f"[Account 2] Failed to send auto-reply to {user_id}: {err}")
 
     # Keep running forever
     await client.run_until_disconnected()
@@ -406,4 +406,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        logger.info("Userbot stopped by user.")
+        logger.info("Userbot 2 stopped by user.")
