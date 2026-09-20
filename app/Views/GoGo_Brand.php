@@ -453,6 +453,33 @@ $totalProductCount = count($cleanProducts);
             pointer-events: auto !important;
         }
 
+        /* Subtle and eye-catching floating wave animation (Touch-safe) */
+        @keyframes subtleFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        .fab-bob-1 {
+            animation: subtleFloat 3s ease-in-out infinite;
+        }
+        .fab-bob-2 {
+            animation: subtleFloat 3s ease-in-out 0.5s infinite;
+        }
+        .fab-bob-3 {
+            animation: subtleFloat 3s ease-in-out 1s infinite;
+        }
+
+        #fab-dock a:active .fab-bob-1,
+        #fab-dock a:active .fab-bob-2,
+        #fab-dock button:active .fab-bob-3 {
+            animation-play-state: paused !important;
+            transform: scale(0.92) translateY(0) !important;
+        }
+
         a, button, .category-pill, [onclick] {
             cursor: pointer;
             touch-action: manipulation;
@@ -724,7 +751,7 @@ $totalProductCount = count($cleanProducts);
     </div>
 
     <!-- ───────────────────────────────────────────────────────────── -->
-    <!-- Floating Action Dock (Bottom Right: Website, Address, Contact) -->
+    <!-- Floating Action Dock (Bottom Right: Website, Address, About) -->
     <!-- ───────────────────────────────────────────────────────────── -->
     <div id="fab-dock" aria-label="Quick Actions" class="transition-all duration-300">
         <!-- 1. Website Button -->
@@ -732,9 +759,9 @@ $totalProductCount = count($cleanProducts);
            target="_blank" 
            rel="noopener noreferrer"
            onclick="openWebsiteLink(event)"
-           class="group flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer pointer-events-auto"
+           class="group flex flex-col items-center justify-center active:scale-95 transition-transform cursor-pointer pointer-events-auto"
            aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
-            <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 active:bg-blue-100 transition-all shadow-blue-500/10 pointer-events-auto">
+            <div class="fab-bob-1 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 active:bg-blue-100 transition-all shadow-blue-500/10 pointer-events-auto">
                 <i class="fas fa-globe text-base pointer-events-auto"></i>
             </div>
             <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-none pointer-events-auto">
@@ -747,9 +774,9 @@ $totalProductCount = count($cleanProducts);
            target="_blank" 
            rel="noopener noreferrer"
            onclick="openMapsLink(event)"
-           class="group flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer pointer-events-auto"
+           class="group flex flex-col items-center justify-center active:scale-95 transition-transform cursor-pointer pointer-events-auto"
            aria-label="<?php echo $currentLanguage === 'km' ? 'អាសយដ្ឋាន' : 'Address'; ?>">
-            <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 active:bg-emerald-100 transition-all shadow-emerald-500/10 pointer-events-auto">
+            <div class="fab-bob-2 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 active:bg-emerald-100 transition-all shadow-emerald-500/10 pointer-events-auto">
                 <i class="fas fa-map-marker-alt text-base pointer-events-auto"></i>
             </div>
             <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-none pointer-events-auto">
@@ -757,16 +784,16 @@ $totalProductCount = count($cleanProducts);
             </span>
         </a>
 
-        <!-- 3. Contact Button (Store Info, Phone, Telegram Support) -->
+        <!-- 3. About Us Button (Store Info, Phone, Telegram Support) -->
         <button type="button"
                 onclick="openAboutModal(event)"
-                class="group flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer pointer-events-auto"
-                aria-label="<?php echo $currentLanguage === 'km' ? 'ទំនាក់ទំនង' : 'Contact'; ?>">
-            <div class="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 active:bg-orange-100 transition-all shadow-orange-500/10 pointer-events-auto">
-                <i class="fas fa-headset text-base pointer-events-auto"></i>
+                class="group flex flex-col items-center justify-center active:scale-95 transition-transform cursor-pointer pointer-events-auto"
+                aria-label="<?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About Us'; ?>">
+            <div class="fab-bob-3 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 active:bg-orange-100 transition-all shadow-orange-500/10 pointer-events-auto">
+                <i class="fas fa-info text-base pointer-events-auto"></i>
             </div>
             <span class="text-[9px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-2xs mt-0.5 border border-gray-200/60 leading-none pointer-events-auto">
-                <?php echo $currentLanguage === 'km' ? 'ទំនាក់ទំនង' : 'Contact'; ?>
+                <?php echo $currentLanguage === 'km' ? 'អំពីយើង' : 'About Us'; ?>
             </span>
         </button>
     </div>
