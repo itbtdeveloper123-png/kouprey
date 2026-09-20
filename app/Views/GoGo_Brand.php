@@ -408,35 +408,12 @@ $totalProductCount = count($cleanProducts);
             border-radius: 9999px;
         }
 
-        @keyframes gentleBob {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-4px);
-            }
-        }
-
-        .fab-float-1 {
-            animation: gentleBob 2.8s ease-in-out infinite;
-        }
-        .fab-float-2 {
-            animation: gentleBob 2.8s ease-in-out 0.4s infinite;
-        }
-        .fab-float-3 {
-            animation: gentleBob 2.8s ease-in-out 0.8s infinite;
-        }
-
-        .fab-float-1:active, .fab-float-2:active, .fab-float-3:active {
-            animation-play-state: paused;
-        }
-
         /* Quick Actions Floating Dock (Bottom Right Stack) */
         #fab-dock {
             position: fixed !important;
             z-index: 45 !important;
             right: 16px;
-            bottom: calc(1.5rem + var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+            bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -452,11 +429,10 @@ $totalProductCount = count($cleanProducts);
             }
         }
 
-        #fab-dock a,
         #fab-dock button {
             cursor: pointer !important;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation !important;
+            -webkit-tap-highlight-color: transparent !important;
             text-decoration: none;
             outline: none;
             border: none;
@@ -467,12 +443,12 @@ $totalProductCount = count($cleanProducts);
             display: flex;
             flex-direction: column;
             align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        #fab-dock a div,
-        #fab-dock button div {
+        #fab-dock button * {
             pointer-events: auto !important;
-            cursor: pointer !important;
         }
 
         a, button, .category-pill, [onclick] {
@@ -748,50 +724,46 @@ $totalProductCount = count($cleanProducts);
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- Floating Action Dock (Bottom Right: Website, Address, Contact) -->
     <!-- ───────────────────────────────────────────────────────────── -->
-    <aside id="fab-dock" aria-label="Quick Actions" class="transition-all duration-300">
+    <div id="fab-dock" aria-label="Quick Actions" class="transition-all duration-300">
         <!-- 1. Website Button -->
-        <a href="<?php echo htmlspecialchars($websiteUrl); ?>" 
-           onclick="openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event);" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="group flex flex-col items-center focus:outline-none active:scale-90 transition-transform cursor-pointer pointer-events-auto"
-           aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
-            <div class="fab-float-1 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 active:bg-blue-100 transition-all shadow-blue-500/10">
-                <i class="fas fa-globe text-lg"></i>
+        <button type="button"
+                onclick="openWebsiteLink(event)"
+                class="group flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer pointer-events-auto"
+                aria-label="<?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>">
+            <div class="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-blue-600 group-hover:scale-105 group-hover:bg-blue-50 group-hover:border-blue-300 active:bg-blue-100 transition-all shadow-blue-500/10 pointer-events-auto">
+                <i class="fas fa-globe text-lg pointer-events-auto"></i>
             </div>
             <span class="text-[10px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-2xs mt-1 border border-gray-200/60 leading-none pointer-events-auto">
                 <?php echo $currentLanguage === 'km' ? 'គេហទំព័រ' : 'Website'; ?>
             </span>
-        </a>
+        </button>
 
         <!-- 2. Address Button (Google Maps) -->
-        <a href="<?php echo htmlspecialchars($mapsUrl); ?>" 
-           onclick="openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event);" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="group flex flex-col items-center focus:outline-none active:scale-90 transition-transform cursor-pointer pointer-events-auto"
-           aria-label="<?php echo $currentLanguage === 'km' ? 'អាសយដ្ឋាន' : 'Address'; ?>">
-            <div class="fab-float-2 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 active:bg-emerald-100 transition-all shadow-emerald-500/10">
-                <i class="fas fa-map-marker-alt text-lg"></i>
+        <button type="button"
+                onclick="openMapsLink(event)"
+                class="group flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer pointer-events-auto"
+                aria-label="<?php echo $currentLanguage === 'km' ? 'អាសយដ្ឋាន' : 'Address'; ?>">
+            <div class="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-emerald-600 group-hover:scale-105 group-hover:bg-emerald-50 group-hover:border-emerald-300 active:bg-emerald-100 transition-all shadow-emerald-500/10 pointer-events-auto">
+                <i class="fas fa-map-marker-alt text-lg pointer-events-auto"></i>
             </div>
             <span class="text-[10px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-2xs mt-1 border border-gray-200/60 leading-none pointer-events-auto">
                 <?php echo $currentLanguage === 'km' ? 'អាសយដ្ឋាន' : 'Address'; ?>
             </span>
-        </a>
+        </button>
 
         <!-- 3. Contact Button (Store Info, Phone, Telegram Support) -->
-        <button onclick="openAboutModal()" 
-                type="button"
-                class="group flex flex-col items-center focus:outline-none active:scale-90 transition-transform cursor-pointer pointer-events-auto"
+        <button type="button"
+                onclick="openAboutModal(event)"
+                class="group flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer pointer-events-auto"
                 aria-label="<?php echo $currentLanguage === 'km' ? 'ទំនាក់ទំនង' : 'Contact'; ?>">
-            <div class="fab-float-3 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 active:bg-orange-100 transition-all shadow-orange-500/10">
-                <i class="fas fa-headset text-lg"></i>
+            <div class="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-200/90 flex items-center justify-center text-orange-600 group-hover:scale-105 group-hover:bg-orange-50 group-hover:border-orange-300 active:bg-orange-100 transition-all shadow-orange-500/10 pointer-events-auto">
+                <i class="fas fa-headset text-lg pointer-events-auto"></i>
             </div>
             <span class="text-[10px] font-bold text-gray-700 bg-white/95 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-2xs mt-1 border border-gray-200/60 leading-none pointer-events-auto">
                 <?php echo $currentLanguage === 'km' ? 'ទំនាក់ទំនង' : 'Contact'; ?>
             </span>
         </button>
-    </aside>
+    </div>
 
     <!-- ───────────────────────────────────────────────────────────── -->
     <!-- About Store Modal (Bottom Sheet - Brand Info, Maps, Contact) -->
@@ -1813,8 +1785,19 @@ $totalProductCount = count($cleanProducts);
             }
         }
 
+        function openWebsiteLink(event) {
+            openExternalUrl('<?php echo htmlspecialchars($websiteUrl); ?>', event);
+        }
+
+        function openMapsLink(event) {
+            openExternalUrl('<?php echo htmlspecialchars($mapsUrl); ?>', event);
+        }
+
         // Open & Close About Store Modal
-        function openAboutModal() {
+        function openAboutModal(event) {
+            if (event && typeof event.stopPropagation === 'function') {
+                event.stopPropagation();
+            }
             hapticFeedback('medium');
             const dock = document.getElementById('fab-dock');
             if (dock) dock.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
